@@ -1,0 +1,439 @@
+Build a complete enterprise-grade B2B + B2C eCommerce platform for a plumbing and sanitaryware brand called "PRAYAG".
+
+TECH STACK
+
+Frontend:
+- Next.js 15 App Router
+- TypeScript
+- Tailwind CSS
+- Shadcn UI
+- React Hook Form
+- Zustand
+
+Backend:
+- Next.js Server Actions
+- Prisma ORM
+- PostgreSQL
+
+Authentication:
+- NextAuth
+- JWT
+- Role Based Access
+
+Storage:
+- Cloudinary
+
+Payments:
+- Razorpay Integration
+
+UI REQUIREMENTS
+
+Design should look modern and premium like Amazon, Kohler, Jaquar, CERA, Asian Paints and Prayag.
+
+Primary Colors:
+- Dark Blue #0047AB
+- White
+- Light Gray Backgrounds
+
+Typography:
+- Modern Sans Serif
+- Professional Corporate Design
+
+Responsive:
+- Mobile
+- Tablet
+- Desktop
+
+==================================
+HEADER
+==================================
+
+Create a sticky header.
+
+Top Bar:
+- Find Dealer
+- Track Order
+- Download Catalogue
+- Bulk Order
+- Customer Care Number
+
+Main Header:
+- Prayag Logo
+- Category Dropdown
+- Search Bar
+- Wishlist Icon
+- Account Dropdown
+- Cart Icon
+
+Navigation:
+- CP Faucets
+- PTMT Faucets
+- Sanitaryware
+- Kitchen Sinks
+- Water Heaters
+- Pipes & Fittings
+- Bathroom Accessories
+- More Categories
+
+Mega Menu on Hover.
+
+==================================
+HOMEPAGE
+==================================
+
+Hero Section:
+- Large Bathroom Banner
+- Premium Faucet Image
+- CTA Button Shop Now
+- CTA Button Become Dealer
+
+Features Strip:
+- 4500+ Products
+- Pan India Network
+- Premium Quality
+- Fast Delivery
+
+Shop By Category Section
+
+Display Categories:
+
+1. CP Faucets
+2. PTMT Faucets
+3. Sanitaryware
+4. Kitchen Sinks
+5. Water Heaters
+6. Bathroom Accessories
+7. Pipes & Fittings
+8. Flush Tanks
+
+Each category card should have:
+- Image
+- Name
+- Explore Button
+
+Best Sellers Section
+
+Product Cards:
+- Product Image
+- SKU
+- Product Name
+- Price
+- Discount
+- Rating
+- Add To Cart
+- Wishlist
+
+New Arrivals Section
+
+Dealer Registration Banner
+
+Why Choose Prayag Section:
+
+- 4500+ Products
+- Nationwide Distribution
+- Premium Manufacturing
+- Fast Delivery
+
+Testimonials Section
+
+Footer:
+- About Us
+- Dealer Locator
+- Track Order
+- Contact Us
+- Privacy Policy
+- Terms
+- Social Links
+- Newsletter
+
+==================================
+PRODUCT LISTING PAGE
+==================================
+
+URL:
+/products
+
+Features:
+
+Sidebar Filters
+
+Category Filter
+Price Filter
+Brand Filter
+Rating Filter
+Availability Filter
+
+Top Toolbar
+
+Search
+Sort By
+Grid/List View
+
+Product Grid
+
+Product Card:
+
+Image
+SKU
+Name
+Price
+MRP
+Discount
+Rating
+Stock Status
+
+Pagination
+
+==================================
+PRODUCT DETAIL PAGE
+==================================
+
+URL:
+/products/[slug]
+
+Gallery:
+- Multiple Images
+- Zoom
+
+Product Info:
+- Product Name
+- SKU
+- Price
+- GST
+- Availability
+
+Buttons:
+- Add To Cart
+- Buy Now
+- Add To Wishlist
+
+Tabs:
+
+Description
+Specifications
+Downloads
+Warranty
+
+Related Products Section
+
+==================================
+CART PAGE
+==================================
+
+Features:
+
+Product Summary
+Quantity Update
+Coupon Code
+GST Breakdown
+Shipping Charges
+Grand Total
+
+Proceed To Checkout
+
+==================================
+CHECKOUT PAGE
+==================================
+
+Address Form
+
+Shipping Address
+Billing Address
+
+Payment Methods
+
+COD
+Razorpay
+Net Banking
+UPI
+Card
+
+Order Summary
+
+Place Order
+
+==================================
+CUSTOMER DASHBOARD
+==================================
+
+URL:
+/account
+
+Sections:
+
+Profile
+Addresses
+Orders
+Wishlist
+Returns
+Support Tickets
+
+==================================
+DEALER PORTAL
+==================================
+
+URL:
+/dealer
+
+Dealer Login
+
+Dashboard Widgets:
+
+Monthly Orders
+Outstanding Amount
+Pending Orders
+Delivered Orders
+
+Dealer Features:
+
+Place Bulk Orders
+Upload Excel Orders
+View Schemes
+Download Catalogues
+Order Tracking
+Invoices
+Statements
+
+==================================
+ADMIN PANEL
+==================================
+
+URL:
+/admin
+
+Admin Dashboard
+
+Widgets:
+
+Revenue
+Orders
+Customers
+Dealers
+Products
+
+Modules:
+
+Product Management
+Category Management
+Inventory Management
+Order Management
+Dealer Management
+Customer Management
+Coupon Management
+Banner Management
+Reports
+
+==================================
+ORDER MANAGEMENT
+==================================
+
+Statuses:
+
+Pending
+Confirmed
+Packed
+Dispatched
+Delivered
+Cancelled
+
+Tracking Timeline
+
+==================================
+DATABASE MODELS
+==================================
+
+User
+Role
+Customer
+Dealer
+Product
+Category
+ProductImage
+Inventory
+Order
+OrderItem
+Cart
+Wishlist
+Address
+Coupon
+Banner
+Invoice
+SupportTicket
+
+==================================
+EXTRA FEATURES
+==================================
+
+Dealer Specific Pricing
+
+Bulk Order Upload
+
+GST Invoice Generation
+
+Order Tracking
+
+Dealer Locator
+
+Pincode Serviceability
+
+Search Suggestions
+
+Recently Viewed Products
+
+Wishlist
+
+Product Comparison
+
+Notifications
+
+Email Templates
+
+SEO Optimization
+
+Schema Markup
+
+Sitemap
+
+==================================
+UI QUALITY
+==================================
+
+Create production-ready UI.
+
+Use professional spacing.
+
+Use modern cards.
+
+Use subtle shadows.
+
+Use loading skeletons.
+
+Use empty states.
+
+Use beautiful hover animations.
+
+Use reusable components.
+
+Use TypeScript everywhere.
+
+Generate complete folder structure.
+
+Generate all pages.
+
+Generate reusable components.
+
+Generate Prisma schema.
+
+Generate seed data.
+
+Generate API routes.
+
+Generate authentication flow.
+
+Generate admin dashboard.
+
+Generate dealer dashboard.
+
+Generate responsive layouts.
+
+The final application should look like a premium enterprise eCommerce platform suitable for a large Indian plumbing and sanitaryware brand.
