@@ -15,6 +15,8 @@ import AdminPage from "@/pages/AdminPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import DealerRegistrationPage from "@/pages/DealerRegistrationPage";
+import DistributorPage from "@/pages/DistributorPage";
+import DistributorRegistrationPage from "@/pages/DistributorRegistrationPage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30000 } },
@@ -52,6 +54,7 @@ function Router() {
     <Switch>
       <Route path="/admin" component={() => <AdminPage />} />
       <Route path="/dealer" component={() => <DealerPage />} />
+      <Route path="/distributor" component={() => <DistributorPage />} />
       <Route path="*">
         {() => (
           <WithLayout>
@@ -68,6 +71,7 @@ function Router() {
               <Route path="/login" component={LoginPage} />
               <Route path="/register" component={RegisterPage} />
               <Route path="/dealer-registration" component={DealerRegistrationPage} />
+              <Route path="/distributor-registration" component={DistributorRegistrationPage} />
               <Route component={NotFound} />
             </Switch>
           </WithLayout>

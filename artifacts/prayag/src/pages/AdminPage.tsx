@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Package, Users, Building2, ShoppingBag, IndianRupee, LayoutDashboard, Settings, ChevronDown } from "lucide-react";
+import { Package, Users, Building2, ShoppingBag, IndianRupee, LayoutDashboard, Truck } from "lucide-react";
 import { useGetAdminDashboard, useGetRevenueStats, useListAdminOrders, useListAdminProducts, useListAdminCustomers, useListAdminDealers, useUpdateOrderStatus, getListAdminOrdersQueryKey } from "@workspace/api-client-react";
+import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +13,7 @@ const navItems = [
   { id: "orders", label: "Orders", icon: Package },
   { id: "customers", label: "Customers", icon: Users },
   { id: "dealers", label: "Dealers", icon: Building2 },
+  { id: "distributors", label: "Distributors", icon: Truck },
 ];
 
 const statusColors: Record<string, string> = {
@@ -34,6 +36,7 @@ export default function AdminPage() {
   const { data: productsData } = useListAdminProducts({});
   const { data: customers } = useListAdminCustomers({});
   const { data: dealers } = useListAdminDealers({});
+  const { data: distributors } = useQuery({ queryKey: ["admin-distributors"], queryFn: async () => { const r = await fetch("/api/admin/distributors"); return r.json(); } });
   const updateStatus = useUpdateOrderStatus();
 
   function handleStatusChange(orderId: number, status: string) {
@@ -218,6 +221,41 @@ export default function AdminPage() {
                       <td className="px-4 py-3 text-gray-500">{d.contactName}</td>
                       <td className="px-4 py-3 text-gray-500">{d.city || "-"}</td>
                       <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-0.5 rounded-full ${d.status === "active" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{d.status}</span></td>
+                      <td className="px-4 py-3 text-gray-400 text-xs">{new Date(d.createdAt).toLocaleDateString("en-IN")}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {active === "distributors" && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">Distributor Management</h1>
+              <span className="text-xs bg-indigo-100 text-indigo-700 font-semibold px-3 py-1 rounded-full">{(distributors || []).length} registered</span>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>{["Business", "Contact", "Territory", "Credit Limit", "Annual Target", "Status", "Joined"].map(h => (
+                    <th key={h} className="text-left px-4 py-2.5 text-xs font-medium text-gray-500 uppercase">{h}</th>
+                  ))}</tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {(distributors || []).length === 0 ? (
+                    <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">No distributors registered yet</td></tr>
+                  ) : (distributors || []).map((d: any) => (
+                    <tr key={d.id} className="hover:bg-gray-50" data-testid={`row-distributor-${d.id}`}>
+                      <td className="px-4 py-3 font-medium">{d.businessName}</td>
+                      <td className="px-4 py-3 text-gray-500">{d.contactName}<br /><span className="text-xs text-gray-400">{d.email}</span></td>
+                      <td className="px-4 py-3 text-gray-500">{d.territory || "-"}</td>
+                      <td className="px-4 py-3 text-gray-700">{d.creditLimit ? `₹${(d.creditLimit / 100000).toFixed(1)}L` : "-"}</td>
+                      <td className="px-4 py-3 text-gray-700">{d.annualTarget ? `₹${(d.annualTarget / 100000).toFixed(0)}L` : "-"}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${d.status === "active" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{d.status}</span>
+                      </td>
                       <td className="px-4 py-3 text-gray-400 text-xs">{new Date(d.createdAt).toLocaleDateString("en-IN")}</td>
                     </tr>
                   ))}

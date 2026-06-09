@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, Heart, ShoppingCart, User, ChevronDown, Menu, X, Phone, MapPin, Package, BookOpen, Building2 } from "lucide-react";
+import { Search, Heart, ShoppingCart, User, ChevronDown, Menu, X, Phone, MapPin, Package, BookOpen, Building2, Truck } from "lucide-react";
 import { useCartStore, useAuthStore } from "@/lib/store";
 import { useGetCart, useGetSearchSuggestions, getGetSearchSuggestionsQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -57,7 +57,10 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-8">
           <div className="flex items-center gap-4">
             <Link href="/dealer-registration" className="flex items-center gap-1 hover:text-blue-200 transition-colors">
-              <Building2 className="w-3 h-3" /> Find Dealer
+              <Building2 className="w-3 h-3" /> Become a Dealer
+            </Link>
+            <Link href="/distributor-registration" className="flex items-center gap-1 hover:text-blue-200 transition-colors">
+              <Truck className="w-3 h-3" /> Become a Distributor
             </Link>
             <Link href="/account/orders" className="flex items-center gap-1 hover:text-blue-200 transition-colors">
               <Package className="w-3 h-3" /> Track Order
@@ -134,6 +137,7 @@ export default function Header() {
                     <Link href="/account/orders" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>My Orders</Link>
                     {user.role === "admin" && <Link href="/admin" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Admin Panel</Link>}
                     {user.role === "dealer" && <Link href="/dealer" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Dealer Portal</Link>}
+                    {user.role === "distributor" && <Link href="/distributor" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Distributor Portal</Link>}
                     <hr className="my-1" />
                     <button onClick={() => { logout(); setShowUserMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Sign Out</button>
                   </>
@@ -142,6 +146,7 @@ export default function Header() {
                     <Link href="/login" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Sign In</Link>
                     <Link href="/register" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Register</Link>
                     <Link href="/dealer-registration" className="block px-4 py-2 text-sm text-[hsl(215,100%,34%)] hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Become a Dealer</Link>
+                    <Link href="/distributor-registration" className="block px-4 py-2 text-sm text-[hsl(215,100%,34%)] hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Become a Distributor</Link>
                   </>
                 )}
               </div>

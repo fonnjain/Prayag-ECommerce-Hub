@@ -5,4 +5,5 @@ export * from "./orders";
 export * from "./cart";
 export * from "./wishlist";
 export * from "./dealers";
+export * from "./distributors";
 export * from "./banners";
