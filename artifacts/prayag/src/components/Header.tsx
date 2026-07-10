@@ -79,9 +79,9 @@ export default function Header() {
             <Link href="/account/orders" className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors">
               <Package className="w-3 h-3" /> Track Order
             </Link>
-            <a href="#" className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors">
+            <Link href="/products" className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors">
               <BookOpen className="w-3 h-3" /> Download Catalogue
-            </a>
+            </Link>
             {/* Bulk Order dropdown */}
             <div ref={bulkRef} className="relative">
               <button

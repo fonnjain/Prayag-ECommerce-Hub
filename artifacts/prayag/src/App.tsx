@@ -17,6 +17,10 @@ import RegisterPage from "@/pages/RegisterPage";
 import DealerRegistrationPage from "@/pages/DealerRegistrationPage";
 import DistributorPage from "@/pages/DistributorPage";
 import DistributorRegistrationPage from "@/pages/DistributorRegistrationPage";
+import AboutPage from "@/pages/AboutPage";
+import FaqPage from "@/pages/FaqPage";
+import CareersPage from "@/pages/CareersPage";
+import PolicyPage from "@/pages/PolicyPage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30000 } },
@@ -28,10 +32,10 @@ function NotFound() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center text-center px-4">
       <div>
-        <div className="text-8xl font-black text-[hsl(215,100%,34%)] mb-4">404</div>
+        <div className="text-8xl font-black text-gradient-gold mb-4">404</div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Page Not Found</h1>
         <p className="text-gray-500 mb-6">The page you're looking for doesn't exist.</p>
-        <a href={`${BASE}/`} className="bg-[hsl(215,100%,34%)] text-white font-bold px-8 py-3 rounded-xl hover:bg-[hsl(215,100%,28%)] transition-colors inline-block">
+        <a href={`${BASE}/`} className="bg-[hsl(24,10%,16%)] text-white font-bold px-8 py-3 rounded-xl hover:bg-[hsl(24,10%,12%)] transition-colors inline-block">
           Go to Homepage
         </a>
       </div>
@@ -72,6 +76,13 @@ function Router() {
               <Route path="/register" component={RegisterPage} />
               <Route path="/dealer-registration" component={DealerRegistrationPage} />
               <Route path="/distributor-registration" component={DistributorRegistrationPage} />
+              <Route path="/about" component={AboutPage} />
+              <Route path="/faq" component={FaqPage} />
+              <Route path="/careers" component={CareersPage} />
+              <Route path="/shipping-policy">{() => <PolicyPage type="shipping" />}</Route>
+              <Route path="/returns">{() => <PolicyPage type="returns" />}</Route>
+              <Route path="/privacy-policy">{() => <PolicyPage type="privacy" />}</Route>
+              <Route path="/terms">{() => <PolicyPage type="terms" />}</Route>
               <Route component={NotFound} />
             </Switch>
           </WithLayout>

@@ -13,19 +13,19 @@ const shopLinks = [
 ];
 
 const infoLinks = [
-  { label: "About Us", href: "#" },
+  { label: "About Us", href: "/about" },
   { label: "Dealer Locator", href: "/dealer-registration" },
-  { label: "FAQs", href: "#" },
+  { label: "FAQs", href: "/faq" },
   { label: "Track Order", href: "/account/orders" },
-  { label: "Download Catalogue", href: "#" },
-  { label: "Careers", href: "#" },
+  { label: "Download Catalogue", href: "/products" },
+  { label: "Careers", href: "/careers" },
 ];
 
 const serviceLinks = [
-  { label: "Shipping Policy", href: "#" },
-  { label: "Returns & Refunds", href: "#" },
-  { label: "Privacy Policy", href: "#" },
-  { label: "Terms & Conditions", href: "#" },
+  { label: "Shipping Policy", href: "/shipping-policy" },
+  { label: "Returns & Refunds", href: "/returns" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Terms & Conditions", href: "/terms" },
   { label: "Bulk Order", href: "/dealer" },
 ];
 
@@ -46,12 +46,12 @@ export default function Footer() {
             </p>
             <div className="flex gap-3">
               {[
-                { Icon: SiFacebook, label: "Facebook" },
-                { Icon: SiInstagram, label: "Instagram" },
-                { Icon: SiX, label: "X" },
-                { Icon: SiYoutube, label: "YouTube" },
-              ].map(({ Icon, label }) => (
-                <a key={label} href="#" className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-gray-400 hover:bg-gold-gradient hover:text-[hsl(24,14%,8%)] hover:border-transparent transition-all" aria-label={label}>
+                { Icon: SiFacebook, label: "Facebook", href: "https://www.facebook.com/prayagindia" },
+                { Icon: SiInstagram, label: "Instagram", href: "https://www.instagram.com/prayagindia" },
+                { Icon: SiX, label: "X", href: "https://x.com/prayagindia" },
+                { Icon: SiYoutube, label: "YouTube", href: "https://www.youtube.com/@prayagindia" },
+              ].map(({ Icon, label, href }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-gray-400 hover:bg-gold-gradient hover:text-[hsl(24,14%,8%)] hover:border-transparent transition-all" aria-label={label}>
                   <Icon className="w-4 h-4" />
                 </a>
               ))}
