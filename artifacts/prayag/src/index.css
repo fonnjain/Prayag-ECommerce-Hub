@@ -221,6 +221,67 @@
 @layer utilities {
   input[type="search"]::-webkit-search-cancel-button { @apply hidden; }
 
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+  /* ── Liquid Precision animations ── */
+  @keyframes blob {
+    0%, 100% { transform: translate(0,0) scale(1); border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%; }
+    33% { transform: translate(30px,-40px) scale(1.08); border-radius: 58% 42% 33% 67% / 63% 68% 32% 37%; }
+    66% { transform: translate(-20px,20px) scale(0.95); border-radius: 33% 67% 58% 42% / 37% 41% 59% 63%; }
+  }
+  .animate-blob { animation: blob 18s ease-in-out infinite; }
+
+  @keyframes float-y {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+  }
+  .animate-float { animation: float-y 5s ease-in-out infinite; }
+
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .animate-gradient { background-size: 200% 200%; animation: gradient-shift 8s ease infinite; }
+
+  @keyframes shimmer {
+    100% { transform: translateX(100%); }
+  }
+  .shimmer-hover { position: relative; overflow: hidden; }
+  .shimmer-hover::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.45) 50%, transparent 70%);
+    transform: translateX(-100%);
+  }
+  .shimmer-hover:hover::after { animation: shimmer 0.9s ease; }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee { animation: marquee 28s linear infinite; }
+
+  .glass {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.22);
+  }
+  .text-gradient-blue {
+    background: linear-gradient(120deg, hsl(215,100%,55%), hsl(200,100%,45%), hsl(215,100%,34%));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-blob, .animate-float, .animate-gradient, .animate-marquee { animation: none !important; }
+    .shimmer-hover:hover::after { animation: none !important; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   .no-default-hover-elevate {}
   .no-default-active-elevate {}
 

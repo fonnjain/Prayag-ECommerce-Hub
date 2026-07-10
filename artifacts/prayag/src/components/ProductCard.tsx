@@ -1,5 +1,6 @@
-import { Heart, ShoppingCart, Star } from "lucide-react";
+import { Heart, ShoppingCart, Star, Eye } from "lucide-react";
 import { Link } from "wouter";
+import { motion } from "framer-motion";
 import { useAddToCart, useAddToWishlist } from "@workspace/api-client-react";
 import { useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -25,7 +26,7 @@ interface Props {
 
 export default function ProductCard({ product }: Props) {
   const { toast } = useToast();
-  const { setItemCount, itemCount } = useCartStore();
+  const { setItemCount } = useCartStore();
   const addToCart = useAddToCart();
   const addToWishlist = useAddToWishlist();
 
@@ -48,10 +49,14 @@ export default function ProductCard({ product }: Props) {
 
   return (
     <Link href={`/products/${product.slug}`} data-testid={`card-product-${product.id}`}>
-      <div className="group bg-white rounded-xl border border-gray-100 hover:border-[hsl(215,100%,34%)] hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer">
-        <div className="relative aspect-square bg-gray-50 overflow-hidden">
+      <motion.div
+        whileHover={{ y: -8 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[hsl(215,100%,34%)]/40 hover:shadow-[0_20px_40px_-12px_rgba(0,71,171,0.25)] transition-shadow duration-300 overflow-hidden cursor-pointer h-full"
+      >
+        <div className="relative aspect-square bg-gradient-to-br from-blue-50/60 to-gray-50 overflow-hidden">
           {product.imageUrl ? (
-            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <div className="w-16 h-16 bg-[hsl(215,100%,34%)]/10 rounded-full flex items-center justify-center">
@@ -59,24 +64,32 @@ export default function ProductCard({ product }: Props) {
               </div>
             </div>
           )}
+
           {product.discount && product.discount > 0 && (
-            <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full" data-testid={`text-discount-${product.id}`}>
+            <div className="absolute top-2.5 left-2.5 bg-gradient-to-r from-[hsl(215,100%,34%)] to-[hsl(200,100%,42%)] text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md" data-testid={`text-discount-${product.id}`}>
               -{product.discount}%
             </div>
           )}
           {product.inStock === false && (
-            <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+            <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
               <span className="bg-gray-800 text-white text-xs font-medium px-3 py-1 rounded-full">Out of Stock</span>
             </div>
           )}
-          <button onClick={handleWishlist} className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500" data-testid={`button-wishlist-${product.id}`}>
-            <Heart className="w-4 h-4" />
-          </button>
+
+          {/* Floating quick actions */}
+          <div className="absolute top-2.5 right-2.5 flex flex-col gap-2 translate-x-12 group-hover:translate-x-0 group-focus-within:translate-x-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-300">
+            <button onClick={handleWishlist} aria-label={`Add ${product.name} to wishlist`} className="w-9 h-9 bg-white/95 backdrop-blur rounded-full shadow-md flex items-center justify-center hover:bg-red-500 hover:text-white text-gray-600 transition-colors" data-testid={`button-wishlist-${product.id}`}>
+              <Heart className="w-4 h-4" />
+            </button>
+            <span aria-hidden="true" className="w-9 h-9 bg-white/95 backdrop-blur rounded-full shadow-md flex items-center justify-center group-hover:bg-[hsl(215,100%,34%)] group-hover:text-white text-gray-600 transition-colors">
+              <Eye className="w-4 h-4" />
+            </span>
+          </div>
         </div>
 
-        <div className="p-3">
+        <div className="p-3.5">
           <div className="text-[10px] text-gray-400 font-mono mb-0.5" data-testid={`text-sku-${product.id}`}>SKU: {product.sku}</div>
-          <div className="text-sm font-medium text-gray-900 line-clamp-2 leading-snug mb-2 group-hover:text-[hsl(215,100%,34%)] transition-colors" data-testid={`text-name-${product.id}`}>
+          <div className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-2 group-hover:text-[hsl(215,100%,34%)] transition-colors" data-testid={`text-name-${product.id}`}>
             {product.name}
           </div>
           <div className="flex items-center gap-1 mb-2">
@@ -88,7 +101,7 @@ export default function ProductCard({ product }: Props) {
             <span className="text-[10px] text-gray-400">({product.reviewCount})</span>
           </div>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-base font-bold text-gray-900" data-testid={`text-price-${product.id}`}>
+            <span className="text-base font-black text-gray-900" data-testid={`text-price-${product.id}`}>
               ₹{product.price.toLocaleString("en-IN")}
             </span>
             {product.mrp > product.price && (
@@ -97,14 +110,16 @@ export default function ProductCard({ product }: Props) {
               </span>
             )}
           </div>
-          <button onClick={handleAddToCart} disabled={!product.inStock || addToCart.isPending}
-            className="w-full bg-[hsl(215,100%,34%)] text-white text-xs font-medium py-2 rounded-lg hover:bg-[hsl(215,100%,28%)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={handleAddToCart} disabled={!product.inStock || addToCart.isPending}
+            className="shimmer-hover w-full bg-gradient-to-r from-[hsl(215,100%,34%)] to-[hsl(210,100%,40%)] text-white text-xs font-bold py-2.5 rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-shadow flex items-center justify-center gap-1.5"
             data-testid={`button-add-cart-${product.id}`}>
             <ShoppingCart className="w-3.5 h-3.5" />
             {addToCart.isPending ? "Adding..." : "Add to Cart"}
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
     </Link>
   );
 }
