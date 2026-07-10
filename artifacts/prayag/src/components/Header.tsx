@@ -37,8 +37,10 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showBulkMenu, setShowBulkMenu] = useState(false);
   const [showCatMenu, setShowCatMenu] = useState(false);
+  const [showNavCatMenu, setShowNavCatMenu] = useState(false);
   const bulkRef = useRef<HTMLDivElement>(null);
   const catRef = useRef<HTMLDivElement>(null);
+  const navCatRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
 
@@ -55,6 +57,7 @@ export default function Header() {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) setShowSuggestions(false);
       if (bulkRef.current && !bulkRef.current.contains(e.target as Node)) setShowBulkMenu(false);
       if (catRef.current && !catRef.current.contains(e.target as Node)) setShowCatMenu(false);
+      if (navCatRef.current && !navCatRef.current.contains(e.target as Node)) setShowNavCatMenu(false);
       if (userRef.current && !userRef.current.contains(e.target as Node)) setShowUserMenu(false);
     }
     document.addEventListener("mousedown", handler);
@@ -242,9 +245,25 @@ export default function Header() {
       {/* ── NAV BAR ── */}
       <nav className="bg-[hsl(24,10%,16%)] hidden md:block">
         <div className="max-w-7xl mx-auto px-4 flex items-center">
-          <button className="flex items-center gap-1.5 text-white text-sm font-semibold px-4 py-2.5 bg-[hsl(24,10%,12%)] hover:bg-[hsl(24,10%,9%)] transition-colors border-r border-[hsl(24,10%,12%)]">
-            <Grid3X3 className="w-3.5 h-3.5" /> All Categories <ChevronDown className="w-3 h-3" />
-          </button>
+          <div ref={navCatRef} className="relative flex-shrink-0">
+            <button onClick={() => setShowNavCatMenu(p => !p)}
+              className="flex items-center gap-1.5 text-white text-sm font-semibold px-4 py-2.5 bg-[hsl(24,10%,12%)] hover:bg-[hsl(24,10%,9%)] transition-colors border-r border-[hsl(24,10%,12%)]"
+              data-testid="button-nav-all-categories">
+              <Grid3X3 className="w-3.5 h-3.5" /> All Categories <ChevronDown className={`w-3 h-3 transition-transform ${showNavCatMenu ? "rotate-180" : ""}`} />
+            </button>
+            {showNavCatMenu && (
+              <div className="absolute left-0 top-full mt-1 w-56 bg-white rounded-lg shadow-xl border border-gray-100 z-50 py-1">
+                {allCategories.map(c => (
+                  <Link key={c.slug} href={`/products?category=${c.slug}`}
+                    onClick={() => setShowNavCatMenu(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-stone-100 hover:text-[hsl(24,10%,16%)] transition-colors"
+                    data-testid={`nav-cat-${c.slug}`}>
+                    {c.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
           {navItems.map(item => (
             <Link key={item.slug} href={`/products?category=${item.slug}`}
               className="text-white text-sm font-medium px-3.5 py-2.5 hover:bg-[hsl(24,10%,12%)] transition-colors whitespace-nowrap"
