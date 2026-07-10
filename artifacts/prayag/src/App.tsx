@@ -1,4 +1,5 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { useEffect } from "react";
+import { Switch, Route, Router as WouterRouter, useLocation, useSearch } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/Header";
@@ -41,6 +42,15 @@ function NotFound() {
       </div>
     </div>
   );
+}
+
+function ScrollToTop() {
+  const [location] = useLocation();
+  const search = useSearch();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location, search]);
+  return null;
 }
 
 function WithLayout({ children }: { children: React.ReactNode }) {
@@ -96,6 +106,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <WouterRouter base={BASE}>
+        <ScrollToTop />
         <Router />
       </WouterRouter>
       <Toaster />
