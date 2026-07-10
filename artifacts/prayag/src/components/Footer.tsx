@@ -1,68 +1,114 @@
 import { Link } from "wouter";
 import { SiInstagram, SiX, SiFacebook, SiYoutube } from "react-icons/si";
+import { Phone, Mail, Clock } from "lucide-react";
+import logoWhite from "@assets/Prayag_logo_W_1783664087488.png";
+
+const shopLinks = [
+  { label: "All Products", href: "/products" },
+  { label: "CP Faucets", href: "/products?category=cp-faucets" },
+  { label: "PTMT Faucets", href: "/products?category=ptmt-faucets" },
+  { label: "Kitchen Sinks", href: "/products?category=kitchen-sinks" },
+  { label: "Water Heaters", href: "/products?category=water-heaters" },
+  { label: "Bathroom Accessories", href: "/products?category=bathroom-accessories" },
+];
+
+const infoLinks = [
+  { label: "About Us", href: "#" },
+  { label: "Dealer Locator", href: "/dealer-registration" },
+  { label: "FAQs", href: "#" },
+  { label: "Track Order", href: "/account/orders" },
+  { label: "Download Catalogue", href: "#" },
+  { label: "Careers", href: "#" },
+];
+
+const serviceLinks = [
+  { label: "Shipping Policy", href: "#" },
+  { label: "Returns & Refunds", href: "#" },
+  { label: "Privacy Policy", href: "#" },
+  { label: "Terms & Conditions", href: "#" },
+  { label: "Bulk Order", href: "/dealer" },
+];
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-16">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          <div>
-            <div className="mb-4">
-              <div className="text-2xl font-black text-white tracking-tight">PRAYAG</div>
-              <div className="text-xs text-gray-400 tracking-widest uppercase">Plumbing & Sanitaryware</div>
-            </div>
-            <p className="text-sm leading-relaxed text-gray-400 mb-4">
-              India's trusted plumbing and sanitaryware brand. Delivering quality solutions for homes and commercial spaces since 1985.
+    <footer className="bg-[hsl(222,55%,9%)] text-gray-300 mt-16 relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 gold-divider" />
+      <div className="absolute -top-24 right-[10%] w-72 h-72 bg-[hsl(38,52%,52%)]/10 blur-3xl rounded-full" />
+
+      <div className="relative max-w-7xl mx-auto px-4 py-14">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-10">
+          {/* Brand */}
+          <div className="col-span-2">
+            <img src={logoWhite} alt="Prayag" className="h-9 w-auto object-contain mb-1" />
+            <div className="text-[10px] text-[hsl(42,62%,68%)] tracking-[0.28em] uppercase mb-4">Strong · Beautiful · Prayag</div>
+            <p className="text-sm leading-relaxed text-gray-400 mb-5 max-w-xs">
+              India's trusted plumbing and sanitaryware brand — delivering timeless quality for homes and commercial spaces since 1985.
             </p>
             <div className="flex gap-3">
-              <a href="#" className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-[hsl(215,100%,34%)] transition-colors" aria-label="Facebook"><SiFacebook className="w-4 h-4" /></a>
-              <a href="#" className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-[hsl(215,100%,34%)] transition-colors" aria-label="Instagram"><SiInstagram className="w-4 h-4" /></a>
-              <a href="#" className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-[hsl(215,100%,34%)] transition-colors" aria-label="Twitter"><SiX className="w-4 h-4" /></a>
-              <a href="#" className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-[hsl(215,100%,34%)] transition-colors" aria-label="YouTube"><SiYoutube className="w-4 h-4" /></a>
+              {[
+                { Icon: SiFacebook, label: "Facebook" },
+                { Icon: SiInstagram, label: "Instagram" },
+                { Icon: SiX, label: "X" },
+                { Icon: SiYoutube, label: "YouTube" },
+              ].map(({ Icon, label }) => (
+                <a key={label} href="#" className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-gray-400 hover:bg-gold-gradient hover:text-[hsl(222,55%,9%)] hover:border-transparent transition-all" aria-label={label}>
+                  <Icon className="w-4 h-4" />
+                </a>
+              ))}
             </div>
           </div>
 
-          <div>
-            <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wide">Company</h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="#" className="hover:text-white transition-colors">About Us</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Our Products</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Manufacturing</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Careers</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Press & Media</Link></li>
-            </ul>
-          </div>
+          <FooterCol title="Shop" links={shopLinks} />
+          <FooterCol title="Information" links={infoLinks} />
+          <FooterCol title="Customer Service" links={serviceLinks} />
 
+          {/* Need Help */}
           <div>
-            <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wide">Support</h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/dealer-registration" className="hover:text-white transition-colors">Dealer Locator</Link></li>
-              <li><Link href="/account/orders" className="hover:text-white transition-colors">Track Order</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Contact Us</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Download Catalogue</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Warranty Policy</Link></li>
+            <h3 className="text-white font-display text-base mb-4">Need Help?</h3>
+            <ul className="space-y-3 text-sm text-gray-400">
+              <li className="flex items-start gap-2.5">
+                <Phone className="w-4 h-4 text-[hsl(42,62%,68%)] mt-0.5 flex-shrink-0" />
+                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Call Us</div><a href="tel:18001234567" className="text-white font-semibold hover:text-[hsl(42,62%,68%)] transition-colors">1800 123 4567</a></div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <Mail className="w-4 h-4 text-[hsl(42,62%,68%)] mt-0.5 flex-shrink-0" />
+                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Email</div><a href="mailto:support@prayag.com" className="hover:text-[hsl(42,62%,68%)] transition-colors">support@prayag.com</a></div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <Clock className="w-4 h-4 text-[hsl(42,62%,68%)] mt-0.5 flex-shrink-0" />
+                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Hours</div><span>Mon–Sat · 9AM – 6PM</span></div>
+              </li>
             </ul>
-          </div>
-
-          <div>
-            <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wide">Newsletter</h3>
-            <p className="text-sm text-gray-400 mb-3">Subscribe for offers and new product launches.</p>
-            <div className="flex">
-              <input type="email" placeholder="Enter your email" className="flex-1 bg-gray-800 border border-gray-600 rounded-l-md px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[hsl(215,100%,34%)]" />
-              <button className="bg-[hsl(215,100%,34%)] text-white px-4 py-2 rounded-r-md text-sm font-medium hover:bg-[hsl(215,100%,28%)] transition-colors">Subscribe</button>
-            </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-700 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-gray-500">
+        <div className="gold-divider mb-6" />
+
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
           <p>© {new Date().getFullYear()} Prayag Industries Pvt. Ltd. All rights reserved.</p>
-          <div className="flex gap-4">
-            <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="#" className="hover:text-white transition-colors">Terms & Conditions</Link>
-            <Link href="#" className="hover:text-white transition-colors">Return Policy</Link>
+          <div className="flex items-center gap-3">
+            <span className="text-gray-500 mr-1">We Accept</span>
+            {["VISA", "MC", "RuPay", "UPI"].map(m => (
+              <span key={m} className="px-2 py-1 rounded bg-white/5 border border-white/10 text-[10px] font-semibold text-gray-300">{m}</span>
+            ))}
           </div>
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterCol({ title, links }: { title: string; links: { label: string; href: string }[] }) {
+  return (
+    <div>
+      <h3 className="text-white font-display text-base mb-4">{title}</h3>
+      <ul className="space-y-2.5 text-sm">
+        {links.map(l => (
+          <li key={l.label}>
+            <Link href={l.href} className="text-gray-400 hover:text-[hsl(42,62%,68%)] hover:pl-1 transition-all inline-block">{l.label}</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

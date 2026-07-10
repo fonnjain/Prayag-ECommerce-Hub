@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Search, Heart, ShoppingCart, User, ChevronDown, Menu, X, Phone, MapPin, Package, BookOpen, Building2, Truck, Grid3X3 } from "lucide-react";
 import { useCartStore, useAuthStore } from "@/lib/store";
 import { useGetCart, useGetSearchSuggestions, getGetSearchSuggestionsQueryKey } from "@workspace/api-client-react";
+import logoDark from "@assets/logo_1783664087489.png";
 
 const allCategories = [
   { label: "CP Faucets", slug: "cp-faucets" },
@@ -128,8 +129,8 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex-shrink-0 mr-1">
           <div className="flex flex-col leading-none">
-            <span className="text-[26px] font-black text-[hsl(215,100%,34%)] tracking-tight leading-none lowercase">prayag</span>
-            <span className="text-[7px] font-bold text-gray-400 tracking-[0.2em] uppercase">Strong. Beautiful. Prayag.</span>
+            <img src={logoDark} alt="Prayag" className="h-8 w-auto object-contain" />
+            <span className="text-[7px] font-semibold text-[hsl(38,52%,45%)] tracking-[0.28em] uppercase mt-1">Strong · Beautiful · Prayag</span>
           </div>
         </Link>
 

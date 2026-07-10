@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -120,8 +120,14 @@
   --sidebar-accent-foreground: 0 0% 100%;
   --sidebar-ring: 0 0% 100%;
 
+  /* Luxury — Cobalt & Gold */
+  --gold: 38 52% 52%;
+  --gold-light: 42 62% 68%;
+  --gold-dark: 36 45% 42%;
+  --midnight: 222 55% 9%;
+
   --app-font-sans: 'Inter', sans-serif;
-  --app-font-serif: Georgia, serif;
+  --app-font-serif: 'Playfair Display', Georgia, serif;
   --app-font-mono: Menlo, monospace;
   --radius: 0.5rem;
   --shadow-2xs: 0px 1px 2px 0px rgba(0,71,171,.06);
@@ -271,6 +277,33 @@
     background: linear-gradient(120deg, hsl(215,100%,55%), hsl(200,100%,45%), hsl(215,100%,34%));
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
+
+  /* ── Luxury ── */
+  .font-display { font-family: 'Playfair Display', Georgia, serif; }
+  .font-serif-lux { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+  .text-gradient-gold {
+    background: linear-gradient(120deg, hsl(42,62%,68%), hsl(38,52%,52%), hsl(36,45%,42%));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .bg-gold-gradient { background: linear-gradient(120deg, hsl(42,62%,66%), hsl(38,52%,52%)); }
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(38,52%,52%), transparent);
+  }
+  .gold-hairline { border-color: hsl(38 52% 52% / 0.35); }
+  .shadow-gold { box-shadow: 0 18px 40px -14px hsl(38 52% 42% / 0.45); }
+
+  @keyframes gold-sheen {
+    100% { transform: translateX(100%); }
+  }
+  .gold-sheen { position: relative; overflow: hidden; }
+  .gold-sheen::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(110deg, transparent 30%, hsl(42,70%,80%,.55) 50%, transparent 70%);
+    transform: translateX(-100%);
+  }
+  .gold-sheen:hover::after { animation: gold-sheen 0.9s ease; }
 
   @media (prefers-reduced-motion: reduce) {
     .animate-blob, .animate-float, .animate-gradient, .animate-marquee { animation: none !important; }
