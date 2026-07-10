@@ -52,21 +52,21 @@ export default function ProductCard({ product }: Props) {
       <motion.div
         whileHover={{ y: -8 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[hsl(215,100%,34%)]/40 hover:shadow-[0_20px_40px_-12px_rgba(0,71,171,0.25)] transition-shadow duration-300 overflow-hidden cursor-pointer h-full"
+        className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[hsl(24,10%,16%)]/40 hover:shadow-[0_20px_40px_-12px_rgba(28,22,16,0.25)] transition-shadow duration-300 overflow-hidden cursor-pointer h-full"
       >
-        <div className="relative aspect-square bg-gradient-to-br from-blue-50/60 to-gray-50 overflow-hidden">
+        <div className="relative aspect-square bg-gradient-to-br from-stone-100/60 to-gray-50 overflow-hidden">
           {product.imageUrl ? (
             <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <div className="w-16 h-16 bg-[hsl(215,100%,34%)]/10 rounded-full flex items-center justify-center">
-                <ShoppingCart className="w-8 h-8 text-[hsl(215,100%,34%)]/40" />
+              <div className="w-16 h-16 bg-[hsl(24,10%,16%)]/10 rounded-full flex items-center justify-center">
+                <ShoppingCart className="w-8 h-8 text-[hsl(24,10%,16%)]/40" />
               </div>
             </div>
           )}
 
           {product.discount && product.discount > 0 && (
-            <div className="absolute top-2.5 left-2.5 bg-gradient-to-r from-[hsl(215,100%,34%)] to-[hsl(200,100%,42%)] text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md" data-testid={`text-discount-${product.id}`}>
+            <div className="absolute top-2.5 left-2.5 bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,24%)] text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md" data-testid={`text-discount-${product.id}`}>
               -{product.discount}%
             </div>
           )}
@@ -81,7 +81,7 @@ export default function ProductCard({ product }: Props) {
             <button onClick={handleWishlist} aria-label={`Add ${product.name} to wishlist`} className="w-9 h-9 bg-white/95 backdrop-blur rounded-full shadow-md flex items-center justify-center hover:bg-red-500 hover:text-white text-gray-600 transition-colors" data-testid={`button-wishlist-${product.id}`}>
               <Heart className="w-4 h-4" />
             </button>
-            <span aria-hidden="true" className="w-9 h-9 bg-white/95 backdrop-blur rounded-full shadow-md flex items-center justify-center group-hover:bg-[hsl(215,100%,34%)] group-hover:text-white text-gray-600 transition-colors">
+            <span aria-hidden="true" className="w-9 h-9 bg-white/95 backdrop-blur rounded-full shadow-md flex items-center justify-center group-hover:bg-[hsl(24,10%,16%)] group-hover:text-white text-gray-600 transition-colors">
               <Eye className="w-4 h-4" />
             </span>
           </div>
@@ -89,7 +89,7 @@ export default function ProductCard({ product }: Props) {
 
         <div className="p-3.5">
           <div className="text-[10px] text-gray-400 font-mono mb-0.5" data-testid={`text-sku-${product.id}`}>SKU: {product.sku}</div>
-          <div className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-2 group-hover:text-[hsl(215,100%,34%)] transition-colors" data-testid={`text-name-${product.id}`}>
+          <div className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-2 group-hover:text-[hsl(24,10%,16%)] transition-colors" data-testid={`text-name-${product.id}`}>
             {product.name}
           </div>
           <div className="flex items-center gap-1 mb-2">
@@ -113,7 +113,7 @@ export default function ProductCard({ product }: Props) {
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={handleAddToCart} disabled={!product.inStock || addToCart.isPending}
-            className="shimmer-hover w-full bg-gradient-to-r from-[hsl(215,100%,34%)] to-[hsl(210,100%,40%)] text-white text-xs font-bold py-2.5 rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-shadow flex items-center justify-center gap-1.5"
+            className="shimmer-hover w-full bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] text-white text-xs font-bold py-2.5 rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-shadow flex items-center justify-center gap-1.5"
             data-testid={`button-add-cart-${product.id}`}>
             <ShoppingCart className="w-3.5 h-3.5" />
             {addToCart.isPending ? "Adding..." : "Add to Cart"}

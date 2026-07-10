@@ -69,24 +69,24 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       {/* ── TOP BAR ── */}
-      <div className="bg-[hsl(215,100%,34%)] text-white text-[11px]">
+      <div className="bg-[hsl(24,10%,16%)] text-white text-[11px]">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-8">
           <span className="hidden sm:block font-medium">Welcome to Prayag India</span>
           <div className="flex items-center gap-5">
-            <Link href="/dealer-registration" className="flex items-center gap-1 hover:text-blue-200 transition-colors">
+            <Link href="/dealer-registration" className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors">
               <MapPin className="w-3 h-3" /> Find a Dealer
             </Link>
-            <Link href="/account/orders" className="flex items-center gap-1 hover:text-blue-200 transition-colors">
+            <Link href="/account/orders" className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors">
               <Package className="w-3 h-3" /> Track Order
             </Link>
-            <a href="#" className="flex items-center gap-1 hover:text-blue-200 transition-colors">
+            <a href="#" className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors">
               <BookOpen className="w-3 h-3" /> Download Catalogue
             </a>
             {/* Bulk Order dropdown */}
             <div ref={bulkRef} className="relative">
               <button
                 onClick={() => setShowBulkMenu(p => !p)}
-                className="flex items-center gap-1 hover:text-blue-200 transition-colors"
+                className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors"
                 data-testid="button-bulk-order-trigger"
               >
                 <Building2 className="w-3 h-3" /> Bulk Order <ChevronDown className="w-3 h-3" />
@@ -95,9 +95,9 @@ export default function Header() {
                 <div className="absolute left-0 top-full mt-1 w-52 bg-white text-gray-800 rounded-lg shadow-xl border border-gray-100 z-50 py-1 overflow-hidden">
                   <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400 border-b border-gray-100">Select Portal</div>
                   <Link href="/dealer" onClick={() => setShowBulkMenu(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-blue-50 transition-colors" data-testid="link-bulk-dealer">
-                    <div className="w-7 h-7 rounded-lg bg-[hsl(215,100%,34%)]/10 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="w-3.5 h-3.5 text-[hsl(215,100%,34%)]" />
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-stone-100 transition-colors" data-testid="link-bulk-dealer">
+                    <div className="w-7 h-7 rounded-lg bg-[hsl(24,10%,16%)]/10 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-3.5 h-3.5 text-[hsl(24,10%,16%)]" />
                     </div>
                     <div>
                       <div className="text-xs font-semibold text-gray-800">Dealer Dashboard</div>
@@ -105,7 +105,7 @@ export default function Header() {
                     </div>
                   </Link>
                   <Link href="/distributor" onClick={() => setShowBulkMenu(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-blue-50 transition-colors" data-testid="link-bulk-distributor">
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-stone-100 transition-colors" data-testid="link-bulk-distributor">
                     <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
                       <Truck className="w-3.5 h-3.5 text-indigo-600" />
                     </div>
@@ -137,9 +137,9 @@ export default function Header() {
         {/* All Categories dropdown */}
         <div ref={catRef} className="relative hidden md:block flex-shrink-0">
           <button onClick={() => setShowCatMenu(p => !p)}
-            className="flex items-center gap-2 border border-gray-200 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:border-[hsl(215,100%,34%)] transition-colors bg-white"
+            className="flex items-center gap-2 border border-gray-200 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:border-[hsl(24,10%,16%)] transition-colors bg-white"
             data-testid="button-all-categories">
-            <Grid3X3 className="w-4 h-4 text-[hsl(215,100%,34%)]" />
+            <Grid3X3 className="w-4 h-4 text-[hsl(24,10%,16%)]" />
             All Categories
             <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
           </button>
@@ -148,7 +148,7 @@ export default function Header() {
               {allCategories.map(c => (
                 <Link key={c.slug} href={`/products?category=${c.slug}`}
                   onClick={() => setShowCatMenu(false)}
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-[hsl(215,100%,34%)] transition-colors">
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-stone-100 hover:text-[hsl(24,10%,16%)] transition-colors">
                   {c.label}
                 </Link>
               ))}
@@ -164,10 +164,10 @@ export default function Header() {
               onChange={e => { setSearchQ(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
               onFocus={() => searchQ.length >= 2 && setShowSuggestions(true)}
               placeholder="Search for products, categories, sku..."
-              className="w-full border border-gray-200 rounded-l-md px-4 py-2 text-sm outline-none focus:border-[hsl(215,100%,34%)] transition-colors"
+              className="w-full border border-gray-200 rounded-l-md px-4 py-2 text-sm outline-none focus:border-[hsl(24,10%,16%)] transition-colors"
               data-testid="input-search"
             />
-            <button type="submit" className="bg-[hsl(215,100%,34%)] text-white px-5 rounded-r-md hover:bg-[hsl(215,100%,28%)] transition-colors flex items-center gap-1.5 text-sm font-medium">
+            <button type="submit" className="bg-[hsl(24,10%,16%)] text-white px-5 rounded-r-md hover:bg-[hsl(24,10%,12%)] transition-colors flex items-center gap-1.5 text-sm font-medium">
               <Search className="w-4 h-4" />
             </button>
           </form>
@@ -185,14 +185,14 @@ export default function Header() {
 
         {/* Actions */}
         <div className="flex items-center gap-4">
-          <Link href="/account/wishlist" className="flex flex-col items-center text-gray-600 hover:text-[hsl(215,100%,34%)] transition-colors" data-testid="link-wishlist">
+          <Link href="/account/wishlist" className="flex flex-col items-center text-gray-600 hover:text-[hsl(24,10%,16%)] transition-colors" data-testid="link-wishlist">
             <Heart className="w-5 h-5" />
             <span className="text-[10px] mt-0.5">Wishlist</span>
           </Link>
 
           <div ref={userRef} className="relative">
             <button onClick={() => setShowUserMenu(p => !p)}
-              className="flex flex-col items-center text-gray-600 hover:text-[hsl(215,100%,34%)] transition-colors" data-testid="button-user-menu">
+              className="flex flex-col items-center text-gray-600 hover:text-[hsl(24,10%,16%)] transition-colors" data-testid="button-user-menu">
               <User className="w-5 h-5" />
               <span className="text-[10px] mt-0.5 flex items-center gap-0.5">{user ? user.name.split(" ")[0] : "Account"} <ChevronDown className="w-2.5 h-2.5" /></span>
             </button>
@@ -213,19 +213,19 @@ export default function Header() {
                     <Link href="/login" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Sign In</Link>
                     <Link href="/register" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Register</Link>
                     <hr className="my-1" />
-                    <Link href="/dealer-registration" className="block px-4 py-2 text-sm text-[hsl(215,100%,34%)] hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Become a Dealer</Link>
-                    <Link href="/distributor-registration" className="block px-4 py-2 text-sm text-[hsl(215,100%,34%)] hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Become a Distributor</Link>
+                    <Link href="/dealer-registration" className="block px-4 py-2 text-sm text-[hsl(24,10%,16%)] hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Become a Dealer</Link>
+                    <Link href="/distributor-registration" className="block px-4 py-2 text-sm text-[hsl(24,10%,16%)] hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Become a Distributor</Link>
                   </>
                 )}
               </div>
             )}
           </div>
 
-          <Link href="/cart" className="flex flex-col items-center relative text-gray-600 hover:text-[hsl(215,100%,34%)] transition-colors" data-testid="link-cart">
+          <Link href="/cart" className="flex flex-col items-center relative text-gray-600 hover:text-[hsl(24,10%,16%)] transition-colors" data-testid="link-cart">
             <div className="relative">
               <ShoppingCart className="w-5 h-5" />
               {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[hsl(215,100%,34%)] text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold" data-testid="cart-count">
+                <span className="absolute -top-2 -right-2 bg-[hsl(24,10%,16%)] text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold" data-testid="cart-count">
                   {itemCount}
                 </span>
               )}
@@ -240,20 +240,20 @@ export default function Header() {
       </div>
 
       {/* ── NAV BAR ── */}
-      <nav className="bg-[hsl(215,100%,34%)] hidden md:block">
+      <nav className="bg-[hsl(24,10%,16%)] hidden md:block">
         <div className="max-w-7xl mx-auto px-4 flex items-center">
-          <button className="flex items-center gap-1.5 text-white text-sm font-semibold px-4 py-2.5 bg-[hsl(215,100%,28%)] hover:bg-[hsl(215,100%,22%)] transition-colors border-r border-[hsl(215,100%,28%)]">
+          <button className="flex items-center gap-1.5 text-white text-sm font-semibold px-4 py-2.5 bg-[hsl(24,10%,12%)] hover:bg-[hsl(24,10%,9%)] transition-colors border-r border-[hsl(24,10%,12%)]">
             <Grid3X3 className="w-3.5 h-3.5" /> All Categories <ChevronDown className="w-3 h-3" />
           </button>
           {navItems.map(item => (
             <Link key={item.slug} href={`/products?category=${item.slug}`}
-              className="text-white text-sm font-medium px-3.5 py-2.5 hover:bg-[hsl(215,100%,28%)] transition-colors whitespace-nowrap"
+              className="text-white text-sm font-medium px-3.5 py-2.5 hover:bg-[hsl(24,10%,12%)] transition-colors whitespace-nowrap"
               data-testid={`nav-${item.slug}`}>
               {item.label}
             </Link>
           ))}
           <Link href="/products"
-            className="text-white text-sm font-medium px-3.5 py-2.5 hover:bg-[hsl(215,100%,28%)] transition-colors whitespace-nowrap flex items-center gap-1 ml-auto"
+            className="text-white text-sm font-medium px-3.5 py-2.5 hover:bg-[hsl(24,10%,12%)] transition-colors whitespace-nowrap flex items-center gap-1 ml-auto"
             data-testid="nav-more">
             More <ChevronDown className="w-3 h-3" />
           </Link>

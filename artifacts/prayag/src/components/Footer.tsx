@@ -31,7 +31,7 @@ const serviceLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-[hsl(222,55%,9%)] text-gray-300 mt-16 relative overflow-hidden">
+    <footer className="bg-[hsl(24,14%,8%)] text-gray-300 mt-16 relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 gold-divider" />
       <div className="absolute -top-24 right-[10%] w-72 h-72 bg-[hsl(38,52%,52%)]/10 blur-3xl rounded-full" />
 
@@ -51,7 +51,7 @@ export default function Footer() {
                 { Icon: SiX, label: "X" },
                 { Icon: SiYoutube, label: "YouTube" },
               ].map(({ Icon, label }) => (
-                <a key={label} href="#" className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-gray-400 hover:bg-gold-gradient hover:text-[hsl(222,55%,9%)] hover:border-transparent transition-all" aria-label={label}>
+                <a key={label} href="#" className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-gray-400 hover:bg-gold-gradient hover:text-[hsl(24,14%,8%)] hover:border-transparent transition-all" aria-label={label}>
                   <Icon className="w-4 h-4" />
                 </a>
               ))}

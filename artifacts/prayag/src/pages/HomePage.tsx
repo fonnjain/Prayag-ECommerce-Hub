@@ -78,7 +78,7 @@ function SectionHeader({ title, accent, href, icon: Icon }: { title: string; acc
         <div className="w-16 h-[2px] bg-gradient-to-r from-[hsl(38,52%,52%)] to-transparent mt-2.5 rounded-full" />
       </div>
       {href && (
-        <Link href={href} className="group text-sm font-semibold text-[hsl(215,100%,34%)] flex items-center gap-1 hover:gap-2 transition-all">
+        <Link href={href} className="group text-sm font-semibold text-[hsl(24,10%,16%)] flex items-center gap-1 hover:gap-2 transition-all">
           View All <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
         </Link>
       )}
@@ -117,10 +117,10 @@ export default function HomePage() {
     <div className="bg-gray-50 min-h-screen overflow-x-hidden">
 
       {/* ══════════ HERO ══════════ */}
-      <section className="relative bg-gradient-to-br from-[hsl(222,60%,12%)] via-[hsl(215,100%,20%)] to-[hsl(210,100%,28%)] overflow-hidden">
+      <section className="relative bg-gradient-to-br from-[hsl(24,12%,8%)] via-[hsl(24,10%,10%)] to-[hsl(24,10%,13%)] overflow-hidden">
         {/* animated blobs */}
-        <div className="absolute top-[-120px] right-[10%] w-96 h-96 bg-[hsl(200,100%,50%)]/25 blur-3xl animate-blob" />
-        <div className="absolute bottom-[-140px] left-[5%] w-[28rem] h-[28rem] bg-[hsl(215,100%,45%)]/20 blur-3xl animate-blob" style={{ animationDelay: "-6s" }} />
+        <div className="absolute top-[-120px] right-[10%] w-96 h-96 bg-[hsl(38,52%,52%)]/25 blur-3xl animate-blob" />
+        <div className="absolute bottom-[-140px] left-[5%] w-[28rem] h-[28rem] bg-[hsl(24,9%,26%)]/20 blur-3xl animate-blob" style={{ animationDelay: "-6s" }} />
         <img src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=1400&h=600&fit=crop" alt="Bathroom" className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-luminosity" />
 
         <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-20 grid lg:grid-cols-2 gap-10 items-center">
@@ -140,14 +140,14 @@ export default function HomePage() {
               </span>
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }}
-              className="text-blue-100/90 text-base md:text-lg mb-8 max-w-md leading-relaxed">
+              className="text-stone-300 text-base md:text-lg mb-8 max-w-md leading-relaxed">
               Premium faucets, sanitaryware, kitchen sinks & water heaters — engineered to last a lifetime.
             </motion.p>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.35 }}
               className="flex flex-wrap gap-3 mb-10">
               <Link href="/products">
                 <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-                  className="shimmer-hover bg-white text-[hsl(215,100%,34%)] font-bold px-7 py-3 rounded-xl shadow-lg flex items-center gap-2" data-testid="button-shop-now">
+                  className="shimmer-hover bg-white text-[hsl(24,10%,16%)] font-bold px-7 py-3 rounded-xl shadow-lg flex items-center gap-2" data-testid="button-shop-now">
                   Shop Now <ArrowRight className="w-4 h-4" />
                 </motion.button>
               </Link>
@@ -168,7 +168,7 @@ export default function HomePage() {
                 <motion.div key={stat.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.1 }}
                   className="glass rounded-2xl px-3 py-3 text-center border border-[hsl(38,52%,52%)]/20">
                   <div className="font-display text-2xl md:text-[1.7rem] font-bold text-gradient-gold"><Counter to={stat.n} suffix={stat.s} /></div>
-                  <div className="text-[10px] text-blue-200/80 uppercase tracking-[0.15em] mt-0.5">{stat.label}</div>
+                  <div className="text-[10px] text-stone-400 uppercase tracking-[0.15em] mt-0.5">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
@@ -184,10 +184,10 @@ export default function HomePage() {
             onMouseLeave={() => { mx.set(0); my.set(0); }}>
             <motion.div style={{ rotateX: rx, rotateY: ry, transformPerspective: 900 }}
               className="animate-float relative bg-white rounded-3xl shadow-2xl p-6 w-72">
-              <div className="absolute -top-3 -right-3 bg-gold-gradient text-[hsl(222,55%,9%)] text-[11px] font-bold px-3 py-1 rounded-full shadow-gold flex items-center gap-1">
+              <div className="absolute -top-3 -right-3 bg-gold-gradient text-[hsl(24,14%,8%)] text-[11px] font-bold px-3 py-1 rounded-full shadow-gold flex items-center gap-1">
                 <Sparkles className="w-3 h-3" /> Featured
               </div>
-              <div className="rounded-2xl overflow-hidden mb-4 bg-blue-50">
+              <div className="rounded-2xl overflow-hidden mb-4 bg-stone-100">
                 <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=300&h=240&fit=crop" alt="Royale Series Basin Mixer" className="w-full h-40 object-cover" />
               </div>
               <div className="text-sm font-black text-gray-900 mb-1">Royale Series Basin Mixer</div>
@@ -196,13 +196,13 @@ export default function HomePage() {
                 <span className="text-[11px] text-gray-400 ml-1">(214)</span>
               </div>
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-2xl font-black text-[hsl(215,100%,34%)]">₹2,499</span>
+                <span className="text-2xl font-black text-[hsl(24,10%,16%)]">₹2,499</span>
                 <span className="text-sm text-gray-400 line-through">₹3,299</span>
                 <span className="text-[11px] font-bold text-green-600">24% OFF</span>
               </div>
               <Link href="/products?category=cp-faucets">
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  className="gold-sheen w-full bg-gradient-to-r from-[hsl(215,100%,34%)] to-[hsl(210,100%,42%)] text-white text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-1.5">
+                  className="gold-sheen w-full bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] text-white text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-1.5">
                   Explore Now <ArrowRight className="w-4 h-4" />
                 </motion.button>
               </Link>
@@ -217,7 +217,7 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ MARQUEE STRIP ══════════ */}
-      <div className="bg-[hsl(215,100%,34%)] py-3 overflow-hidden">
+      <div className="bg-[hsl(24,10%,16%)] py-3 overflow-hidden">
         <div className="flex whitespace-nowrap animate-marquee">
           {[...marqueeWords, ...marqueeWords].map((w, i) => (
             <span key={i} className="inline-flex items-center text-white/90 text-sm font-bold mx-6 uppercase tracking-wider">
@@ -232,7 +232,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <Reveal><SectionHeader title="Grab the best deal on" accent="Faucets" href="/products?category=cp-faucets" icon={Tag} /></Reveal>
           <div className="relative">
-            <button onClick={() => scrollFaucets("left")} aria-label="Scroll deals left" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white shadow-lg border border-gray-100 rounded-full flex items-center justify-center hover:bg-[hsl(215,100%,34%)] hover:text-white transition-colors">
+            <button onClick={() => scrollFaucets("left")} aria-label="Scroll deals left" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white shadow-lg border border-gray-100 rounded-full flex items-center justify-center hover:bg-[hsl(24,10%,16%)] hover:text-white transition-colors">
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div ref={faucetScrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 scroll-smooth">
@@ -240,10 +240,10 @@ export default function HomePage() {
                 (featured || []).slice(0, 10).map((p, idx) => (
                   <motion.div key={p.id} initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} className="flex-shrink-0 w-44">
                     <Link href={`/products/${p.slug}`}>
-                      <motion.div whileHover={{ y: -8 }} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(0,71,171,0.25)] hover:border-[hsl(215,100%,34%)]/40 transition-shadow" data-testid={`card-deal-${p.id}`}>
+                      <motion.div whileHover={{ y: -8 }} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(28,22,16,0.25)] hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-deal-${p.id}`}>
                         <div className="relative overflow-hidden">
                           {p.discount && p.discount > 0 && (
-                            <span className="absolute top-2 left-2 bg-gradient-to-r from-[hsl(215,100%,34%)] to-[hsl(200,100%,42%)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">-{p.discount}%</span>
+                            <span className="absolute top-2 left-2 bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,24%)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">-{p.discount}%</span>
                           )}
                           <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=160&fit=crop"} alt={p.name} className="w-full h-36 object-cover hover:scale-110 transition-transform duration-500" />
                         </div>
@@ -260,7 +260,7 @@ export default function HomePage() {
                   </motion.div>
                 ))}
             </div>
-            <button onClick={() => scrollFaucets("right")} aria-label="Scroll deals right" className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 bg-white shadow-lg border border-gray-100 rounded-full flex items-center justify-center hover:bg-[hsl(215,100%,34%)] hover:text-white transition-colors">
+            <button onClick={() => scrollFaucets("right")} aria-label="Scroll deals right" className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 bg-white shadow-lg border border-gray-100 rounded-full flex items-center justify-center hover:bg-[hsl(24,10%,16%)] hover:text-white transition-colors">
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
@@ -268,7 +268,7 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ TOP CATEGORIES ══════════ */}
-      <section className="bg-gradient-to-b from-white to-blue-50/40 py-10 border-b">
+      <section className="bg-gradient-to-b from-white to-stone-100/60 py-10 border-b">
         <div className="max-w-7xl mx-auto px-4">
           <Reveal><SectionHeader title="Shop From" accent="Top Categories" href="/products" icon={Package} /></Reveal>
           {catsLoading ? (
@@ -278,11 +278,11 @@ export default function HomePage() {
               {catList.map((cat, i) => (
                 <motion.div key={cat.id} initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
                   <Link href={`/products?category=${cat.slug}`} data-testid={`card-category-${cat.id}`}>
-                    <motion.div whileHover={{ y: -6 }} className="group bg-white rounded-2xl border border-gray-100 p-3 flex flex-col items-center gap-2 hover:border-[hsl(215,100%,34%)]/40 hover:shadow-lg transition-shadow cursor-pointer">
-                      <div className="w-full aspect-square rounded-xl overflow-hidden bg-blue-50">
+                    <motion.div whileHover={{ y: -6 }} className="group bg-white rounded-2xl border border-gray-100 p-3 flex flex-col items-center gap-2 hover:border-[hsl(24,10%,16%)]/40 hover:shadow-lg transition-shadow cursor-pointer">
+                      <div className="w-full aspect-square rounded-xl overflow-hidden bg-stone-100">
                         <img loading="lazy" decoding="async" src={categoryImages[cat.slug] || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop"} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                       </div>
-                      <span className="text-[11px] font-semibold text-gray-700 text-center leading-tight group-hover:text-[hsl(215,100%,34%)] transition-colors">{cat.name}</span>
+                      <span className="text-[11px] font-semibold text-gray-700 text-center leading-tight group-hover:text-[hsl(24,10%,16%)] transition-colors">{cat.name}</span>
                     </motion.div>
                   </Link>
                 </motion.div>
@@ -302,7 +302,7 @@ export default function HomePage() {
                 <Link href={`/products?category=${col.slug}`}>
                   <motion.div whileHover={{ y: -8 }} className="relative rounded-3xl overflow-hidden h-56 group cursor-pointer shadow-md hover:shadow-2xl transition-shadow" data-testid={`card-collection-${col.slug}`}>
                     <img loading="lazy" decoding="async" src={col.img} alt={col.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(222,60%,10%)]/90 via-black/30 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(24,12%,7%)]/90 via-black/30 to-transparent" />
                     <div className="absolute bottom-0 left-0 p-5 text-white w-full">
                       <div className="font-black text-lg mb-0.5">{col.title}</div>
                       <div className="text-xs text-white/70 mb-3">{col.sub}</div>
@@ -311,7 +311,7 @@ export default function HomePage() {
                           <span key={chip} className="text-[10px] font-medium text-white glass px-2 py-0.5 rounded-full">{chip}</span>
                         ))}
                       </div>
-                      <div className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-200 group-hover:gap-2.5 transition-all">
+                      <div className="inline-flex items-center gap-1.5 text-sm font-bold text-stone-300 group-hover:gap-2.5 transition-all">
                         Explore Now <ArrowRight className="w-4 h-4" />
                       </div>
                     </div>
@@ -324,7 +324,7 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ BEST SELLERS + NEW ARRIVALS ══════════ */}
-      <section className="bg-gradient-to-b from-blue-50/40 to-white py-10 border-b">
+      <section className="bg-gradient-to-b from-stone-100/60 to-white py-10 border-b">
         <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-8">
           {/* Best Sellers */}
           <Reveal>
@@ -335,17 +335,17 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-3">
                 {(featured || []).slice(0, 4).map(p => (
                   <Link key={p.id} href={`/products/${p.slug}`}>
-                    <motion.div whileHover={{ y: -6 }} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-[hsl(215,100%,34%)]/40 transition-shadow" data-testid={`card-bestseller-${p.id}`}>
+                    <motion.div whileHover={{ y: -6 }} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-bestseller-${p.id}`}>
                       <div className="relative overflow-hidden">
-                        <span className="absolute top-2 left-2 bg-gold-gradient text-[hsl(222,55%,9%)] text-[9px] font-bold px-2 py-0.5 rounded-full z-10">Bestseller</span>
+                        <span className="absolute top-2 left-2 bg-gold-gradient text-[hsl(24,14%,8%)] text-[9px] font-bold px-2 py-0.5 rounded-full z-10">Bestseller</span>
                         <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=160&fit=crop"} alt={p.name} className="w-full h-32 object-cover hover:scale-110 transition-transform duration-500" />
                       </div>
                       <div className="p-3">
                         <div className="text-[9px] text-gray-400 font-mono">{p.sku}</div>
                         <div className="text-xs font-semibold text-gray-800 leading-tight mt-0.5 mb-1 line-clamp-1">{p.name}</div>
                         <div className="flex items-center gap-1 mb-1.5">{[...Array(4)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-[hsl(38,52%,52%)] text-[hsl(38,52%,52%)]" />)}<span className="text-[9px] text-gray-400">({Math.floor(Math.random() * 200 + 50)})</span></div>
-                        <div className="flex items-baseline gap-1 mb-2"><span className="font-black text-sm text-[hsl(215,100%,34%)]">₹{Number(p.price).toLocaleString("en-IN")}</span>{p.mrp && <span className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</span>}</div>
-                        <div className="shimmer-hover w-full bg-gradient-to-r from-[hsl(215,100%,34%)] to-[hsl(210,100%,42%)] text-white text-[10px] font-bold py-2 rounded-lg text-center">Add to Cart</div>
+                        <div className="flex items-baseline gap-1 mb-2"><span className="font-black text-sm text-[hsl(24,10%,16%)]">₹{Number(p.price).toLocaleString("en-IN")}</span>{p.mrp && <span className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</span>}</div>
+                        <div className="shimmer-hover w-full bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] text-white text-[10px] font-bold py-2 rounded-lg text-center">Add to Cart</div>
                       </div>
                     </motion.div>
                   </Link>
@@ -364,15 +364,15 @@ export default function HomePage() {
                 {(newArrivals || []).slice(0, 5).map((p, i) => (
                   <motion.div key={p.id} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}>
                     <Link href={`/products/${p.slug}`}>
-                      <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl p-2.5 hover:border-[hsl(215,100%,34%)]/40 hover:shadow-md transition-all group" data-testid={`card-new-arrival-${p.id}`}>
+                      <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl p-2.5 hover:border-[hsl(24,10%,16%)]/40 hover:shadow-md transition-all group" data-testid={`card-new-arrival-${p.id}`}>
                         <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=80&h=80&fit=crop"} alt={p.name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0 group-hover:scale-105 transition-transform" />
                         <div className="flex-1 min-w-0">
                           <div className="text-[9px] text-gray-400 font-mono">{p.sku}</div>
-                          <div className="text-sm font-semibold text-gray-800 line-clamp-1 group-hover:text-[hsl(215,100%,34%)] transition-colors">{p.name}</div>
+                          <div className="text-sm font-semibold text-gray-800 line-clamp-1 group-hover:text-[hsl(24,10%,16%)] transition-colors">{p.name}</div>
                           <div className="flex items-center gap-1 mt-0.5">{[...Array(4)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-[hsl(38,52%,52%)] text-[hsl(38,52%,52%)]" />)}</div>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <div className="font-black text-sm text-[hsl(215,100%,34%)]">₹{Number(p.price).toLocaleString("en-IN")}</div>
+                          <div className="font-black text-sm text-[hsl(24,10%,16%)]">₹{Number(p.price).toLocaleString("en-IN")}</div>
                           {p.mrp && <div className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</div>}
                         </div>
                       </div>
@@ -395,7 +395,7 @@ export default function HomePage() {
                 <Link href={`/products?category=${room.slug}`}>
                   <motion.div whileHover={{ y: -8 }} className="relative rounded-2xl overflow-hidden h-44 group cursor-pointer shadow-md hover:shadow-2xl transition-shadow" data-testid={`card-room-${room.label.toLowerCase().replace(/ /g, "-")}`}>
                     <img loading="lazy" decoding="async" src={room.img} alt={room.label} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(222,60%,10%)]/85 to-transparent group-hover:from-[hsl(215,100%,25%)]/85 transition-colors" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(24,12%,7%)]/85 to-transparent group-hover:from-[hsl(24,10%,13%)]/85 transition-colors" />
                     <div className="absolute bottom-0 left-0 p-4 text-white">
                       <div className="font-black text-base">{room.label}</div>
                       <div className="text-xs text-white/80 flex items-center gap-1 mt-0.5 group-hover:gap-2 transition-all">Explore <ArrowRight className="w-3 h-3" /></div>
@@ -414,8 +414,8 @@ export default function HomePage() {
           {trustItems.map(({ icon: Icon, label, sub }, i) => (
             <motion.div key={label} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
               className="flex items-center gap-3 group">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[hsl(215,100%,34%)]/10 to-[hsl(200,100%,45%)]/10 flex items-center justify-center flex-shrink-0 group-hover:from-[hsl(215,100%,34%)] group-hover:to-[hsl(200,100%,45%)] transition-colors">
-                <Icon className="w-5 h-5 text-[hsl(215,100%,34%)] group-hover:text-white transition-colors" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[hsl(24,10%,16%)]/10 to-[hsl(24,9%,26%)]/10 flex items-center justify-center flex-shrink-0 group-hover:from-[hsl(24,10%,16%)] group-hover:to-[hsl(24,9%,26%)] transition-colors">
+                <Icon className="w-5 h-5 text-[hsl(24,10%,16%)] group-hover:text-white transition-colors" />
               </div>
               <div>
                 <div className="font-bold text-xs text-gray-900 leading-tight">{label}</div>
@@ -427,23 +427,23 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ DEALER CTA ══════════ */}
-      <section className="relative bg-gradient-to-br from-[hsl(222,60%,10%)] via-[hsl(215,100%,18%)] to-[hsl(210,100%,24%)] py-14 overflow-hidden">
-        <div className="absolute top-[-80px] right-[8%] w-80 h-80 bg-[hsl(200,100%,50%)]/20 blur-3xl animate-blob" />
+      <section className="relative bg-gradient-to-br from-[hsl(24,12%,7%)] via-[hsl(24,10%,10%)] to-[hsl(24,10%,12%)] py-14 overflow-hidden">
+        <div className="absolute top-[-80px] right-[8%] w-80 h-80 bg-[hsl(38,52%,52%)]/20 blur-3xl animate-blob" />
         <div className="relative max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-10 items-center">
           <Reveal>
             <div className="text-xs font-semibold text-[hsl(42,62%,68%)] uppercase tracking-[0.25em] mb-3">Become A Partner</div>
             <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight">Become A <span className="italic text-gradient-gold">Prayag Dealer</span></h2>
-            <p className="text-blue-100/80 text-sm leading-relaxed mb-6 max-w-md">Grow your business with premium products and exclusive dealer benefits. Join 10,000+ partners across India.</p>
+            <p className="text-stone-400 text-sm leading-relaxed mb-6 max-w-md">Grow your business with premium products and exclusive dealer benefits. Join 10,000+ partners across India.</p>
             <div className="grid grid-cols-2 gap-3 mb-7 max-w-md">
               {["Exclusive Dealer Discounts", "Special Schemes", "Marketing Support", "Priority Service"].map(b => (
-                <div key={b} className="flex items-center gap-2 text-sm text-blue-50">
-                  <div className="w-5 h-5 rounded-full bg-[hsl(215,100%,45%)] flex items-center justify-center flex-shrink-0"><BadgeCheck className="w-3 h-3 text-white" /></div>{b}
+                <div key={b} className="flex items-center gap-2 text-sm text-stone-200">
+                  <div className="w-5 h-5 rounded-full bg-[hsl(24,9%,26%)] flex items-center justify-center flex-shrink-0"><BadgeCheck className="w-3 h-3 text-white" /></div>{b}
                 </div>
               ))}
             </div>
             <Link href="/dealer-registration">
               <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-                className="shimmer-hover bg-white text-[hsl(215,100%,34%)] font-bold px-8 py-3.5 rounded-xl shadow-xl flex items-center gap-2" data-testid="button-dealer-cta">
+                className="shimmer-hover bg-white text-[hsl(24,10%,16%)] font-bold px-8 py-3.5 rounded-xl shadow-xl flex items-center gap-2" data-testid="button-dealer-cta">
                 Register Now <ArrowRight className="w-4 h-4" />
               </motion.button>
             </Link>
@@ -455,19 +455,19 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ NEWSLETTER ══════════ */}
-      <section className="bg-[hsl(222,55%,9%)] py-9 relative overflow-hidden">
+      <section className="bg-[hsl(24,14%,8%)] py-9 relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 gold-divider" />
         <div className="relative max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-white flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gold-gradient flex items-center justify-center flex-shrink-0"><Droplets className="w-6 h-6 text-[hsl(222,55%,9%)]" /></div>
+            <div className="w-12 h-12 rounded-2xl bg-gold-gradient flex items-center justify-center flex-shrink-0"><Droplets className="w-6 h-6 text-[hsl(24,14%,8%)]" /></div>
             <div>
               <div className="font-display text-xl font-bold">Join the Prayag Circle</div>
-              <div className="text-blue-200/70 text-xs">Get the latest updates on new products & offers</div>
+              <div className="text-stone-400 text-xs">Get the latest updates on new products & offers</div>
             </div>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
             <input type="email" placeholder="Enter your email address" className="flex-1 sm:w-72 border border-white/10 bg-white/5 rounded-xl px-4 py-3 text-sm outline-none text-white placeholder:text-gray-500 focus:border-[hsl(38,52%,52%)]/50" />
-            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="gold-sheen bg-gold-gradient text-[hsl(222,55%,9%)] font-bold px-6 py-3 rounded-xl text-sm whitespace-nowrap">Subscribe</motion.button>
+            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="gold-sheen bg-gold-gradient text-[hsl(24,14%,8%)] font-bold px-6 py-3 rounded-xl text-sm whitespace-nowrap">Subscribe</motion.button>
           </div>
         </div>
       </section>
