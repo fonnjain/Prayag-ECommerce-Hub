@@ -63,43 +63,42 @@ function WithLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+const BARE_ROUTES = ["/admin", "/dealer", "/distributor"];
+
 function Router() {
-  return (
+  const [location] = useLocation();
+  const isBare = BARE_ROUTES.includes(location);
+
+  const content = (
     <Switch>
       <Route path="/admin" component={() => <AdminPage />} />
       <Route path="/dealer" component={() => <DealerPage />} />
       <Route path="/distributor" component={() => <DistributorPage />} />
-      <Route path="*">
-        {() => (
-          <WithLayout>
-            <Switch>
-              <Route path="/" component={HomePage} />
-              <Route path="/products" component={ProductsPage} />
-              <Route path="/products/:slug" component={ProductDetailPage} />
-              <Route path="/cart" component={CartPage} />
-              <Route path="/checkout" component={CheckoutPage} />
-              <Route path="/account/orders/:id" component={OrderTrackingPage} />
-              <Route path="/account/orders" component={AccountPage} />
-              <Route path="/account/wishlist" component={AccountPage} />
-              <Route path="/account" component={AccountPage} />
-              <Route path="/login" component={LoginPage} />
-              <Route path="/register" component={RegisterPage} />
-              <Route path="/dealer-registration" component={DealerRegistrationPage} />
-              <Route path="/distributor-registration" component={DistributorRegistrationPage} />
-              <Route path="/about" component={AboutPage} />
-              <Route path="/faq" component={FaqPage} />
-              <Route path="/careers" component={CareersPage} />
-              <Route path="/shipping-policy">{() => <PolicyPage type="shipping" />}</Route>
-              <Route path="/returns">{() => <PolicyPage type="returns" />}</Route>
-              <Route path="/privacy-policy">{() => <PolicyPage type="privacy" />}</Route>
-              <Route path="/terms">{() => <PolicyPage type="terms" />}</Route>
-              <Route component={NotFound} />
-            </Switch>
-          </WithLayout>
-        )}
-      </Route>
+      <Route path="/" component={HomePage} />
+      <Route path="/products" component={ProductsPage} />
+      <Route path="/products/:slug" component={ProductDetailPage} />
+      <Route path="/cart" component={CartPage} />
+      <Route path="/checkout" component={CheckoutPage} />
+      <Route path="/account/orders/:id" component={OrderTrackingPage} />
+      <Route path="/account/orders" component={AccountPage} />
+      <Route path="/account/wishlist" component={AccountPage} />
+      <Route path="/account" component={AccountPage} />
+      <Route path="/login" component={LoginPage} />
+      <Route path="/register" component={RegisterPage} />
+      <Route path="/dealer-registration" component={DealerRegistrationPage} />
+      <Route path="/distributor-registration" component={DistributorRegistrationPage} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/faq" component={FaqPage} />
+      <Route path="/careers" component={CareersPage} />
+      <Route path="/shipping-policy">{() => <PolicyPage type="shipping" />}</Route>
+      <Route path="/returns">{() => <PolicyPage type="returns" />}</Route>
+      <Route path="/privacy-policy">{() => <PolicyPage type="privacy" />}</Route>
+      <Route path="/terms">{() => <PolicyPage type="terms" />}</Route>
+      <Route component={NotFound} />
     </Switch>
   );
+
+  return isBare ? content : <WithLayout>{content}</WithLayout>;
 }
 
 export default function App() {

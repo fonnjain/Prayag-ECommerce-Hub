@@ -1,0 +1,1 @@
+- [wouter routing](wouter-routing.md) — never wrap a shared-layout Switch in `<Route path="*">`; it breaks Link navigation on all non-home pages (URL won't update). Use flat Switch + conditional layout.
