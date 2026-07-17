@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Search, Heart, ShoppingCart, User, ChevronDown, Menu, X, Phone, MapPin, Package, BookOpen, Building2, Truck, Grid3X3 } from "lucide-react";
 import { useCartStore, useAuthStore } from "@/lib/store";
 import { useGetCart, useGetSearchSuggestions, getGetSearchSuggestionsQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import logoDark from "@assets/logo_1783664087489.png";
 
 const allCategories = [
@@ -32,6 +33,7 @@ export default function Header() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const { itemCount, setItemCount } = useCartStore();
   const { user, logout } = useAuthStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -209,7 +211,7 @@ export default function Header() {
                     {user.role === "dealer" && <Link href="/dealer" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Dealer Portal</Link>}
                     {user.role === "distributor" && <Link href="/distributor" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Distributor Portal</Link>}
                     <hr className="my-1" />
-                    <button onClick={() => { logout(); setShowUserMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Sign Out</button>
+                    <button onClick={() => { logout(); queryClient.invalidateQueries(); setShowUserMenu(false); setLocation("/"); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50" data-testid="button-logout">Sign Out</button>
                   </>
                 ) : (
                   <>

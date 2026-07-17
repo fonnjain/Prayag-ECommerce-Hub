@@ -16,7 +16,7 @@ const sections = [
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-blue-100 text-blue-700",
+  confirmed: "bg-amber-100 text-blue-700",
   packed: "bg-indigo-100 text-indigo-700",
   dispatched: "bg-purple-100 text-purple-700",
   delivered: "bg-green-100 text-green-700",
@@ -39,7 +39,7 @@ export default function AccountPage() {
     <div className="max-w-4xl mx-auto px-4 py-20 text-center">
       <h2 className="text-xl font-bold text-gray-900 mb-2">Please sign in</h2>
       <p className="text-gray-500 mb-6">You need to be logged in to view your account.</p>
-      <Link href="/login"><button className="bg-[hsl(215,100%,34%)] text-white font-bold px-8 py-3 rounded-xl hover:bg-[hsl(215,100%,28%)] transition-colors" data-testid="button-login">Sign In</button></Link>
+      <Link href="/login"><button className="bg-[hsl(24,10%,16%)] text-white font-bold px-8 py-3 rounded-xl hover:bg-[hsl(24,14%,8%)] transition-colors" data-testid="button-login">Sign In</button></Link>
     </div>
   );
 
@@ -50,7 +50,7 @@ export default function AccountPage() {
         {/* Sidebar */}
         <aside className="w-56 flex-shrink-0">
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-            <div className="bg-[hsl(215,100%,34%)] text-white p-4">
+            <div className="bg-[hsl(24,10%,16%)] text-white p-4">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-2">
                 <User className="w-6 h-6" />
               </div>
@@ -60,7 +60,7 @@ export default function AccountPage() {
             <nav className="py-1">
               {sections.map(({ id, label, icon: Icon }) => (
                 <button key={id} onClick={() => setActiveSection(id)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${activeSection === id ? "bg-blue-50 text-[hsl(215,100%,34%)] font-medium" : "text-gray-600 hover:bg-gray-50"}`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${activeSection === id ? "bg-amber-50 text-[hsl(38,52%,40%)] font-medium" : "text-gray-600 hover:bg-gray-50"}`}
                   data-testid={`nav-account-${id}`}>
                   <Icon className="w-4 h-4" /> {label}
                 </button>
@@ -111,9 +111,9 @@ export default function AccountPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-500">{order.items.length} items</span>
                         <div className="flex items-center gap-3">
-                          <span className="font-bold text-[hsl(215,100%,34%)]">₹{order.total.toLocaleString("en-IN")}</span>
+                          <span className="font-bold text-[hsl(38,52%,40%)]">₹{order.total.toLocaleString("en-IN")}</span>
                           <Link href={`/account/orders/${order.id}`}>
-                            <button className="text-xs text-[hsl(215,100%,34%)] font-medium hover:underline flex items-center gap-0.5" data-testid={`button-track-${order.id}`}>
+                            <button className="text-xs text-[hsl(38,52%,40%)] font-medium hover:underline flex items-center gap-0.5" data-testid={`button-track-${order.id}`}>
                               Track <ChevronRight className="w-3 h-3" />
                             </button>
                           </Link>
@@ -126,7 +126,7 @@ export default function AccountPage() {
                 <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
                   <Package className="w-12 h-12 text-gray-200 mx-auto mb-3" />
                   <p className="text-gray-500">No orders yet</p>
-                  <Link href="/products"><button className="mt-3 text-[hsl(215,100%,34%)] text-sm font-medium hover:underline">Start Shopping</button></Link>
+                  <Link href="/products"><button className="mt-3 text-[hsl(38,52%,40%)] text-sm font-medium hover:underline">Start Shopping</button></Link>
                 </div>
               )}
             </div>
@@ -139,7 +139,7 @@ export default function AccountPage() {
                 <div className="grid sm:grid-cols-2 gap-3">
                   {addresses.map(addr => (
                     <div key={addr.id} className="bg-white rounded-xl border border-gray-100 p-4" data-testid={`card-address-${addr.id}`}>
-                      {addr.isDefault && <span className="text-xs bg-blue-100 text-[hsl(215,100%,34%)] font-medium px-2 py-0.5 rounded-full mb-2 inline-block">Default</span>}
+                      {addr.isDefault && <span className="text-xs bg-amber-100 text-[hsl(38,52%,40%)] font-medium px-2 py-0.5 rounded-full mb-2 inline-block">Default</span>}
                       <div className="font-medium text-sm text-gray-900">{addr.name}</div>
                       <div className="text-xs text-gray-500 mt-1 leading-relaxed">{addr.street}, {addr.city}, {addr.state} - {addr.pincode}</div>
                       <div className="text-xs text-gray-400 mt-0.5">{addr.phone}</div>
@@ -170,7 +170,7 @@ export default function AccountPage() {
                         </div>
                         <div className="p-3">
                           <p className="text-sm font-medium text-gray-900 line-clamp-2">{p.name}</p>
-                          <p className="text-[hsl(215,100%,34%)] font-bold text-sm mt-1">₹{p.price?.toLocaleString("en-IN")}</p>
+                          <p className="text-[hsl(38,52%,40%)] font-bold text-sm mt-1">₹{p.price?.toLocaleString("en-IN")}</p>
                         </div>
                       </div>
                     </Link>
@@ -180,7 +180,7 @@ export default function AccountPage() {
                 <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
                   <Heart className="w-12 h-12 text-gray-200 mx-auto mb-3" />
                   <p className="text-gray-500">Your wishlist is empty</p>
-                  <Link href="/products"><button className="mt-3 text-[hsl(215,100%,34%)] text-sm font-medium hover:underline">Browse Products</button></Link>
+                  <Link href="/products"><button className="mt-3 text-[hsl(38,52%,40%)] text-sm font-medium hover:underline">Browse Products</button></Link>
                 </div>
               )}
             </div>
@@ -199,7 +199,7 @@ export default function AccountPage() {
               <HeadphonesIcon className="w-12 h-12 text-gray-200 mx-auto mb-3" />
               <h3 className="font-bold text-gray-900 mb-2">Customer Support</h3>
               <p className="text-sm text-gray-400 mb-4">Need help? Contact our support team.</p>
-              <div className="inline-flex items-center gap-2 bg-[hsl(215,100%,34%)] text-white px-6 py-2.5 rounded-xl text-sm font-medium">
+              <div className="inline-flex items-center gap-2 bg-[hsl(24,10%,16%)] text-white px-6 py-2.5 rounded-xl text-sm font-medium">
                 Call 1800-123-7729
               </div>
             </div>

@@ -6,7 +6,10 @@ import { eq } from "drizzle-orm";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
-const JWT_SECRET = process.env.SESSION_SECRET || "prayag-secret-2024";
+const JWT_SECRET = process.env.SESSION_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("SESSION_SECRET environment variable is required");
+}
 
 router.post("/auth/register", async (req, res): Promise<void> => {
   const { name, email, password, phone, role } = req.body;

@@ -41,7 +41,7 @@ export default function RegisterPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 bg-gray-50">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-lg p-8 w-full max-w-md">
         <div className="text-center mb-6">
-          <div className="text-2xl font-black text-[hsl(215,100%,34%)]">PRAYAG</div>
+          <div className="text-2xl font-black text-[hsl(38,52%,40%)]">PRAYAG</div>
           <h1 className="text-xl font-bold text-gray-900 mt-2">Create Account</h1>
           <p className="text-gray-500 text-sm mt-1">Join thousands of happy customers</p>
         </div>
@@ -58,7 +58,7 @@ export default function RegisterPage() {
               <div className="relative">
                 <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input {...form.register(name)} type={type} placeholder={placeholder}
-                  className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm outline-none focus:border-[hsl(215,100%,34%)] transition-colors"
+                  className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm outline-none focus:border-[hsl(42,62%,68%)] transition-colors"
                   data-testid={`input-${name}`} />
               </div>
               {form.formState.errors[name] && <p className="text-xs text-red-500 mt-0.5">{form.formState.errors[name]?.message}</p>}
@@ -66,7 +66,7 @@ export default function RegisterPage() {
           ))}
 
           <button type="submit" disabled={register.isPending}
-            className="w-full bg-[hsl(215,100%,34%)] text-white font-bold py-3 rounded-xl hover:bg-[hsl(215,100%,28%)] transition-colors disabled:opacity-50"
+            className="w-full bg-[hsl(24,10%,16%)] text-white font-bold py-3 rounded-xl hover:bg-[hsl(24,14%,8%)] transition-colors disabled:opacity-50"
             data-testid="button-submit-register">
             {register.isPending ? "Creating account..." : "Create Account"}
           </button>
@@ -74,7 +74,7 @@ export default function RegisterPage() {
 
         <p className="text-center text-sm text-gray-500 mt-4">
           Already have an account?{" "}
-          <Link href="/login" className="text-[hsl(215,100%,34%)] font-medium hover:underline">Sign In</Link>
+          <Link href="/login" className="text-[hsl(38,52%,40%)] font-medium hover:underline">Sign In</Link>
         </p>
       </div>
     </div>
