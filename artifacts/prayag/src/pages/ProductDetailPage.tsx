@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, Minus, Plus } from "lucide-react";
-import { useGetProduct, useGetRelatedProducts, useAddToCart, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
+import { useGetProduct, useGetRelatedProducts, useListCategories, useAddToCart, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,7 @@ export default function ProductDetailPage() {
   const { data: related } = useGetRelatedProducts(slug!, {
     query: { enabled: !!slug, queryKey: getGetRelatedProductsQueryKey(slug!) },
   });
+  const { data: categories } = useListCategories();
   const queryClient = useQueryClient();
   const addToCart = useAddToCart();
   const addToWishlist = useAddToWishlist();
@@ -76,6 +77,15 @@ export default function ProductDetailPage() {
         <Link href="/" className="hover:text-[hsl(215,100%,34%)]">Home</Link>
         <ChevronRight className="w-3 h-3" />
         <Link href="/products" className="hover:text-[hsl(215,100%,34%)]">Products</Link>
+        {(() => {
+          const cat = (categories || []).find(c => c.id === product.categoryId);
+          return cat ? (
+            <>
+              <ChevronRight className="w-3 h-3" />
+              <Link href={`/products?category=${cat.slug}`} className="hover:text-[hsl(215,100%,34%)]">{cat.name}</Link>
+            </>
+          ) : null;
+        })()}
         <ChevronRight className="w-3 h-3" />
         <span className="text-gray-600">{product.name}</span>
       </div>
