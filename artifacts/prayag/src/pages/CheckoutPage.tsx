@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { CreditCard, Building, Smartphone, Banknote, MapPin, Lock } from "lucide-react";
 import { useGetCart, useCreateOrder, useCreateAddress, getGetCartQueryKey } from "@workspace/api-client-react";
-import { useCartStore } from "@/lib/store";
+import { useCartStore, useAuthStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,6 +33,7 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const { setItemCount } = useCartStore();
+  const { user } = useAuthStore();
   const [payMethod, setPayMethod] = useState("cod");
 
   const { data: cart, isLoading } = useGetCart();
@@ -60,6 +61,7 @@ export default function CheckoutPage() {
   }
 
   if (isLoading) return <div className="max-w-5xl mx-auto px-4 py-8"><Skeleton className="h-96 rounded-xl" /></div>;
+  if (!user) { setLocation("/login"); return null; }
   if (!cart || cart.items.length === 0) { setLocation("/cart"); return null; }
 
   return (

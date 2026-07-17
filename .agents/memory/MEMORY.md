@@ -1,2 +1,2 @@
-- [wouter routing](wouter-routing.md) — never wrap a shared-layout Switch in `<Route path="*">`; it breaks Link navigation on all non-home pages (URL won't update). Use flat Switch + conditional layout.
-- [SPA URL-query state](spa-query-state.md) — never seed filter state from window.location.search once on mount; sync reactively (wouter useSearch + effect) or client-side nav leaves stale content.
+- [esbuild externals for api-server](esbuild-externals.md) — bundle-breaking packages (e.g. pdfkit/fontkit) go in build.mjs `external`, not devDependencies.
+- [PRAYAG orders auth model](prayag-auth-orders.md) — all /api/orders* routes need Bearer JWT + ownership checks; PDF downloads need authenticated fetch, not <a> links.

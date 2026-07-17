@@ -1,7 +1,8 @@
 import { useParams, Link } from "wouter";
 import { useGetOrder, useGetOrderTracking, getGetOrderQueryKey, getGetOrderTrackingQueryKey } from "@workspace/api-client-react";
-import { CheckCircle2, Circle, ChevronRight } from "lucide-react";
+import { CheckCircle2, Circle, ChevronRight, FileDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { downloadInvoice } from "@/lib/invoice";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
@@ -52,9 +53,18 @@ export default function OrderTrackingPage() {
             <h1 className="text-lg font-bold text-gray-900">Order #{order.orderNumber}</h1>
             <p className="text-xs text-gray-400 mt-0.5">Placed on {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</p>
           </div>
-          <span className={`text-xs font-medium px-3 py-1 rounded-full ${statusColors[order.status] || "bg-gray-100 text-gray-600"}`} data-testid="text-order-status">
-            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => downloadInvoice(order.id, order.orderNumber)}
+              className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border border-[hsl(42,62%,68%)] text-[hsl(38,52%,40%)] hover:bg-[hsl(42,62%,68%)]/10 transition-colors"
+              data-testid="button-download-invoice"
+            >
+              <FileDown className="w-3.5 h-3.5" /> Invoice
+            </button>
+            <span className={`text-xs font-medium px-3 py-1 rounded-full ${statusColors[order.status] || "bg-gray-100 text-gray-600"}`} data-testid="text-order-status">
+              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+            </span>
+          </div>
         </div>
         <div className="border-t border-gray-100 pt-4">
           <div className="grid grid-cols-3 gap-4 text-sm">

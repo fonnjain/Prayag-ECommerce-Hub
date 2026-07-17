@@ -1,11 +1,32 @@
 import { Router, type IRouter } from "express";
-import { db, ordersTable, orderItemsTable, cartItemsTable, cartSessionsTable, productsTable, addressesTable } from "@workspace/db";
+import jwt from "jsonwebtoken";
+import { db, ordersTable, orderItemsTable, cartItemsTable, cartSessionsTable, productsTable, addressesTable, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { generateInvoicePdf } from "../lib/invoice";
+import { sendInvoiceEmail } from "../lib/email";
+import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
+const JWT_SECRET = process.env.SESSION_SECRET;
 
 function getSessionId(req: any): string {
   return req.headers["x-session-id"] as string || req.ip || "default";
+}
+
+function getAuthUser(req: any): { id: number; role?: string } | null {
+  const authHeader = req.headers.authorization;
+  if (authHeader && JWT_SECRET) {
+    try {
+      return jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { id: number; role?: string };
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function canAccessOrder(auth: { id: number; role?: string }, order: { userId: number | null }): boolean {
+  return auth.role === "admin" || order.userId === auth.id;
 }
 
 const STATUSES = ["pending", "confirmed", "packed", "dispatched", "delivered", "cancelled"];
@@ -47,15 +68,18 @@ async function buildOrder(order: typeof ordersTable.$inferSelect) {
 }
 
 router.get("/orders", async (req, res): Promise<void> => {
-  const userId = (req as any).userId || 1;
-  const rows = await db.select().from(ordersTable).where(eq(ordersTable.userId, userId));
+  const auth = getAuthUser(req);
+  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const rows = await db.select().from(ordersTable).where(eq(ordersTable.userId, auth.id));
   const built = await Promise.all(rows.map(buildOrder));
   res.json(built);
 });
 
 router.post("/orders", async (req, res): Promise<void> => {
   const { addressId, paymentMethod, couponCode, notes } = req.body;
-  const userId = (req as any).userId || 1;
+  const auth = getAuthUser(req);
+  if (!auth) { res.status(401).json({ error: "Please sign in to place an order" }); return; }
+  const userId = auth.id;
   const sessionId = getSessionId(req);
 
   const [cart] = await db.select().from(cartSessionsTable).where(eq(cartSessionsTable.sessionId, sessionId));
@@ -76,7 +100,7 @@ router.post("/orders", async (req, res): Promise<void> => {
   const orderNumber = `PRY${Date.now()}`;
 
   const [order] = await db.insert(ordersTable).values({
-    orderNumber, userId, status: "pending",
+    orderNumber, userId, status: "confirmed",
     subtotal: subtotal.toString(), gst: gst.toString(), shipping: shipping.toString(),
     discount: discount.toString(), total: total.toString(),
     paymentMethod: paymentMethod || "cod", paymentStatus: "pending",
@@ -94,22 +118,63 @@ router.post("/orders", async (req, res): Promise<void> => {
 
   if (cart) await db.delete(cartItemsTable).where(eq(cartItemsTable.cartId, cart.id));
 
-  res.status(201).json(await buildOrder(order));
+  const built = await buildOrder(order);
+  res.status(201).json(built);
+
+  // Fire-and-forget: generate invoice PDF and email it to the customer
+  void (async () => {
+    try {
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+      if (!user?.email) {
+        logger.warn({ orderId: order.id }, "No user email — skipping invoice email");
+        return;
+      }
+      const pdf = await generateInvoicePdf({ ...built, customerName: user.name, customerEmail: user.email });
+      await sendInvoiceEmail({
+        to: user.email,
+        customerName: user.name,
+        orderNumber: order.orderNumber,
+        total: built.total,
+        pdf,
+      });
+    } catch (err) {
+      logger.error({ err, orderId: order.id }, "Invoice email pipeline failed");
+    }
+  })();
 });
 
-router.get("/orders/:id", async (req, res): Promise<void> => {
+router.get("/orders/:id/invoice", async (req, res): Promise<void> => {
+  const auth = getAuthUser(req);
+  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
-  if (!order) { res.status(404).json({ error: "Not found" }); return; }
+  if (!order || !canAccessOrder(auth, order)) { res.status(404).json({ error: "Not found" }); return; }
+  const built = await buildOrder(order);
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, order.userId!));
+  const pdf = await generateInvoicePdf({ ...built, customerName: user?.name, customerEmail: user?.email });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="Invoice-${order.orderNumber}.pdf"`);
+  res.send(pdf);
+});
+
+router.get("/orders/:id", async (req, res): Promise<void> => {
+  const auth = getAuthUser(req);
+  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order || !canAccessOrder(auth, order)) { res.status(404).json({ error: "Not found" }); return; }
   res.json(await buildOrder(order));
 });
 
 router.get("/orders/:id/tracking", async (req, res): Promise<void> => {
+  const auth = getAuthUser(req);
+  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
-  if (!order) { res.status(404).json({ error: "Not found" }); return; }
+  if (!order || !canAccessOrder(auth, order)) { res.status(404).json({ error: "Not found" }); return; }
   const currentIdx = STATUSES.indexOf(order.status);
   const labels: Record<string, string> = {
     pending: "Order Placed", confirmed: "Order Confirmed", packed: "Packed",

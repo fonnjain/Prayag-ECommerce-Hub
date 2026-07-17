@@ -3,6 +3,7 @@ import { Link, useParams, useLocation } from "wouter";
 import { User, MapPin, Package, Heart, RotateCcw, HeadphonesIcon, ChevronRight, Star } from "lucide-react";
 import { useListOrders, useGetWishlist, useListAddresses } from "@workspace/api-client-react";
 import { useAuthStore } from "@/lib/store";
+import { downloadInvoice } from "@/lib/invoice";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const sections = [
@@ -112,6 +113,13 @@ export default function AccountPage() {
                         <span className="text-sm text-gray-500">{order.items.length} items</span>
                         <div className="flex items-center gap-3">
                           <span className="font-bold text-[hsl(38,52%,40%)]">₹{order.total.toLocaleString("en-IN")}</span>
+                          <button
+                            onClick={() => downloadInvoice(order.id, order.orderNumber)}
+                            className="text-xs text-[hsl(38,52%,40%)] font-medium hover:underline"
+                            data-testid={`button-invoice-${order.id}`}
+                          >
+                            Invoice
+                          </button>
                           <Link href={`/account/orders/${order.id}`}>
                             <button className="text-xs text-[hsl(38,52%,40%)] font-medium hover:underline flex items-center gap-0.5" data-testid={`button-track-${order.id}`}>
                               Track <ChevronRight className="w-3 h-3" />

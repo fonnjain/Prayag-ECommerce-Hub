@@ -47,6 +47,8 @@ async function buildAll() {
       "isolated-vm",
       "lightningcss",
       "pg-native",
+      "pdfkit",
+      "fontkit",
       "oracledb",
       "mongodb-client-encryption",
       "nodemailer",
