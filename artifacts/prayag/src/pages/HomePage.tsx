@@ -368,7 +368,7 @@ export default function HomePage() {
                     <motion.div whileHover={{ y: -6 }} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-bestseller-${p.id}`}>
                       <div className="relative overflow-hidden">
                         <span className="absolute top-2 left-2 bg-gold-gradient text-[hsl(24,14%,8%)] text-[9px] font-bold px-2 py-0.5 rounded-full z-10">Bestseller</span>
-                        <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=160&fit=crop"} alt={p.name} className="w-full h-32 object-cover hover:scale-110 transition-transform duration-500" />
+                        <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=160&fit=crop"} alt={p.name} className="w-full aspect-square object-contain bg-white hover:scale-110 transition-transform duration-500" />
                       </div>
                       <div className="p-3">
                         <div className="text-[9px] text-gray-400 font-mono">{p.sku}</div>
@@ -395,7 +395,7 @@ export default function HomePage() {
                   <motion.div key={p.id} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}>
                     <Link href={`/products/${p.slug}`}>
                       <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl p-2.5 hover:border-[hsl(24,10%,16%)]/40 hover:shadow-md transition-all group" data-testid={`card-new-arrival-${p.id}`}>
-                        <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=80&h=80&fit=crop"} alt={p.name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0 group-hover:scale-105 transition-transform" />
+                        <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=80&h=80&fit=crop"} alt={p.name} className="w-16 h-16 object-contain bg-white rounded-xl flex-shrink-0 group-hover:scale-105 transition-transform" />
                         <div className="flex-1 min-w-0">
                           <div className="text-[9px] text-gray-400 font-mono">{p.sku}</div>
                           <div className="text-sm font-semibold text-gray-800 line-clamp-1 group-hover:text-[hsl(24,10%,16%)] transition-colors">{p.name}</div>
