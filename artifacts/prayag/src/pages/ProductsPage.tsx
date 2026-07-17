@@ -157,16 +157,32 @@ export default function ProductsPage() {
                     className="px-4 py-2 border border-gray-200 rounded-lg text-sm disabled:opacity-50 hover:border-[hsl(42,62%,68%)] transition-colors" data-testid="button-prev-page">
                     Previous
                   </button>
-                  {[...Array(Math.min(totalPages, 7))].map((_, i) => {
-                    const p = i + 1;
-                    return (
-                      <button key={p} onClick={() => updateFilter("page", p)}
-                        className={`px-3 py-2 rounded-lg text-sm transition-colors ${filters.page === p ? "bg-[hsl(24,10%,16%)] text-[hsl(42,62%,68%)] font-semibold" : "border border-gray-200 hover:border-[hsl(42,62%,68%)]"}`}
-                        data-testid={`button-page-${p}`}>
-                        {p}
-                      </button>
+                  {(() => {
+                    const cur = filters.page;
+                    const pages: (number | "...")[] = [];
+                    if (totalPages <= 7) {
+                      for (let p = 1; p <= totalPages; p++) pages.push(p);
+                    } else {
+                      const start = Math.max(2, cur - 1);
+                      const end = Math.min(totalPages - 1, cur + 1);
+                      pages.push(1);
+                      if (start > 2) pages.push("...");
+                      for (let p = start; p <= end; p++) pages.push(p);
+                      if (end < totalPages - 1) pages.push("...");
+                      pages.push(totalPages);
+                    }
+                    return pages.map((p, i) =>
+                      p === "..." ? (
+                        <span key={`e${i}`} className="px-2 text-sm text-gray-400">…</span>
+                      ) : (
+                        <button key={p} onClick={() => updateFilter("page", p)}
+                          className={`px-3 py-2 rounded-lg text-sm transition-colors ${cur === p ? "bg-[hsl(24,10%,16%)] text-[hsl(42,62%,68%)] font-semibold" : "border border-gray-200 hover:border-[hsl(42,62%,68%)]"}`}
+                          data-testid={`button-page-${p}`}>
+                          {p}
+                        </button>
+                      )
                     );
-                  })}
+                  })()}
                   <button disabled={filters.page === totalPages} onClick={() => updateFilter("page", filters.page + 1)}
                     className="px-4 py-2 border border-gray-200 rounded-lg text-sm disabled:opacity-50 hover:border-[hsl(42,62%,68%)] transition-colors" data-testid="button-next-page">
                     Next
