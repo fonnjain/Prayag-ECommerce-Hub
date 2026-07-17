@@ -1,2 +1,3 @@
 - [esbuild externals for api-server](esbuild-externals.md) — bundle-breaking packages (e.g. pdfkit/fontkit) go in build.mjs `external`, not devDependencies.
 - [PRAYAG orders auth model](prayag-auth-orders.md) — all /api/orders* routes need Bearer JWT + ownership checks; PDF downloads need authenticated fetch, not <a> links.
+- [PTMT catalog images](ptmt-catalog-images.md) — image mapping method from catalog PDF; 1374-* and 131-Q have no photo in catalog, keep placeholders.
