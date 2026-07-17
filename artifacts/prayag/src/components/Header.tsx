@@ -14,7 +14,7 @@ const allCategories = [
   { label: "Water Heaters", slug: "water-heaters" },
   { label: "Pipes & Fittings", slug: "pipes-fittings" },
   { label: "Bathroom Accessories", slug: "bathroom-accessories" },
-  { label: "Flush Tanks", slug: "flush-tanks" },
+  { label: "Storage Tanks", slug: "storage-tanks" },
 ];
 
 const navItems = [
@@ -25,7 +25,7 @@ const navItems = [
   { label: "Water Heaters", slug: "water-heaters" },
   { label: "Pipes & Fittings", slug: "pipes-fittings" },
   { label: "Bathroom Accessories", slug: "bathroom-accessories" },
-  { label: "Flush Tanks", slug: "flush-tanks" },
+  { label: "Storage Tanks", slug: "storage-tanks" },
 ];
 
 export default function Header() {

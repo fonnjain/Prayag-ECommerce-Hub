@@ -46,7 +46,7 @@ const categoryImages: Record<string, string> = {
   "water-heaters": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=300&fit=crop",
   "bathroom-accessories": "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=300&h=300&fit=crop",
   "pipes-fittings": "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&h=300&fit=crop",
-  "flush-tanks": "https://images.unsplash.com/photo-1564540586988-aa4e53c3d799?w=300&h=300&fit=crop",
+  "storage-tanks": "/images/drive/storage-tanks-web/wt-4ll-10.webp",
 };
 
 const collectionCards = [
@@ -70,7 +70,7 @@ const trustItems = [
   { icon: Headphones, label: "Expert Support", sub: "Available 24x7" },
 ];
 
-const marqueeWords = ["CP FAUCETS", "SANITARYWARE", "KITCHEN SINKS", "WATER HEATERS", "PIPES & FITTINGS", "BATHROOM ACCESSORIES", "FLUSH TANKS", "PTMT FAUCETS"];
+const marqueeWords = ["CP FAUCETS", "SANITARYWARE", "KITCHEN SINKS", "WATER HEATERS", "PIPES & FITTINGS", "BATHROOM ACCESSORIES", "STORAGE TANKS", "PTMT FAUCETS"];
 
 /* Animated number counter */
 function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
@@ -143,7 +143,7 @@ export default function HomePage() {
     { id: 5, name: "Water Heaters", slug: "water-heaters", productCount: 5 },
     { id: 6, name: "Bathroom Accessories", slug: "bathroom-accessories", productCount: 20 },
     { id: 7, name: "Pipes & Fittings", slug: "pipes-fittings", productCount: 10 },
-    { id: 8, name: "Flush Tanks", slug: "flush-tanks", productCount: 7 },
+    { id: 8, name: "Storage Tanks", slug: "storage-tanks", productCount: 7 },
   ];
 
   return (
