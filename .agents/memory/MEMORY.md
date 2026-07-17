@@ -1,1 +1,2 @@
 - [wouter routing](wouter-routing.md) — never wrap a shared-layout Switch in `<Route path="*">`; it breaks Link navigation on all non-home pages (URL won't update). Use flat Switch + conditional layout.
+- [SPA URL-query state](spa-query-state.md) — never seed filter state from window.location.search once on mount; sync reactively (wouter useSearch + effect) or client-side nav leaves stale content.

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { useLocation, useSearch } from "wouter";
 import { Grid3X3, List, SlidersHorizontal, X, ChevronDown } from "lucide-react";
 import { useListProducts, useListCategories, getListProductsQueryKey } from "@workspace/api-client-react";
 import ProductCard from "@/components/ProductCard";
@@ -13,6 +13,7 @@ function useQueryParams() {
 
 export default function ProductsPage() {
   const params = useQueryParams();
+  const searchString = useSearch();
   const [, setLocation] = useLocation();
   const [view, setView] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
@@ -26,6 +27,11 @@ export default function ProductsPage() {
     sortBy: "newest",
     page: 1,
   });
+
+  useEffect(() => {
+    const p = Object.fromEntries(new URLSearchParams(searchString).entries());
+    setFilters(f => ({ ...f, category: p.category || "", search: p.search || "", page: 1 }));
+  }, [searchString]);
 
   const queryParams = {
     ...(filters.category && { category: filters.category }),
