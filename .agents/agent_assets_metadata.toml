@@ -1,0 +1,26 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "o7rZRykSZGmnbFS6a4KKv"
+uri = "file://attached_assets/stock_images/prayag_hero_faucet_1.jpg"
+type = "image"
+title = "luxury premium chrome faucet closeup elegant bathroom basin mixer tap dark moody"
+
+[[outputs]]
+id = "6ECjS5Qixh6F9-IrpJVCS"
+uri = "file://attached_assets/stock_images/prayag_hero_faucet_2.jpg"
+type = "image"
+title = "luxury premium chrome faucet closeup elegant bathroom basin mixer tap dark moody"
+
+[[outputs]]
+id = "qq2dSAcKXw6jtPwGC6P2T"
+uri = "file://attached_assets/stock_images/prayag_hero_faucet_3.jpg"
+type = "image"
+title = "luxury premium chrome faucet closeup elegant bathroom basin mixer tap dark moody"
+
+[[outputs]]
+id = "LKQ5sWi_j9BrBXbUCpsOD"
+uri = "file://attached_assets/stock_images/prayag_hero_faucet_4.jpg"
+type = "image"
+title = "luxury premium chrome faucet closeup elegant bathroom basin mixer tap dark moody"
