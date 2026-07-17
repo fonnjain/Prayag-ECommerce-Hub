@@ -50,7 +50,8 @@ export default function ProductsPage() {
   const { data: categories } = useListCategories();
 
   function updateFilter(key: string, value: any) {
-    setFilters(f => ({ ...f, [key]: value, page: 1 }));
+    setFilters(f => ({ ...f, [key]: value, ...(key !== "page" && { page: 1 }) }));
+    if (key === "page") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function clearFilters() {
@@ -153,20 +154,21 @@ export default function ProductsPage() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-8">
                   <button disabled={filters.page === 1} onClick={() => updateFilter("page", filters.page - 1)}
-                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm disabled:opacity-50 hover:border-[hsl(215,100%,34%)]">
+                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm disabled:opacity-50 hover:border-[hsl(42,62%,68%)] transition-colors" data-testid="button-prev-page">
                     Previous
                   </button>
                   {[...Array(Math.min(totalPages, 7))].map((_, i) => {
                     const p = i + 1;
                     return (
                       <button key={p} onClick={() => updateFilter("page", p)}
-                        className={`px-3 py-2 rounded-lg text-sm ${filters.page === p ? "bg-[hsl(215,100%,34%)] text-white" : "border border-gray-200 hover:border-[hsl(215,100%,34%)]"}`}>
+                        className={`px-3 py-2 rounded-lg text-sm transition-colors ${filters.page === p ? "bg-[hsl(24,10%,16%)] text-[hsl(42,62%,68%)] font-semibold" : "border border-gray-200 hover:border-[hsl(42,62%,68%)]"}`}
+                        data-testid={`button-page-${p}`}>
                         {p}
                       </button>
                     );
                   })}
                   <button disabled={filters.page === totalPages} onClick={() => updateFilter("page", filters.page + 1)}
-                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm disabled:opacity-50 hover:border-[hsl(215,100%,34%)]">
+                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm disabled:opacity-50 hover:border-[hsl(42,62%,68%)] transition-colors" data-testid="button-next-page">
                     Next
                   </button>
                 </div>
