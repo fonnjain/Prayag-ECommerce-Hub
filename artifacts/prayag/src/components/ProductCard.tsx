@@ -65,7 +65,7 @@ export default function ProductCard({ product }: Props) {
         <div className="relative aspect-square bg-white overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(28,22,16,0.04)_0%,rgba(28,22,16,0.09)_100%)]" />
           {product.imageUrl ? (
-            <img src={product.imageUrl} alt={product.name} loading="lazy" className="relative w-full h-full object-contain p-5 group-hover:scale-105 transition-transform duration-500 ease-out drop-shadow-[0_10px_18px_rgba(28,22,16,0.18)]" />
+            <img src={product.imageUrl} alt={product.name} loading="lazy" className="relative w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <div className="w-16 h-16 bg-[hsl(24,10%,16%)]/10 rounded-full flex items-center justify-center">

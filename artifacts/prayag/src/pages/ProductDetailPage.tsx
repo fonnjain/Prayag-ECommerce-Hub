@@ -87,7 +87,7 @@ export default function ProductDetailPage() {
             <img
               src={images[activeImg] || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=600&fit=crop"}
               alt={product.name}
-              className="max-w-[75%] max-h-[75%] object-contain hover:scale-105 transition-transform duration-300 drop-shadow-[0_16px_28px_rgba(28,22,16,0.16)]"
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               data-testid="img-product-main"
             />
           </div>
