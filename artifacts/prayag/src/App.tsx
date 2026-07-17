@@ -22,6 +22,7 @@ import AboutPage from "@/pages/AboutPage";
 import FaqPage from "@/pages/FaqPage";
 import CareersPage from "@/pages/CareersPage";
 import PolicyPage from "@/pages/PolicyPage";
+import GalleryPage from "@/pages/GalleryPage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30000 } },
@@ -90,6 +91,7 @@ function Router() {
       <Route path="/about" component={AboutPage} />
       <Route path="/faq" component={FaqPage} />
       <Route path="/careers" component={CareersPage} />
+      <Route path="/gallery" component={GalleryPage} />
       <Route path="/shipping-policy">{() => <PolicyPage type="shipping" />}</Route>
       <Route path="/returns">{() => <PolicyPage type="returns" />}</Route>
       <Route path="/privacy-policy">{() => <PolicyPage type="privacy" />}</Route>
