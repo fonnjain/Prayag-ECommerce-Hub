@@ -51,7 +51,7 @@ export default function Footer() {
                 { Icon: SiX, label: "X", href: "https://x.com/prayagindia" },
                 { Icon: SiYoutube, label: "YouTube", href: "https://www.youtube.com/@prayagindia" },
               ].map(({ Icon, label, href }) => (
-                <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-gray-400 hover:bg-gold-gradient hover:text-[hsl(24,14%,8%)] hover:border-transparent transition-all" aria-label={label}>
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-gray-400 hover:bg-[hsl(42,62%,68%)] hover:text-[hsl(24,14%,8%)] hover:border-[hsl(42,62%,68%)] transition-all" aria-label={label}>
                   <Icon className="w-4 h-4" />
                 </a>
               ))}
