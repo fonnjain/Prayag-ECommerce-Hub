@@ -2,8 +2,40 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView, useMotionValue, useSpring, animate } from "framer-motion";
 import { ArrowRight, ChevronRight, ChevronLeft, Shield, Truck, Award, RefreshCw, BadgeCheck, Headphones, Tag, Star, Droplets, Sparkles, Package } from "lucide-react";
-import { useListCategoriesWithCounts, useListFeaturedProducts, useListNewArrivals } from "@workspace/api-client-react";
+import { useListCategoriesWithCounts, useListFeaturedProducts, useListNewArrivals, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ShoppingCart } from "lucide-react";
+import { useCartStore } from "@/lib/store";
+import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+
+function AddToCartButton({ productId, productName }: { productId: number; productName: string }) {
+  const { toast } = useToast();
+  const { setItemCount } = useCartStore();
+  const queryClient = useQueryClient();
+  const addToCart = useAddToCart();
+
+  function handleClick(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart.mutate({ data: { productId, quantity: 1 } }, {
+      onSuccess: (cart) => {
+        setItemCount(cart.itemCount);
+        queryClient.setQueryData(getGetCartQueryKey(), cart);
+        toast({ title: "Added to cart", description: productName });
+      },
+    });
+  }
+
+  return (
+    <button onClick={handleClick} disabled={addToCart.isPending}
+      className="shimmer-hover w-full bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] text-white text-[10px] font-bold py-2 rounded-lg text-center flex items-center justify-center gap-1 disabled:opacity-60"
+      data-testid={`button-home-add-cart-${productId}`}>
+      <ShoppingCart className="w-3 h-3" />
+      {addToCart.isPending ? "Adding..." : "Add to Cart"}
+    </button>
+  );
+}
 
 const categoryImages: Record<string, string> = {
   "cp-faucets": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=300&h=300&fit=crop",
@@ -345,7 +377,7 @@ export default function HomePage() {
                         <div className="text-xs font-semibold text-gray-800 leading-tight mt-0.5 mb-1 line-clamp-1">{p.name}</div>
                         <div className="flex items-center gap-1 mb-1.5">{[...Array(4)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-[hsl(38,52%,52%)] text-[hsl(38,52%,52%)]" />)}<span className="text-[9px] text-gray-400">({Math.floor(Math.random() * 200 + 50)})</span></div>
                         <div className="flex items-baseline gap-1 mb-2"><span className="font-black text-sm text-[hsl(24,10%,16%)]">₹{Number(p.price).toLocaleString("en-IN")}</span>{p.mrp && <span className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</span>}</div>
-                        <div className="shimmer-hover w-full bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] text-white text-[10px] font-bold py-2 rounded-lg text-center">Add to Cart</div>
+                        <AddToCartButton productId={p.id} productName={p.name} />
                       </div>
                     </motion.div>
                   </Link>
