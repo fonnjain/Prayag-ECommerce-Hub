@@ -265,7 +265,7 @@ export default function HomePage() {
             <button onClick={() => scrollFaucets("left")} aria-label="Scroll deals left" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white shadow-lg border border-gray-100 rounded-full flex items-center justify-center hover:bg-[hsl(24,10%,16%)] hover:text-white transition-colors">
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <div ref={faucetScrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 scroll-smooth">
+            <div ref={faucetScrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide pt-3 -mt-3 pb-2 scroll-smooth">
               {featLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="w-44 h-72 flex-shrink-0 rounded-2xl" />) :
                 (featured || []).slice(0, 10).map((p, idx) => (
                   <motion.div key={p.id} initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} className="flex-shrink-0 w-44">
