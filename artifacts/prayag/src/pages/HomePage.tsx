@@ -275,7 +275,7 @@ export default function HomePage() {
                           {p.discount && p.discount > 0 && (
                             <span className="absolute top-2 left-2 bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,24%)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">-{p.discount}%</span>
                           )}
-                          <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=160&fit=crop"} alt={p.name} className="w-full h-36 object-cover hover:scale-110 transition-transform duration-500" />
+                          <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=160&fit=crop"} alt={p.name} className="w-full aspect-square object-contain bg-white hover:scale-110 transition-transform duration-500" />
                         </div>
                         <div className="p-3">
                           <div className="text-[9px] text-gray-400 font-mono mb-1">{p.sku}</div>
