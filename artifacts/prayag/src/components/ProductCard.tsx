@@ -62,9 +62,10 @@ export default function ProductCard({ product }: Props) {
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
         className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[hsl(24,10%,16%)]/40 hover:shadow-[0_20px_40px_-12px_rgba(28,22,16,0.25)] transition-shadow duration-300 overflow-hidden cursor-pointer h-full"
       >
-        <div className="relative aspect-square bg-gradient-to-br from-stone-100/60 to-gray-50 overflow-hidden">
+        <div className="relative aspect-square bg-white overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(28,22,16,0.04)_0%,rgba(28,22,16,0.09)_100%)]" />
           {product.imageUrl ? (
-            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out" />
+            <img src={product.imageUrl} alt={product.name} loading="lazy" className="relative w-full h-full object-contain p-5 group-hover:scale-105 transition-transform duration-500 ease-out drop-shadow-[0_10px_18px_rgba(28,22,16,0.18)]" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <div className="w-16 h-16 bg-[hsl(24,10%,16%)]/10 rounded-full flex items-center justify-center">
