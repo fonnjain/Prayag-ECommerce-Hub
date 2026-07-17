@@ -14,3 +14,9 @@ description: How PTMT product images were mapped from the catalog PDF, and which
 - Drive PTMT folders use DIFFERENT series (Cobra/Grand/Diamond/Vitro/Flora/Ibix/Black Pearl/Old Handle/Roman) not in DB — do NOT map by guessing suffixes (e.g. -HW, -IR ≠ -H, -R).
 - 48 exact catNo matches replaced with hi-res (mostly L/LS/N/Q series). MARBEL ULTRA/LAGOONA/DELTA/OVIAN/QUADRA Drive folders are empty — Sapphire/Ultra/Ovian/Quadra/Lagoona/Helix hi-res photos don't exist in Drive yet.
 - Drive also has unmatched inventory (CP 6000–9000 series, Sanitaryware, Showers BHS/BOS, Bathroom Acce BA-*, Hardware, Floor Traps FT-*, Geysers) usable if those products are added to DB later.
+
+## Catalog products from Drive images (July 2026)
+- All 244 sample products deleted; 1,688 real products created from `/images/drive/` folders, category-wise (CP Faucets 971, PTMT 397, Sanitaryware 57, Bathroom Acc 181, Pipes 78, Water Heaters 4).
+- **Placeholder pricing**: all price=999/mrp=1299, user will set real prices later. rating=0, review_count=0.
+- Marbel folders = one product per folder (color variants in product_images); `-N` suffixed files attached as extra angle images.
+- Skipped `cp-color-range-photo` (photoshoot images, not catalog items).
