@@ -8,7 +8,7 @@ import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import heroFaucet from "@assets/stock_images/prayag_hero_faucet_1.jpg";
+import heroFaucet from "@assets/generated_images/prayag_hero_luxury.png";
 
 function AddToCartButton({ productId, productName }: { productId: number; productName: string }) {
   const { toast } = useToast();
@@ -154,7 +154,8 @@ export default function HomePage() {
         {/* animated blobs */}
         <div className="absolute top-[-120px] right-[10%] w-96 h-96 bg-[hsl(38,52%,52%)]/25 blur-3xl animate-blob" />
         <div className="absolute bottom-[-140px] left-[5%] w-[28rem] h-[28rem] bg-[hsl(24,9%,26%)]/20 blur-3xl animate-blob" style={{ animationDelay: "-6s" }} />
-        <img src={heroFaucet} alt="Premium Prayag faucet" className="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-luminosity" />
+        <img src={heroFaucet} alt="Luxury Prayag bathroom with gold fixtures" className="absolute inset-0 w-full h-full object-cover opacity-50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[hsl(24,12%,8%)]/90 via-[hsl(24,12%,8%)]/55 to-transparent" />
 
         <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-20 grid lg:grid-cols-2 gap-10 items-center">
           {/* Left */}
