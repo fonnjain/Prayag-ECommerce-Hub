@@ -83,11 +83,11 @@ export default function ProductDetailPage() {
       <div className="grid md:grid-cols-2 gap-8 mb-10">
         {/* Gallery */}
         <div>
-          <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 mb-3">
+          <div className="aspect-square bg-white rounded-2xl overflow-hidden border border-gray-100 mb-3 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,rgba(28,22,16,0.03)_0%,rgba(28,22,16,0.08)_100%)]">
             <img
               src={images[activeImg] || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=600&fit=crop"}
               alt={product.name}
-              className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
+              className="max-w-[75%] max-h-[75%] object-contain hover:scale-105 transition-transform duration-300 drop-shadow-[0_16px_28px_rgba(28,22,16,0.16)]"
               data-testid="img-product-main"
             />
           </div>
