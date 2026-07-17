@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useParams } from "wouter";
+import { useState, useEffect } from "react";
+import { Link, useParams, useLocation } from "wouter";
 import { User, MapPin, Package, Heart, RotateCcw, HeadphonesIcon, ChevronRight, Star } from "lucide-react";
 import { useListOrders, useGetWishlist, useListAddresses } from "@workspace/api-client-react";
 import { useAuthStore } from "@/lib/store";
@@ -24,7 +24,12 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AccountPage() {
-  const [activeSection, setActiveSection] = useState("profile");
+  const [location] = useLocation();
+  const sectionFromUrl = location.startsWith("/account/") ? location.split("/")[2] : "profile";
+  const [activeSection, setActiveSection] = useState(sectionFromUrl);
+  useEffect(() => {
+    setActiveSection(sectionFromUrl);
+  }, [sectionFromUrl]);
   const { user } = useAuthStore();
   const { data: orders, isLoading: ordersLoading } = useListOrders();
   const { data: wishlist, isLoading: wishlistLoading } = useGetWishlist();

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, Minus, Plus } from "lucide-react";
-import { useGetProduct, useGetRelatedProducts, useAddToCart, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey } from "@workspace/api-client-react";
+import { useGetProduct, useGetRelatedProducts, useAddToCart, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/ProductCard";
@@ -21,6 +22,7 @@ export default function ProductDetailPage() {
   const { data: related } = useGetRelatedProducts(slug!, {
     query: { enabled: !!slug, queryKey: getGetRelatedProductsQueryKey(slug!) },
   });
+  const queryClient = useQueryClient();
   const addToCart = useAddToCart();
   const addToWishlist = useAddToWishlist();
 
@@ -60,7 +62,10 @@ export default function ProductDetailPage() {
 
   function handleWishlist() {
     addToWishlist.mutate({ data: { productId: product!.id } }, {
-      onSuccess: () => toast({ title: "Added to wishlist" }),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
+        toast({ title: "Added to wishlist" });
+      },
     });
   }
 

@@ -1,7 +1,7 @@
 import { Heart, ShoppingCart, Star, Eye } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { useAddToCart, useAddToWishlist, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useAddToCart, useAddToWishlist, getGetCartQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -48,7 +48,10 @@ export default function ProductCard({ product }: Props) {
     e.preventDefault();
     e.stopPropagation();
     addToWishlist.mutate({ data: { productId: product.id } }, {
-      onSuccess: () => toast({ title: "Added to wishlist" }),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
+        toast({ title: "Added to wishlist" });
+      },
     });
   }
 
