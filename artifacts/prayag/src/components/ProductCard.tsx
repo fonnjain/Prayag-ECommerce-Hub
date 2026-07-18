@@ -109,7 +109,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
 
         <div className="p-5 flex flex-col flex-1 relative z-10 bg-white">
           <div className="text-[10px] text-gray-400 font-mono tracking-wider mb-2 uppercase" data-testid={`text-sku-${product.id}`}>SKU: {product.sku}</div>
-          <div className="text-sm font-semibold text-gray-900 line-clamp-2 leading-relaxed mb-3 group-hover:text-[hsl(38,52%,40%)] transition-colors flex-1 font-serif-lux" data-testid={`text-name-${product.id}`}>
+          <div className="text-sm font-bold text-gray-900 line-clamp-2 leading-snug mb-3 group-hover:text-[hsl(38,52%,40%)] transition-colors flex-1" data-testid={`text-name-${product.id}`}>
             {product.name}
           </div>
           
