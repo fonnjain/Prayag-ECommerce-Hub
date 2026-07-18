@@ -77,6 +77,9 @@ export default function LoginPage() {
         </form>
 
         <div className="text-center mt-4 space-y-2">
+          <p className="text-sm">
+            <Link href="/forgot-password" className="text-[hsl(38,52%,40%)] font-medium hover:underline" data-testid="link-forgot-password">Forgot password?</Link>
+          </p>
           <p className="text-sm text-gray-500">
             Don't have an account?{" "}
             <Link href="/register" className="text-[hsl(38,52%,40%)] font-medium hover:underline">Register</Link>

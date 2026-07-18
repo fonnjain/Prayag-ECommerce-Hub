@@ -15,6 +15,7 @@ import DealerPage from "@/pages/DealerPage";
 import AdminPage from "@/pages/AdminPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import DealerRegistrationPage from "@/pages/DealerRegistrationPage";
 import DistributorPage from "@/pages/DistributorPage";
 import DistributorRegistrationPage from "@/pages/DistributorRegistrationPage";
@@ -85,6 +86,7 @@ function Router() {
       <Route path="/account/wishlist" component={AccountPage} />
       <Route path="/account" component={AccountPage} />
       <Route path="/login" component={LoginPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/register" component={RegisterPage} />
       <Route path="/dealer-registration" component={DealerRegistrationPage} />
       <Route path="/distributor-registration" component={DistributorRegistrationPage} />

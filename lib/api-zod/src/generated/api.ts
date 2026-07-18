@@ -50,6 +50,34 @@ export const LoginUserResponse = zod.object({
 
 
 /**
+ * @summary Request a password reset code by email
+ */
+export const ForgotPasswordBody = zod.object({
+  "email": zod.string()
+})
+
+export const ForgotPasswordResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string().nullish()
+})
+
+
+/**
+ * @summary Reset password using emailed code
+ */
+export const ResetPasswordBody = zod.object({
+  "email": zod.string(),
+  "code": zod.string(),
+  "newPassword": zod.string()
+})
+
+export const ResetPasswordResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string().nullish()
+})
+
+
+/**
  * @summary Get current user
  */
 export const GetMeResponse = zod.object({

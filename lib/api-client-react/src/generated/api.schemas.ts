@@ -38,6 +38,16 @@ export interface UserRegisterInput {
   role?: string;
 }
 
+export interface ForgotPasswordInput {
+  email: string;
+}
+
+export interface ResetPasswordInput {
+  email: string;
+  code: string;
+  newPassword: string;
+}
+
 export interface LoginInput {
   email: string;
   password: string;
