@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, Minus, Plus, ArrowLeft, CheckCircle2 } from "lucide-react";
-import { useGetProduct, useGetRelatedProducts, useListCategories, useAddToCart, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
+import { useGetProduct, useGetRelatedProducts, useListCategories, useAddToCart, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -64,6 +64,7 @@ export default function ProductDetailPage() {
   function handleAddToCart() {
     addToCart.mutate({ data: { productId: product!.id, quantity: qty } }, {
       onSuccess: (cart) => {
+        queryClient.setQueryData(getGetCartQueryKey(), cart);
         setItemCount(cart.itemCount);
         toast({ title: "Added to cart!", description: `${qty} × ${product!.name}` });
       },

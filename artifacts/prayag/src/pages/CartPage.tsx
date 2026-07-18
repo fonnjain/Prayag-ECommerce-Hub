@@ -19,7 +19,7 @@ export default function CartPage() {
   const applyCoupon = useApplyCoupon();
 
   function invalidate(c: any) {
-    qc.invalidateQueries({ queryKey: getGetCartQueryKey() });
+    qc.setQueryData(getGetCartQueryKey(), c);
     setItemCount(c.itemCount);
   }
 
