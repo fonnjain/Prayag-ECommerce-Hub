@@ -51,9 +51,9 @@ const categoryImages: Record<string, string> = {
 };
 
 const collectionCards = [
-  { title: "Premium Faucet Collection", sub: "Crafted to perfection", img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop", chips: ["Royale Series", "Elegance Series", "Aqua Series"], slug: "cp-faucets" },
-  { title: "Luxury Bathroom Collection", sub: "Luxury that lasts", img: "https://images.unsplash.com/photo-1564540586988-aa4e53c3d799?w=600&h=400&fit=crop", chips: ["Wall Hung Closets", "Wash Basins", "Concealed Cisterns"], slug: "sanitaryware" },
-  { title: "Kitchen Collection", sub: "Functional. Durable. Stylish.", img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop", chips: ["Stainless Steel Sinks", "Sink Mixers", "Drain Systems"], slug: "kitchen-sinks" },
+  { title: "Premium Faucet Collection", sub: "Crafted to perfection", img: "/images/collections/faucet-collection.webp", chips: ["Royale Series", "Elegance Series", "Aqua Series"], slug: "cp-faucets" },
+  { title: "Luxury Bathroom Collection", sub: "Luxury that lasts", img: "/images/collections/bathroom-collection.webp", chips: ["Wall Hung Closets", "Wash Basins", "Concealed Cisterns"], slug: "sanitaryware" },
+  { title: "Kitchen Collection", sub: "Functional. Durable. Stylish.", img: "/images/collections/kitchen-collection.webp", chips: ["Stainless Steel Sinks", "Sink Mixers", "Drain Systems"], slug: "kitchen-sinks" },
 ];
 
 const roomCards = [

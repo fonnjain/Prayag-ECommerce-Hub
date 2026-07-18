@@ -108,6 +108,24 @@ uri = "file://artifacts/prayag/public/images/categories/storage-tanks.png"
 type = "image"
 title = "luxury storage tank"
 
+[[generated]]
+id = "UJda-o7-FOJ1eJ3cCkuS6"
+uri = "file://artifacts/prayag/public/images/collections/faucet-collection.png"
+type = "image"
+title = "faucet collection banner"
+
+[[generated]]
+id = "dsvb3gACkN2s9pIJt9-RC"
+uri = "file://artifacts/prayag/public/images/collections/bathroom-collection.png"
+type = "image"
+title = "bathroom collection banner"
+
+[[generated]]
+id = "wWIQcBINI4okH2tlpi4qT"
+uri = "file://artifacts/prayag/public/images/collections/kitchen-collection.png"
+type = "image"
+title = "kitchen collection banner"
+
 [[outputs]]
 id = "o7rZRykSZGmnbFS6a4KKv"
 uri = "file://attached_assets/stock_images/prayag_hero_faucet_1.jpg"
