@@ -108,6 +108,89 @@ router.patch("/admin/products/:id", async (req, res): Promise<void> => {
   res.json({ ...p, price: parseFloat(p.price as string), mrp: parseFloat(p.mrp as string), images: [], rating: 4, reviewCount: 0, gstPercent: 18 });
 });
 
+router.post("/admin/import-products", async (req, res): Promise<void> => {
+  const { products, images, deleteIds, keepOnlyIds } = req.body as {
+    products?: Array<Record<string, unknown>>;
+    images?: Array<{ id: number; productId: number; imageUrl: string; sortOrder?: number }>;
+    deleteIds?: number[];
+    keepOnlyIds?: number[];
+  };
+  const hasProducts = Array.isArray(products) && products.length > 0;
+  const hasImages = Array.isArray(images) && images.length > 0;
+  const hasDeleteIds = Array.isArray(deleteIds) && deleteIds.length > 0;
+  const hasKeepOnly = Array.isArray(keepOnlyIds) && keepOnlyIds.length > 0;
+  if (!hasProducts && !hasImages && !hasDeleteIds && !hasKeepOnly) {
+    res.status(400).json({ error: "products, images, deleteIds or keepOnlyIds required" });
+    return;
+  }
+  const result = await db.transaction(async (tx) => {
+    let deleted = 0;
+    if (hasDeleteIds || hasKeepOnly) {
+      const explicit = hasDeleteIds ? deleteIds!.filter((n) => Number.isInteger(n)) : [];
+      let staleIds: number[] = explicit;
+      if (hasKeepOnly) {
+        const keep = keepOnlyIds!.filter((n) => Number.isInteger(n));
+        if (keep.length > 0) {
+          const keepList = sql.raw(`ARRAY[${keep.join(",")}]::int[]`);
+          const stale = await tx.execute(sql`SELECT id FROM products WHERE NOT (id = ANY(${keepList}))`);
+          staleIds = staleIds.concat(stale.rows.map((r) => Number(r.id)));
+        }
+      }
+      staleIds = [...new Set(staleIds)];
+      if (staleIds.length > 0) {
+        const idList = sql.raw(`ARRAY[${staleIds.join(",")}]::int[]`);
+        await tx.execute(sql`DELETE FROM cart_items WHERE product_id = ANY(${idList})`);
+        await tx.execute(sql`DELETE FROM wishlist WHERE product_id = ANY(${idList})`);
+        await tx.execute(sql`DELETE FROM product_images WHERE product_id = ANY(${idList})`);
+        await tx.execute(sql`DELETE FROM products WHERE id = ANY(${idList})`);
+        deleted = staleIds.length;
+      }
+    }
+    let upserted = 0;
+    if (hasProducts) {
+      for (const p of products!) {
+        const row = {
+          id: p.id as number,
+          name: p.name as string,
+          slug: p.slug as string,
+          sku: p.sku as string,
+          description: (p.description as string) ?? "",
+          specifications: (p.specifications as string | null) ?? null,
+          warranty: (p.warranty as string | null) ?? null,
+          price: String(p.price),
+          mrp: String(p.mrp),
+          gstPercent: String(p.gstPercent ?? 18),
+          categoryId: p.categoryId as number,
+          imageUrl: (p.imageUrl as string | null) ?? null,
+          rating: String(p.rating ?? "4.0"),
+          reviewCount: (p.reviewCount as number) ?? 0,
+          inStock: (p.inStock as boolean) ?? true,
+          isFeatured: (p.isFeatured as boolean) ?? false,
+          isNew: (p.isNew as boolean) ?? false,
+        };
+        const { id, ...updates } = row;
+        await tx.insert(productsTable).values(row)
+          .onConflictDoUpdate({ target: productsTable.id, set: updates });
+        upserted++;
+      }
+    }
+    let imagesUpserted = 0;
+    if (hasImages) {
+      for (const img of images!) {
+        const imgRow = { id: img.id, productId: img.productId, imageUrl: img.imageUrl, sortOrder: img.sortOrder ?? 0 };
+        const { id: imgId, ...imgUpdates } = imgRow;
+        await tx.insert(productImagesTable).values(imgRow)
+          .onConflictDoUpdate({ target: productImagesTable.id, set: imgUpdates });
+        imagesUpserted++;
+      }
+    }
+    await tx.execute(sql`SELECT setval(pg_get_serial_sequence('products','id'), (SELECT COALESCE(MAX(id),1) FROM products))`);
+    await tx.execute(sql`SELECT setval(pg_get_serial_sequence('product_images','id'), (SELECT COALESCE(MAX(id),1) FROM product_images))`);
+    return { upserted, imagesUpserted, deleted };
+  });
+  res.json({ success: true, products: result.upserted, images: result.imagesUpserted, deleted: result.deleted });
+});
+
 router.delete("/admin/products/:id", async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
