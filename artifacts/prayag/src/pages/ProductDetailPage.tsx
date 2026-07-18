@@ -373,8 +373,8 @@ export default function ProductDetailPage() {
                       {related.slice(0, 8).map((p, i) => (
                         <Link key={`${dup}-${p.id}`} href={`/products/${p.slug}`} data-testid={dup === 0 ? `card-related-${p.id}` : undefined} tabIndex={dup === 1 ? -1 : undefined}>
                           <div className="group relative bg-white/[0.05] border border-white/10 hover:border-[hsl(42,62%,68%)]/60 transition-colors duration-500 cursor-pointer h-full flex flex-col overflow-hidden w-[240px] md:w-[300px]">
-                            <div className="relative aspect-square bg-gradient-to-br from-[hsl(28,18%,62%)] via-[hsl(26,14%,50%)] to-[hsl(24,12%,38%)] m-3 mb-0 flex items-center justify-center p-4 overflow-hidden">
-                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(40,35%,92%,0.85),transparent_72%)] pointer-events-none" />
+                            <div className="relative aspect-square bg-gradient-to-br from-[hsl(0,0%,38%)] via-[hsl(0,0%,30%)] to-[hsl(0,0%,22%)] m-3 mb-0 flex items-center justify-center p-4 overflow-hidden">
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(0,0%,96%,0.85),transparent_72%)] pointer-events-none" />
                               {p.imageUrl ? (
                                 <img src={p.imageUrl} alt={p.name} loading="lazy"
                                   className="relative w-full h-full object-contain mix-blend-multiply [filter:brightness(1.28)_contrast(1.08)_saturate(1.15)] group-hover:scale-110 transition-transform duration-700 ease-out" />
