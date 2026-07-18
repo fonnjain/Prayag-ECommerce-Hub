@@ -486,6 +486,75 @@ paths:
               schema:
                 $ref: "#/components/schemas/OrderTracking"
 
+  /orders/{id}/cancel:
+    post:
+      operationId: cancelOrder
+      tags: [orders]
+      summary: Cancel an order (before dispatch)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderRequestInput"
+      responses:
+        "200":
+          description: Cancelled order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}/requests:
+    get:
+      operationId: listOrderRequests
+      tags: [orders]
+      summary: List requests for an order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderRequest"
+    post:
+      operationId: createOrderRequest
+      tags: [orders]
+      summary: Request return, replacement or refund
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderRequestInput"
+      responses:
+        "201":
+          description: Created request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderRequest"
+
   # Dealer Portal
   /dealer/dashboard:
     get:
@@ -709,6 +778,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Order"
+
+  /admin/order-requests:
+    get:
+      operationId: listAdminOrderRequests
+      tags: [admin]
+      summary: All order requests (admin)
+      responses:
+        "200":
+          description: Order requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderRequest"
+
+  /admin/order-requests/{id}:
+    patch:
+      operationId: updateOrderRequest
+      tags: [admin]
+      summary: Approve/reject/complete an order request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderRequestUpdate"
+      responses:
+        "200":
+          description: Updated request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderRequest"
 
   /admin/customers:
     get:
@@ -1274,6 +1383,51 @@ components:
           type: ["string", "null"]
         note:
           type: ["string", "null"]
+
+    OrderRequest:
+      type: object
+      required: [id, orderId, type, reason, status, createdAt]
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        orderNumber:
+          type: string
+        type:
+          type: string
+          enum: [cancel, return, replace, refund]
+        reason:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected, completed]
+        adminNote:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        resolvedAt:
+          type: ["string", "null"]
+
+    OrderRequestInput:
+      type: object
+      required: [type, reason]
+      properties:
+        type:
+          type: string
+          enum: [cancel, return, replace, refund]
+        reason:
+          type: string
+
+    OrderRequestUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [approved, rejected, completed]
+        adminNote:
+          type: string
 
     OrderStatusUpdate:
       type: object

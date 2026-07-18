@@ -548,6 +548,88 @@ export const GetOrderTrackingResponse = zod.object({
 
 
 /**
+ * @summary Cancel an order (before dispatch)
+ */
+export const CancelOrderParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CancelOrderBody = zod.object({
+  "type": zod.enum(['cancel', 'return', 'replace', 'refund']),
+  "reason": zod.string()
+})
+
+export const CancelOrderResponse = zod.object({
+  "id": zod.number(),
+  "orderNumber": zod.string(),
+  "status": zod.string(),
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "productName": zod.string(),
+  "imageUrl": zod.string().nullable(),
+  "price": zod.number(),
+  "quantity": zod.number(),
+  "subtotal": zod.number()
+})),
+  "subtotal": zod.number(),
+  "gst": zod.number(),
+  "shipping": zod.number(),
+  "discount": zod.number().optional(),
+  "total": zod.number(),
+  "paymentMethod": zod.string().nullish(),
+  "paymentStatus": zod.string().nullish(),
+  "shippingAddress": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "phone": zod.string(),
+  "street": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "pincode": zod.string(),
+  "country": zod.string(),
+  "isDefault": zod.boolean().optional()
+}).optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary List requests for an order
+ */
+export const ListOrderRequestsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListOrderRequestsResponseItem = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "orderNumber": zod.string().optional(),
+  "type": zod.enum(['cancel', 'return', 'replace', 'refund']),
+  "reason": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'completed']),
+  "adminNote": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "resolvedAt": zod.string().nullish()
+})
+export const ListOrderRequestsResponse = zod.array(ListOrderRequestsResponseItem)
+
+
+/**
+ * @summary Request return, replacement or refund
+ */
+export const CreateOrderRequestParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CreateOrderRequestBody = zod.object({
+  "type": zod.enum(['cancel', 'return', 'replace', 'refund']),
+  "reason": zod.string()
+})
+
+
+/**
  * @summary Dealer dashboard stats
  */
 export const GetDealerDashboardResponse = zod.object({
@@ -885,6 +967,48 @@ export const UpdateOrderStatusResponse = zod.object({
 }).optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary All order requests (admin)
+ */
+export const ListAdminOrderRequestsResponseItem = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "orderNumber": zod.string().optional(),
+  "type": zod.enum(['cancel', 'return', 'replace', 'refund']),
+  "reason": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'completed']),
+  "adminNote": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "resolvedAt": zod.string().nullish()
+})
+export const ListAdminOrderRequestsResponse = zod.array(ListAdminOrderRequestsResponseItem)
+
+
+/**
+ * @summary Approve/reject/complete an order request
+ */
+export const UpdateOrderRequestParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateOrderRequestBody = zod.object({
+  "status": zod.enum(['approved', 'rejected', 'completed']),
+  "adminNote": zod.string().optional()
+})
+
+export const UpdateOrderRequestResponse = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "orderNumber": zod.string().optional(),
+  "type": zod.enum(['cancel', 'return', 'replace', 'refund']),
+  "reason": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'completed']),
+  "adminNote": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "resolvedAt": zod.string().nullish()
 })
 
 

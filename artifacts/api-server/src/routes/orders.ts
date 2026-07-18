@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import jwt from "jsonwebtoken";
-import { db, ordersTable, orderItemsTable, cartItemsTable, cartSessionsTable, productsTable, addressesTable, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, ordersTable, orderItemsTable, cartItemsTable, cartSessionsTable, productsTable, addressesTable, usersTable, orderRequestsTable } from "@workspace/db";
+import { eq, desc } from "drizzle-orm";
 import { generateInvoicePdf } from "../lib/invoice";
 import { sendInvoiceEmail } from "../lib/email";
 import { logger } from "../lib/logger";
@@ -186,6 +186,81 @@ router.get("/orders/:id/tracking", async (req, res): Promise<void> => {
     note: null,
   }));
   res.json({ orderId: order.id, orderNumber: order.orderNumber, status: order.status, timeline });
+});
+
+function buildRequest(r: typeof orderRequestsTable.$inferSelect, orderNumber?: string) {
+  return {
+    id: r.id, orderId: r.orderId, orderNumber, type: r.type, reason: r.reason,
+    status: r.status, adminNote: r.adminNote,
+    createdAt: r.createdAt?.toISOString(), resolvedAt: r.resolvedAt?.toISOString() ?? null,
+  };
+}
+
+const CANCELLABLE = ["pending", "confirmed", "packed"];
+const POST_DELIVERY_TYPES = ["return", "replace", "refund"];
+
+router.post("/orders/:id/cancel", async (req, res): Promise<void> => {
+  const auth = getAuthUser(req);
+  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order || !canAccessOrder(auth, order)) { res.status(404).json({ error: "Not found" }); return; }
+  if (!CANCELLABLE.includes(order.status)) {
+    res.status(400).json({ error: order.status === "cancelled" ? "Order is already cancelled" : "Order cannot be cancelled after dispatch. Please request a return instead." });
+    return;
+  }
+  const reason = (req.body?.reason || "").toString().trim();
+  if (!reason) { res.status(400).json({ error: "Please provide a reason" }); return; }
+  const [updated] = await db.update(ordersTable).set({ status: "cancelled" }).where(eq(ordersTable.id, id)).returning();
+  await db.insert(orderRequestsTable).values({
+    orderId: id, userId: order.userId, type: "cancel", reason, status: "completed", resolvedAt: new Date(),
+  });
+  res.json(await buildOrder(updated));
+});
+
+router.get("/orders/:id/requests", async (req, res): Promise<void> => {
+  const auth = getAuthUser(req);
+  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order || !canAccessOrder(auth, order)) { res.status(404).json({ error: "Not found" }); return; }
+  const rows = await db.select().from(orderRequestsTable).where(eq(orderRequestsTable.orderId, id)).orderBy(desc(orderRequestsTable.createdAt));
+  res.json(rows.map(r => buildRequest(r, order.orderNumber)));
+});
+
+router.post("/orders/:id/requests", async (req, res): Promise<void> => {
+  const auth = getAuthUser(req);
+  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order || !canAccessOrder(auth, order)) { res.status(404).json({ error: "Not found" }); return; }
+
+  const type = (req.body?.type || "").toString();
+  const reason = (req.body?.reason || "").toString().trim();
+  if (!POST_DELIVERY_TYPES.includes(type)) { res.status(400).json({ error: "Invalid request type" }); return; }
+  if (!reason) { res.status(400).json({ error: "Please provide a reason" }); return; }
+  if (order.status !== "delivered") {
+    res.status(400).json({ error: "Return, replacement or refund can only be requested after delivery" });
+    return;
+  }
+  const deliveredCutoff = 7 * 86400000;
+  const updatedAt = order.updatedAt ? new Date(order.updatedAt).getTime() : Date.now();
+  if (Date.now() - updatedAt > deliveredCutoff) {
+    res.status(400).json({ error: "The 7-day return window for this order has expired" });
+    return;
+  }
+  const existing = await db.select().from(orderRequestsTable).where(eq(orderRequestsTable.orderId, id));
+  if (existing.some(r => r.status === "pending" || r.status === "approved")) {
+    res.status(400).json({ error: "There is already an active request for this order" });
+    return;
+  }
+  const [created] = await db.insert(orderRequestsTable).values({
+    orderId: id, userId: order.userId, type, reason,
+  }).returning();
+  res.status(201).json(buildRequest(created, order.orderNumber));
 });
 
 export default router;

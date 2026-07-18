@@ -1,8 +1,24 @@
 import { Router, type IRouter } from "express";
-import { db, ordersTable, productsTable, usersTable, dealersTable, categoriesTable, productImagesTable } from "@workspace/db";
+import jwt from "jsonwebtoken";
+import { db, ordersTable, productsTable, usersTable, dealersTable, categoriesTable, productImagesTable, orderRequestsTable } from "@workspace/db";
 import { eq, ilike, sql, and, desc } from "drizzle-orm";
 
+const JWT_SECRET = process.env.SESSION_SECRET;
+
 const router: IRouter = Router();
+
+router.use("/admin", (req, res, next) => {
+  if (!JWT_SECRET) { res.status(500).json({ error: "Server misconfigured" }); return; }
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) { res.status(401).json({ error: "Unauthorized" }); return; }
+  try {
+    const payload = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { id: number; role?: string };
+    if (payload.role !== "admin") { res.status(403).json({ error: "Forbidden" }); return; }
+    next();
+  } catch {
+    res.status(401).json({ error: "Unauthorized" });
+  }
+});
 
 router.get("/admin/dashboard", async (_req, res): Promise<void> => {
   const [{ revenue }] = await db.select({ revenue: sql<number>`coalesce(sum(total::numeric), 0)::float` }).from(ordersTable);
@@ -120,6 +136,60 @@ router.patch("/admin/orders/:id/status", async (req, res): Promise<void> => {
   const [order] = await db.update(ordersTable).set({ status }).where(eq(ordersTable.id, id)).returning();
   if (!order) { res.status(404).json({ error: "Not found" }); return; }
   res.json({ id: order.id, orderNumber: order.orderNumber, status: order.status, items: [], subtotal: parseFloat(order.subtotal as string), gst: parseFloat(order.gst as string), shipping: parseFloat(order.shipping as string), discount: parseFloat(order.discount as string), total: parseFloat(order.total as string), paymentMethod: order.paymentMethod, paymentStatus: order.paymentStatus, shippingAddress: null, createdAt: order.createdAt?.toISOString(), updatedAt: order.updatedAt?.toISOString() });
+});
+
+router.get("/admin/order-requests", async (_req, res): Promise<void> => {
+  const rows = await db.select({ r: orderRequestsTable, orderNumber: ordersTable.orderNumber })
+    .from(orderRequestsTable)
+    .innerJoin(ordersTable, eq(orderRequestsTable.orderId, ordersTable.id))
+    .orderBy(desc(orderRequestsTable.createdAt)).limit(100);
+  res.json(rows.map(({ r, orderNumber }) => ({
+    id: r.id, orderId: r.orderId, orderNumber, type: r.type, reason: r.reason,
+    status: r.status, adminNote: r.adminNote,
+    createdAt: r.createdAt?.toISOString(), resolvedAt: r.resolvedAt?.toISOString() ?? null,
+  })));
+});
+
+router.patch("/admin/order-requests/:id", async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+  const { status, adminNote } = req.body;
+  if (!["approved", "rejected", "completed"].includes(status)) {
+    res.status(400).json({ error: "Invalid status" }); return;
+  }
+  const [request] = await db.select().from(orderRequestsTable).where(eq(orderRequestsTable.id, id));
+  if (!request) { res.status(404).json({ error: "Not found" }); return; }
+
+  const allowedTransitions: Record<string, string[]> = {
+    pending: ["approved", "rejected"],
+    approved: ["completed", "rejected"],
+    rejected: [],
+    completed: [],
+  };
+  if (!(allowedTransitions[request.status] || []).includes(status)) {
+    res.status(400).json({ error: `Cannot change a ${request.status} request to ${status}` });
+    return;
+  }
+
+  const resolved = status === "rejected" || status === "completed";
+  const [updated] = await db.update(orderRequestsTable)
+    .set({ status, adminNote: adminNote ?? request.adminNote, resolvedAt: resolved ? new Date() : null })
+    .where(eq(orderRequestsTable.id, id)).returning();
+
+  if (status === "completed") {
+    if (request.type === "return") {
+      await db.update(ordersTable).set({ status: "returned" }).where(eq(ordersTable.id, request.orderId));
+    } else if (request.type === "refund") {
+      await db.update(ordersTable).set({ status: "refunded", paymentStatus: "refunded" }).where(eq(ordersTable.id, request.orderId));
+    }
+  }
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, request.orderId));
+  res.json({
+    id: updated.id, orderId: updated.orderId, orderNumber: order?.orderNumber, type: updated.type,
+    reason: updated.reason, status: updated.status, adminNote: updated.adminNote,
+    createdAt: updated.createdAt?.toISOString(), resolvedAt: updated.resolvedAt?.toISOString() ?? null,
+  });
 });
 
 router.get("/admin/customers", async (req, res): Promise<void> => {

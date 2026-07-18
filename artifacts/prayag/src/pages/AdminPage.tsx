@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Package, Users, Building2, ShoppingBag, IndianRupee, LayoutDashboard, Truck } from "lucide-react";
-import { useGetAdminDashboard, useGetRevenueStats, useListAdminOrders, useListAdminProducts, useListAdminCustomers, useListAdminDealers, useUpdateOrderStatus, getListAdminOrdersQueryKey } from "@workspace/api-client-react";
+import { Package, Users, Building2, ShoppingBag, IndianRupee, LayoutDashboard, Truck, RotateCcw } from "lucide-react";
+import { useGetAdminDashboard, useGetRevenueStats, useListAdminOrders, useListAdminProducts, useListAdminCustomers, useListAdminDealers, useUpdateOrderStatus, getListAdminOrdersQueryKey, useListAdminOrderRequests, getListAdminOrderRequestsQueryKey, useUpdateOrderRequest } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthStore } from "@/lib/store";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "products", label: "Products", icon: ShoppingBag },
   { id: "orders", label: "Orders", icon: Package },
+  { id: "requests", label: "Requests", icon: RotateCcw },
   { id: "customers", label: "Customers", icon: Users },
   { id: "dealers", label: "Dealers", icon: Building2 },
   { id: "distributors", label: "Distributors", icon: Truck },
@@ -23,6 +25,15 @@ const statusColors: Record<string, string> = {
   dispatched: "bg-purple-100 text-purple-700",
   delivered: "bg-green-100 text-green-700",
   cancelled: "bg-red-100 text-red-600",
+  returned: "bg-orange-100 text-orange-700",
+  refunded: "bg-teal-100 text-teal-700",
+};
+
+const requestStatusColors: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-700",
+  approved: "bg-green-100 text-green-700",
+  rejected: "bg-red-100 text-red-600",
+  completed: "bg-[hsl(42,62%,90%)] text-[hsl(38,52%,35%)]",
 };
 
 export default function AdminPage() {
@@ -36,8 +47,10 @@ export default function AdminPage() {
   const { data: productsData } = useListAdminProducts({});
   const { data: customers } = useListAdminCustomers({});
   const { data: dealers } = useListAdminDealers({});
-  const { data: distributors } = useQuery({ queryKey: ["admin-distributors"], queryFn: async () => { const r = await fetch("/api/admin/distributors"); return r.json(); } });
+  const { data: distributors } = useQuery({ queryKey: ["admin-distributors"], queryFn: async () => { const token = useAuthStore.getState().token; const r = await fetch("/api/admin/distributors", { headers: token ? { Authorization: `Bearer ${token}` } : {} }); return r.json(); } });
   const updateStatus = useUpdateOrderStatus();
+  const { data: orderRequests } = useListAdminOrderRequests();
+  const updateRequest = useUpdateOrderRequest();
 
   function handleStatusChange(orderId: number, status: string) {
     updateStatus.mutate({ id: orderId, data: { status } }, {
@@ -45,6 +58,17 @@ export default function AdminPage() {
         qc.invalidateQueries({ queryKey: getListAdminOrdersQueryKey({}) });
         toast({ title: "Order status updated" });
       },
+    });
+  }
+
+  function handleRequestAction(requestId: number, status: "approved" | "rejected" | "completed") {
+    updateRequest.mutate({ id: requestId, data: { status } }, {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListAdminOrderRequestsQueryKey() });
+        qc.invalidateQueries({ queryKey: getListAdminOrdersQueryKey({}) });
+        toast({ title: `Request ${status}` });
+      },
+      onError: () => toast({ title: "Failed to update request", variant: "destructive" }),
     });
   }
 
@@ -180,6 +204,49 @@ export default function AdminPage() {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {active === "requests" && (
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Order Requests</h1>
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50"><tr>{["Order", "Type", "Reason", "Status", "Date", "Actions"].map(h => <th key={h} className="text-left px-4 py-2.5 text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead>
+                <tbody className="divide-y divide-gray-50">
+                  {(orderRequests || []).map(r => (
+                    <tr key={r.id} className="hover:bg-gray-50" data-testid={`row-request-${r.id}`}>
+                      <td className="px-4 py-3 font-medium">#{r.orderNumber || r.orderId}</td>
+                      <td className="px-4 py-3 capitalize">{r.type}</td>
+                      <td className="px-4 py-3 text-gray-500 max-w-[220px] truncate" title={r.reason}>{r.reason}</td>
+                      <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${requestStatusColors[r.status] || "bg-gray-100 text-gray-600"}`}>{r.status}</span></td>
+                      <td className="px-4 py-3 text-gray-400 text-xs">{new Date(r.createdAt).toLocaleDateString("en-IN")}</td>
+                      <td className="px-4 py-3">
+                        {r.status === "pending" && (
+                          <div className="flex gap-1.5">
+                            <button onClick={() => handleRequestAction(r.id, "approved")}
+                              className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200"
+                              data-testid={`button-approve-request-${r.id}`}>Approve</button>
+                            <button onClick={() => handleRequestAction(r.id, "rejected")}
+                              className="text-xs font-medium px-2.5 py-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200"
+                              data-testid={`button-reject-request-${r.id}`}>Reject</button>
+                          </div>
+                        )}
+                        {r.status === "approved" && (
+                          <button onClick={() => handleRequestAction(r.id, "completed")}
+                            className="text-xs font-medium px-2.5 py-1 rounded-full bg-[hsl(42,62%,90%)] text-[hsl(38,52%,35%)] hover:bg-[hsl(42,62%,80%)]"
+                            data-testid={`button-complete-request-${r.id}`}>Mark Completed</button>
+                        )}
+                        {(r.status === "rejected" || r.status === "completed") && <span className="text-xs text-gray-400">—</span>}
+                      </td>
+                    </tr>
+                  ))}
+                  {(orderRequests || []).length === 0 && (
+                    <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400 text-sm">No order requests yet</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>

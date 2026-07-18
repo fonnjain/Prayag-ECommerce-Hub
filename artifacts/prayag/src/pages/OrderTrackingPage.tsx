@@ -1,6 +1,12 @@
+import { useState } from "react";
 import { useParams, Link } from "wouter";
-import { useGetOrder, useGetOrderTracking, getGetOrderQueryKey, getGetOrderTrackingQueryKey } from "@workspace/api-client-react";
-import { CheckCircle2, Circle, ChevronRight, FileDown } from "lucide-react";
+import {
+  useGetOrder, useGetOrderTracking, getGetOrderQueryKey, getGetOrderTrackingQueryKey,
+  useListOrderRequests, getListOrderRequestsQueryKey, useCancelOrder, useCreateOrderRequest,
+} from "@workspace/api-client-react";
+import { CheckCircle2, Circle, ChevronRight, FileDown, XCircle, RotateCcw, Repeat, IndianRupee } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { downloadInvoice } from "@/lib/invoice";
 
@@ -11,7 +17,25 @@ const statusColors: Record<string, string> = {
   dispatched: "bg-purple-100 text-purple-700",
   delivered: "bg-green-100 text-green-700",
   cancelled: "bg-red-100 text-red-600",
+  returned: "bg-orange-100 text-orange-700",
+  refunded: "bg-teal-100 text-teal-700",
 };
+
+const requestTypeLabels: Record<string, string> = {
+  cancel: "Cancellation",
+  return: "Return",
+  replace: "Replacement",
+  refund: "Refund",
+};
+
+const requestStatusColors: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-700",
+  approved: "bg-green-100 text-green-700",
+  rejected: "bg-red-100 text-red-600",
+  completed: "bg-[hsl(42,62%,90%)] text-[hsl(38,52%,35%)]",
+};
+
+const CANCELLABLE = ["pending", "confirmed", "packed"];
 
 export default function OrderTrackingPage() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +47,46 @@ export default function OrderTrackingPage() {
   const { data: tracking, isLoading: trackingLoading } = useGetOrderTracking(orderId, {
     query: { enabled: !!orderId, queryKey: getGetOrderTrackingQueryKey(orderId) },
   });
+  const { data: requests } = useListOrderRequests(orderId, {
+    query: { enabled: !!orderId, queryKey: getListOrderRequestsQueryKey(orderId) },
+  });
+
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [modal, setModal] = useState<null | "cancel" | "return" | "replace" | "refund">(null);
+  const [reason, setReason] = useState("");
+
+  const refreshAll = () => {
+    queryClient.invalidateQueries({ queryKey: getGetOrderQueryKey(orderId) });
+    queryClient.invalidateQueries({ queryKey: getGetOrderTrackingQueryKey(orderId) });
+    queryClient.invalidateQueries({ queryKey: getListOrderRequestsQueryKey(orderId) });
+  };
+
+  const cancelMutation = useCancelOrder({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Order cancelled", description: "Your order has been cancelled successfully." });
+        setModal(null); setReason(""); refreshAll();
+      },
+      onError: (err: any) => toast({ title: "Could not cancel", description: err?.response?.data?.error || "Something went wrong", variant: "destructive" }),
+    },
+  });
+  const requestMutation = useCreateOrderRequest({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Request submitted", description: "Our team will review your request shortly." });
+        setModal(null); setReason(""); refreshAll();
+      },
+      onError: (err: any) => toast({ title: "Request failed", description: err?.response?.data?.error || "Something went wrong", variant: "destructive" }),
+    },
+  });
+
+  const submitting = cancelMutation.isPending || requestMutation.isPending;
+  const submitModal = () => {
+    if (!reason.trim() || !modal) return;
+    if (modal === "cancel") cancelMutation.mutate({ id: orderId, data: { type: "cancel", reason: reason.trim() } });
+    else requestMutation.mutate({ id: orderId, data: { type: modal, reason: reason.trim() } });
+  };
 
   if (orderLoading || trackingLoading) return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-4">
@@ -94,6 +158,108 @@ export default function OrderTrackingPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Actions */}
+      {(() => {
+        const hasActiveRequest = (requests || []).some(r => r.status === "pending" || r.status === "approved");
+        const withinWindow = order.status === "delivered" && order.updatedAt
+          ? Date.now() - new Date(order.updatedAt).getTime() <= 7 * 86400000
+          : order.status === "delivered";
+        const canRequestPostDelivery = order.status === "delivered" && !hasActiveRequest && withinWindow;
+        const canCancel = CANCELLABLE.includes(order.status);
+        if (!canCancel && !canRequestPostDelivery) return null;
+        return (
+        <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
+          <h2 className="font-bold text-gray-900 mb-3">Need Help with this Order?</h2>
+          <div className="flex flex-wrap gap-2">
+            {canCancel && (
+              <button onClick={() => setModal("cancel")}
+                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                data-testid="button-cancel-order">
+                <XCircle className="w-3.5 h-3.5" /> Cancel Order
+              </button>
+            )}
+            {canRequestPostDelivery && (
+              <>
+                <button onClick={() => setModal("return")}
+                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-full border border-[hsl(42,62%,68%)] text-[hsl(38,52%,40%)] hover:bg-[hsl(42,62%,68%)]/10 transition-colors"
+                  data-testid="button-return-order">
+                  <RotateCcw className="w-3.5 h-3.5" /> Return
+                </button>
+                <button onClick={() => setModal("replace")}
+                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-full border border-[hsl(42,62%,68%)] text-[hsl(38,52%,40%)] hover:bg-[hsl(42,62%,68%)]/10 transition-colors"
+                  data-testid="button-replace-order">
+                  <Repeat className="w-3.5 h-3.5" /> Replace
+                </button>
+                <button onClick={() => setModal("refund")}
+                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-full border border-[hsl(42,62%,68%)] text-[hsl(38,52%,40%)] hover:bg-[hsl(42,62%,68%)]/10 transition-colors"
+                  data-testid="button-refund-order">
+                  <IndianRupee className="w-3.5 h-3.5" /> Refund
+                </button>
+              </>
+            )}
+          </div>
+          {canRequestPostDelivery && (
+            <p className="text-[11px] text-gray-400 mt-2">Return, replacement and refund requests are accepted within 7 days of delivery.</p>
+          )}
+        </div>
+        );
+      })()}
+      {/* Existing Requests */}
+      {requests && requests.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
+          <h2 className="font-bold text-gray-900 mb-3">Your Requests</h2>
+          <div className="space-y-3">
+            {requests.map(r => (
+              <div key={r.id} className="border border-gray-100 rounded-lg p-3" data-testid={`row-request-${r.id}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-900">{requestTypeLabels[r.type] || r.type} Request</span>
+                  <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full capitalize ${requestStatusColors[r.status] || "bg-gray-100 text-gray-600"}`}>{r.status}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Reason: {r.reason}</p>
+                {r.adminNote && <p className="text-xs text-gray-500 mt-0.5">Note from PRAYAG: {r.adminNote}</p>}
+                <p className="text-[11px] text-gray-400 mt-1">Requested on {new Date(r.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Reason Modal */}
+      {modal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => !submitting && setModal(null)}>
+          <div className="bg-white rounded-xl p-5 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <h3 className="font-bold text-gray-900 mb-1">
+              {modal === "cancel" ? "Cancel Order" : `Request ${requestTypeLabels[modal]}`}
+            </h3>
+            <p className="text-xs text-gray-500 mb-3">
+              {modal === "cancel"
+                ? "Are you sure you want to cancel this order? Please tell us why."
+                : "Please tell us the reason for your request. Our team will review it."}
+            </p>
+            <textarea
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              rows={3}
+              placeholder="Write your reason here..."
+              className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(42,62%,68%)]"
+              data-testid="input-request-reason"
+            />
+            <div className="flex justify-end gap-2 mt-3">
+              <button onClick={() => setModal(null)} disabled={submitting}
+                className="text-xs font-medium px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50"
+                data-testid="button-modal-close">
+                Close
+              </button>
+              <button onClick={submitModal} disabled={submitting || !reason.trim()}
+                className="text-xs font-medium px-4 py-2 rounded-full bg-[hsl(24,10%,16%)] text-white hover:bg-[hsl(24,10%,24%)] disabled:opacity-50"
+                data-testid="button-modal-submit">
+                {submitting ? "Submitting..." : modal === "cancel" ? "Confirm Cancellation" : "Submit Request"}
+              </button>
             </div>
           </div>
         </div>

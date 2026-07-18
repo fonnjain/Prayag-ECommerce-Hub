@@ -48,6 +48,22 @@ export const orderItemsTable = pgTable("order_items", {
   subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(),
 });
 
+export const orderRequestsTable = pgTable("order_requests", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull().references(() => ordersTable.id),
+  userId: integer("user_id").notNull().references(() => usersTable.id),
+  type: text("type").notNull(), // cancel | return | replace | refund
+  reason: text("reason").notNull(),
+  status: text("status").notNull().default("pending"), // pending | approved | rejected | completed
+  adminNote: text("admin_note"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+});
+
+export const insertOrderRequestSchema = createInsertSchema(orderRequestsTable).omit({ id: true, createdAt: true, resolvedAt: true });
+export type InsertOrderRequest = z.infer<typeof insertOrderRequestSchema>;
+export type OrderRequest = typeof orderRequestsTable.$inferSelect;
+
 export const insertAddressSchema = createInsertSchema(addressesTable).omit({ id: true, createdAt: true });
 export type InsertAddress = z.infer<typeof insertAddressSchema>;
 export type Address = typeof addressesTable.$inferSelect;

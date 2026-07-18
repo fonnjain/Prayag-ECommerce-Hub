@@ -261,6 +261,69 @@ export interface OrderTracking {
   timeline: TrackingEvent[];
 }
 
+export type OrderRequestType = typeof OrderRequestType[keyof typeof OrderRequestType];
+
+
+export const OrderRequestType = {
+  cancel: 'cancel',
+  return: 'return',
+  replace: 'replace',
+  refund: 'refund',
+} as const;
+
+export type OrderRequestStatus = typeof OrderRequestStatus[keyof typeof OrderRequestStatus];
+
+
+export const OrderRequestStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+  completed: 'completed',
+} as const;
+
+export interface OrderRequest {
+  id: number;
+  orderId: number;
+  orderNumber?: string;
+  type: OrderRequestType;
+  reason: string;
+  status: OrderRequestStatus;
+  /** @nullable */
+  adminNote?: string | null;
+  createdAt: string;
+  /** @nullable */
+  resolvedAt?: string | null;
+}
+
+export type OrderRequestInputType = typeof OrderRequestInputType[keyof typeof OrderRequestInputType];
+
+
+export const OrderRequestInputType = {
+  cancel: 'cancel',
+  return: 'return',
+  replace: 'replace',
+  refund: 'refund',
+} as const;
+
+export interface OrderRequestInput {
+  type: OrderRequestInputType;
+  reason: string;
+}
+
+export type OrderRequestUpdateStatus = typeof OrderRequestUpdateStatus[keyof typeof OrderRequestUpdateStatus];
+
+
+export const OrderRequestUpdateStatus = {
+  approved: 'approved',
+  rejected: 'rejected',
+  completed: 'completed',
+} as const;
+
+export interface OrderRequestUpdate {
+  status: OrderRequestUpdateStatus;
+  adminNote?: string;
+}
+
 export interface OrderStatusUpdate {
   status: string;
 }

@@ -1,6 +1,21 @@
 import { Router, type IRouter } from "express";
+import jwt from "jsonwebtoken";
 import { db, distributorsTable, distributorSchemesTable, ordersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+
+const JWT_SECRET = process.env.SESSION_SECRET;
+
+function isAdmin(req: any): boolean {
+  if (!JWT_SECRET) return false;
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) return false;
+  try {
+    const payload = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { role?: string };
+    return payload.role === "admin";
+  } catch {
+    return false;
+  }
+}
 
 const router: IRouter = Router();
 
@@ -54,7 +69,8 @@ router.post("/distributor/register", async (req, res): Promise<void> => {
   res.status(201).json({ success: true, message: "Distributor registration submitted successfully" });
 });
 
-router.get("/admin/distributors", async (_req, res): Promise<void> => {
+router.get("/admin/distributors", async (req, res): Promise<void> => {
+  if (!isAdmin(req)) { res.status(401).json({ error: "Unauthorized" }); return; }
   const rows = await db.select().from(distributorsTable);
   res.json(rows.map(d => ({
     id: d.id, businessName: d.businessName, contactName: d.contactName, email: d.email,
