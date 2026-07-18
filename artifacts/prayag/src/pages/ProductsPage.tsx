@@ -25,12 +25,13 @@ export default function ProductsPage() {
     maxPrice: "",
     inStock: false,
     sortBy: "newest",
-    page: 1,
+    page: Math.max(1, parseInt(params.page || "1", 10) || 1),
   });
 
   useEffect(() => {
     const p = Object.fromEntries(new URLSearchParams(searchString).entries());
-    setFilters(f => ({ ...f, category: p.category || "", search: p.search || "", page: 1 }));
+    const page = Math.max(1, parseInt(p.page || "1", 10) || 1);
+    setFilters(f => ({ ...f, category: p.category || "", search: p.search || "", page }));
   }, [searchString]);
 
   const queryParams = {
@@ -51,11 +52,21 @@ export default function ProductsPage() {
 
   function updateFilter(key: string, value: any) {
     setFilters(f => ({ ...f, [key]: value, ...(key !== "page" && { page: 1 }) }));
+    if (key === "page" || key === "category") {
+      const sp = new URLSearchParams(searchString);
+      const newPage = key === "page" ? value : 1;
+      const newCategory = key === "category" ? value : sp.get("category") || "";
+      if (newPage > 1) sp.set("page", String(newPage)); else sp.delete("page");
+      if (newCategory) sp.set("category", newCategory); else sp.delete("category");
+      const qs = sp.toString();
+      setLocation(`/products${qs ? `?${qs}` : ""}`);
+    }
     if (key === "page") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function clearFilters() {
     setFilters({ category: "", search: "", minPrice: "", maxPrice: "", inStock: false, sortBy: "newest", page: 1 });
+    setLocation("/products");
   }
 
   const totalPages = data?.totalPages || 1;
