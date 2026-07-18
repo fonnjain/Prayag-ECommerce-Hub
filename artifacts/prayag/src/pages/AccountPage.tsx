@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "wouter";
-import { User, MapPin, Package, Heart, RotateCcw, HeadphonesIcon, ChevronRight, Star } from "lucide-react";
-import { useListOrders, useGetWishlist, useListAddresses } from "@workspace/api-client-react";
+import { User, MapPin, Package, Heart, RotateCcw, HeadphonesIcon, ChevronRight, Star, Trash2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useListOrders, useGetWishlist, useListAddresses, useRemoveFromWishlist, getGetWishlistQueryKey } from "@workspace/api-client-react";
 import { useAuthStore } from "@/lib/store";
 import { downloadInvoice } from "@/lib/invoice";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,6 +36,14 @@ export default function AccountPage() {
   const { data: orders, isLoading: ordersLoading } = useListOrders();
   const { data: wishlist, isLoading: wishlistLoading } = useGetWishlist();
   const { data: addresses } = useListAddresses();
+  const queryClient = useQueryClient();
+  const removeFromWishlist = useRemoveFromWishlist({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
+      },
+    },
+  });
 
   if (!user) return (
     <div className="max-w-4xl mx-auto px-4 py-20 text-center">
@@ -171,17 +180,32 @@ export default function AccountPage() {
               ) : wishlist && wishlist.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {wishlist.map((p: any) => (
-                    <Link key={p.id} href={`/products/${p.slug}`} data-testid={`card-wishlist-${p.id}`}>
-                      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-all">
-                        <div className="aspect-square bg-gray-50">
-                          <img src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=200&fit=crop"} alt={p.name} className="w-full h-full object-cover" />
+                    <div key={p.id} className="relative group" data-testid={`card-wishlist-${p.id}`}>
+                      <Link href={`/products/${p.slug}`}>
+                        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-all">
+                          <div className="aspect-square bg-gray-50">
+                            <img src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=200&fit=crop"} alt={p.name} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="p-3">
+                            <p className="text-sm font-medium text-gray-900 line-clamp-2">{p.name}</p>
+                            <p className="text-[hsl(38,52%,40%)] font-bold text-sm mt-1">₹{p.price?.toLocaleString("en-IN")}</p>
+                          </div>
                         </div>
-                        <div className="p-3">
-                          <p className="text-sm font-medium text-gray-900 line-clamp-2">{p.name}</p>
-                          <p className="text-[hsl(38,52%,40%)] font-bold text-sm mt-1">₹{p.price?.toLocaleString("en-IN")}</p>
-                        </div>
-                      </div>
-                    </Link>
+                      </Link>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          removeFromWishlist.mutate({ productId: p.id });
+                        }}
+                        disabled={removeFromWishlist.isPending}
+                        className="absolute top-2 right-2 bg-white/95 border border-gray-200 rounded-full p-2 shadow-sm hover:bg-red-50 hover:border-red-200 text-gray-500 hover:text-red-500 transition-colors disabled:opacity-50"
+                        title="Remove from wishlist"
+                        data-testid={`button-remove-wishlist-${p.id}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               ) : (
