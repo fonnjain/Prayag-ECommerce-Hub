@@ -102,6 +102,12 @@ uri = "file://artifacts/prayag/public/images/categories/flush-tanks.png"
 type = "image"
 title = "luxury flush tank"
 
+[[generated]]
+id = "6dU6cXH9jhujoWakVQ2Yn"
+uri = "file://artifacts/prayag/public/images/categories/storage-tanks.png"
+type = "image"
+title = "luxury storage tank"
+
 [[outputs]]
 id = "o7rZRykSZGmnbFS6a4KKv"
 uri = "file://attached_assets/stock_images/prayag_hero_faucet_1.jpg"

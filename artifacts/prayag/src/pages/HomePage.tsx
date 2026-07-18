@@ -47,7 +47,7 @@ const categoryImages: Record<string, string> = {
   "bathroom-accessories": "/images/categories/bathroom-accessories.webp",
   "pipes-fittings": "/images/categories/pipes-fittings.webp",
   "flush-tanks": "/images/categories/flush-tanks.webp",
-  "storage-tanks": "/images/drive/storage-tanks-web/wt-4ll-10.webp",
+  "storage-tanks": "/images/categories/storage-tanks.webp",
 };
 
 const collectionCards = [
