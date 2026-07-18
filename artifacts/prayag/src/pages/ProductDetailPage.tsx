@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/ProductCard";
+import { ProductOnBlack } from "@/components/ProductOnBlack";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -374,10 +375,9 @@ export default function ProductDetailPage() {
                         <Link key={`${dup}-${p.id}`} href={`/products/${p.slug}`} data-testid={dup === 0 ? `card-related-${p.id}` : undefined} tabIndex={dup === 1 ? -1 : undefined}>
                           <div className="group relative bg-white/[0.05] border border-white/10 hover:border-[hsl(42,62%,68%)]/60 transition-colors duration-500 cursor-pointer h-full flex flex-col overflow-hidden w-[240px] md:w-[300px]">
                             <div className="relative aspect-square bg-black m-3 mb-0 flex items-center justify-center p-4 overflow-hidden">
-                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(0,0%,100%,0.92),hsl(0,0%,100%,0.35)_45%,transparent_68%)] pointer-events-none" />
                               {p.imageUrl ? (
-                                <img src={p.imageUrl} alt={p.name} loading="lazy"
-                                  className="relative w-full h-full object-contain mix-blend-multiply [filter:brightness(1.28)_contrast(1.08)_saturate(1.15)] group-hover:scale-110 transition-transform duration-700 ease-out" />
+                                <ProductOnBlack src={p.imageUrl} alt={p.name}
+                                  className="relative w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 ease-out" />
                               ) : (
                                 <Star className="w-10 h-10 text-gray-200" />
                               )}
