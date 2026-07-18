@@ -121,7 +121,8 @@ router.get("/products/:slug/related", async (req, res): Promise<void> => {
     .from(productsTable)
     .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
     .where(and(eq(productsTable.categoryId, product.categoryId), sql`${productsTable.id} != ${product.id}`))
-    .limit(6);
+    .orderBy(sql`ABS(${productsTable.price}::numeric - ${product.price}::numeric) ASC, RANDOM()`)
+    .limit(8);
   res.json(rows.map(r => buildProductRow(r.p, r.catName)));
 });
 
