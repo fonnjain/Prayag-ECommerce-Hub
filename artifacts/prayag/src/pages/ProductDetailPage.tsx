@@ -359,7 +359,7 @@ export default function ProductDetailPage() {
               <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
                 <div>
                   <p className="text-[hsl(42,62%,68%)] text-[11px] font-bold uppercase tracking-[0.3em] mb-3">Curated For You</p>
-                  <h2 className="text-3xl md:text-4xl font-serif-lux text-white">Complementary Pieces</h2>
+                  <h2 className="text-3xl md:text-4xl font-serif-lux text-white">Related Products</h2>
                 </div>
                 <Link href="/products">
                   <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-white/60 hover:text-[hsl(42,62%,68%)] transition-colors cursor-pointer">
