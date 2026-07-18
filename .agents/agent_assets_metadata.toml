@@ -54,6 +54,54 @@ uri = "file://artifacts/prayag/public/images/category-banners/storage-tanks.png"
 type = "image"
 title = "storage-tanks banner"
 
+[[generated]]
+id = "PlwzWEbVBCT37xAr_0LJk"
+uri = "file://artifacts/prayag/public/images/categories/cp-faucets.png"
+type = "image"
+title = "luxury cp faucet"
+
+[[generated]]
+id = "GiQf_osA8E6FXqZx7Rz97"
+uri = "file://artifacts/prayag/public/images/categories/ptmt-faucets.png"
+type = "image"
+title = "luxury ptmt faucet"
+
+[[generated]]
+id = "yWs4pJILKoPoJXurN_-Ky"
+uri = "file://artifacts/prayag/public/images/categories/sanitaryware.png"
+type = "image"
+title = "luxury sanitaryware"
+
+[[generated]]
+id = "6p8SbH4L4q9FgvHCTiUpc"
+uri = "file://artifacts/prayag/public/images/categories/kitchen-sinks.png"
+type = "image"
+title = "luxury kitchen sink"
+
+[[generated]]
+id = "30fKsPg7ZLjFrmf8_iEN7"
+uri = "file://artifacts/prayag/public/images/categories/water-heaters.png"
+type = "image"
+title = "luxury water heater"
+
+[[generated]]
+id = "M_czyLQTrLEZTBZlCzim4"
+uri = "file://artifacts/prayag/public/images/categories/bathroom-accessories.png"
+type = "image"
+title = "luxury bath accessories"
+
+[[generated]]
+id = "7-irLpEFyaHk0RvUJp1ja"
+uri = "file://artifacts/prayag/public/images/categories/pipes-fittings.png"
+type = "image"
+title = "luxury pipes fittings"
+
+[[generated]]
+id = "pbtuA1L4iWFYwlzQx2tWk"
+uri = "file://artifacts/prayag/public/images/categories/flush-tanks.png"
+type = "image"
+title = "luxury flush tank"
+
 [[outputs]]
 id = "o7rZRykSZGmnbFS6a4KKv"
 uri = "file://attached_assets/stock_images/prayag_hero_faucet_1.jpg"

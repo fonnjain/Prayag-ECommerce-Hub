@@ -39,13 +39,14 @@ function AddToCartButton({ productId, productName }: { productId: number; produc
 }
 
 const categoryImages: Record<string, string> = {
-  "cp-faucets": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=300&h=300&fit=crop",
-  "ptmt-faucets": "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=300&h=300&fit=crop",
-  "sanitaryware": "https://images.unsplash.com/photo-1564540586988-aa4e53c3d799?w=300&h=300&fit=crop",
-  "kitchen-sinks": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=300&fit=crop",
-  "water-heaters": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=300&fit=crop",
-  "bathroom-accessories": "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=300&h=300&fit=crop",
-  "pipes-fittings": "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&h=300&fit=crop",
+  "cp-faucets": "/images/categories/cp-faucets.webp",
+  "ptmt-faucets": "/images/categories/ptmt-faucets.webp",
+  "sanitaryware": "/images/categories/sanitaryware.webp",
+  "kitchen-sinks": "/images/categories/kitchen-sinks.webp",
+  "water-heaters": "/images/categories/water-heaters.webp",
+  "bathroom-accessories": "/images/categories/bathroom-accessories.webp",
+  "pipes-fittings": "/images/categories/pipes-fittings.webp",
+  "flush-tanks": "/images/categories/flush-tanks.webp",
   "storage-tanks": "/images/drive/storage-tanks-web/wt-4ll-10.webp",
 };
 
