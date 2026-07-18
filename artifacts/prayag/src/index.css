@@ -356,3 +356,15 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
   .border.active-elevate:not(.no-active-interaction-elevate)::after { inset: -1px; }
 }
+
+@keyframes related-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.related-marquee {
+  animation: related-marquee 40s linear infinite;
+  will-change: transform;
+}
+.related-marquee-wrap:hover .related-marquee {
+  animation-play-state: paused;
+}

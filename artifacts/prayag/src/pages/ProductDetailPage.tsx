@@ -366,45 +366,44 @@ export default function ProductDetailPage() {
                   </span>
                 </Link>
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                {related.slice(0, 4).map((p, i) => (
-                  <Link key={p.id} href={`/products/${p.slug}`} data-testid={`card-related-${p.id}`}>
-                    <motion.div
-                      initial={{ opacity: 0, y: 24 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: i * 0.08 }}
-                      whileHover={{ y: -8 }}
-                      className="group relative bg-white/[0.05] border border-white/10 hover:border-[hsl(42,62%,68%)]/60 transition-colors duration-500 cursor-pointer h-full flex flex-col overflow-hidden"
-                    >
-                      <span className="absolute top-4 left-4 font-serif-lux text-3xl text-[hsl(42,62%,68%)]/40 group-hover:text-[hsl(42,62%,68%)] transition-colors z-10">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <div className="aspect-square bg-white m-3 mb-0 flex items-center justify-center p-4 overflow-hidden">
-                        {p.imageUrl ? (
-                          <img src={p.imageUrl} alt={p.name} loading="lazy"
-                            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700 ease-out" />
-                        ) : (
-                          <Star className="w-10 h-10 text-gray-200" />
-                        )}
-                      </div>
-                      <div className="p-4 md:p-5 flex flex-col flex-1">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{p.sku}</p>
-                        <h3 className="text-sm md:text-base text-white font-medium leading-snug mb-3 line-clamp-2 group-hover:text-[hsl(42,62%,68%)] transition-colors">{p.name}</h3>
-                        <div className="mt-auto flex items-center justify-between">
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-[hsl(42,62%,68%)] font-bold">₹{p.price.toLocaleString("en-IN")}</span>
-                            {p.mrp > p.price && <span className="text-white/30 text-xs line-through">₹{p.mrp.toLocaleString("en-IN")}</span>}
+              <div className="related-marquee-wrap relative overflow-hidden -mx-6 px-6" style={{ maskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)", WebkitMaskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)" }}>
+                <div className="related-marquee flex gap-4 md:gap-6 w-max">
+                  {[0, 1].map(dup => (
+                    <div key={dup} className="flex gap-4 md:gap-6" aria-hidden={dup === 1}>
+                      {related.slice(0, 8).map((p, i) => (
+                        <Link key={`${dup}-${p.id}`} href={`/products/${p.slug}`} data-testid={dup === 0 ? `card-related-${p.id}` : undefined} tabIndex={dup === 1 ? -1 : undefined}>
+                          <div className="group relative bg-white/[0.05] border border-white/10 hover:border-[hsl(42,62%,68%)]/60 transition-colors duration-500 cursor-pointer h-full flex flex-col overflow-hidden w-[240px] md:w-[300px]">
+                            <span className="absolute top-4 left-4 font-serif-lux text-3xl text-[hsl(42,62%,68%)]/40 group-hover:text-[hsl(42,62%,68%)] transition-colors z-10">
+                              {String(i + 1).padStart(2, "0")}
+                            </span>
+                            <div className="aspect-square bg-white m-3 mb-0 flex items-center justify-center p-4 overflow-hidden">
+                              {p.imageUrl ? (
+                                <img src={p.imageUrl} alt={p.name} loading="lazy"
+                                  className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700 ease-out" />
+                              ) : (
+                                <Star className="w-10 h-10 text-gray-200" />
+                              )}
+                            </div>
+                            <div className="p-4 md:p-5 flex flex-col flex-1">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{p.sku}</p>
+                              <h3 className="text-sm md:text-base text-white font-medium leading-snug mb-3 line-clamp-2 group-hover:text-[hsl(42,62%,68%)] transition-colors">{p.name}</h3>
+                              <div className="mt-auto flex items-center justify-between">
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-[hsl(42,62%,68%)] font-bold">₹{p.price.toLocaleString("en-IN")}</span>
+                                  {p.mrp > p.price && <span className="text-white/30 text-xs line-through">₹{p.mrp.toLocaleString("en-IN")}</span>}
+                                </div>
+                                <span className="w-7 h-7 rounded-full border border-white/20 group-hover:border-[hsl(42,62%,68%)] group-hover:bg-[hsl(42,62%,68%)] flex items-center justify-center transition-all">
+                                  <ChevronRight className="w-3.5 h-3.5 text-white/50 group-hover:text-[hsl(24,10%,16%)]" />
+                                </span>
+                              </div>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[hsl(42,62%,68%)] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500" />
                           </div>
-                          <span className="w-7 h-7 rounded-full border border-white/20 group-hover:border-[hsl(42,62%,68%)] group-hover:bg-[hsl(42,62%,68%)] flex items-center justify-center transition-all">
-                            <ChevronRight className="w-3.5 h-3.5 text-white/50 group-hover:text-[hsl(24,10%,16%)]" />
-                          </span>
-                        </div>
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[hsl(42,62%,68%)] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500" />
-                    </motion.div>
-                  </Link>
-                ))}
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
