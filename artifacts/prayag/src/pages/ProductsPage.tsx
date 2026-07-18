@@ -90,7 +90,7 @@ export default function ProductsPage() {
                 key={filters.category || "all"}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`text-4xl md:text-5xl lg:text-6xl font-serif-lux font-bold mb-4 ${bannerUrl ? "text-white drop-shadow-md" : "text-gray-900"}`}
+                className={`text-4xl md:text-5xl lg:text-6xl font-serif-lux font-bold uppercase mb-4 ${bannerUrl ? "text-white drop-shadow-md" : "text-gray-900"}`}
               >
                 {filters.category ? filters.category.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : filters.search ? `Search: "${filters.search}"` : "The Collection"}
               </motion.h1>
