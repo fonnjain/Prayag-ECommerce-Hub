@@ -239,20 +239,36 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Detailed Information Tabs */}
-        <div className="bg-white border border-gray-200 mb-20 max-w-5xl mx-auto shadow-sm">
-          <div className="flex flex-wrap border-b border-gray-200">
-            {["description", "specifications", "warranty"].map(tab => (
-              <button key={tab} onClick={() => setActiveTab(tab)}
-                className={`flex-1 min-w-[150px] px-8 py-5 text-sm font-bold uppercase tracking-widest transition-colors relative ${activeTab === tab ? "text-[hsl(24,10%,16%)]" : "text-gray-400 hover:text-gray-900 bg-gray-50/50"}`}
-                data-testid={`button-tab-${tab}`}>
-                {tab}
-                {activeTab === tab && (
-                  <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[hsl(24,10%,16%)]" />
+        <div className="mb-20 grid lg:grid-cols-[280px_1fr] border border-gray-200 shadow-sm overflow-hidden">
+          {/* Dark tab rail */}
+          <div className="bg-[hsl(24,10%,16%)] flex lg:flex-col">
+            <div className="hidden lg:block px-8 pt-10 pb-6">
+              <p className="text-[hsl(42,62%,68%)] text-[11px] font-bold uppercase tracking-[0.25em] mb-2">Know Your Piece</p>
+              <div className="w-10 h-0.5 bg-[hsl(42,62%,68%)]" />
+            </div>
+            {[
+              { id: "description", label: "Description", icon: Star },
+              { id: "specifications", label: "Specifications", icon: CheckCircle2 },
+              { id: "warranty", label: "Warranty", icon: Shield },
+            ].map(({ id, label, icon: Icon }) => (
+              <button key={id} onClick={() => setActiveTab(id)}
+                className={`flex-1 lg:flex-none flex items-center gap-3 px-4 lg:px-8 py-4 lg:py-5 text-xs font-bold uppercase tracking-widest transition-all text-left relative ${activeTab === id ? "text-white bg-white/[0.06]" : "text-white/40 hover:text-white/80"}`}
+                data-testid={`button-tab-${id}`}>
+                {activeTab === id && (
+                  <motion.div layoutId="activeTab" className="absolute left-0 top-0 bottom-0 w-1 lg:w-1 bg-[hsl(42,62%,68%)]" />
                 )}
+                <Icon className={`w-4 h-4 flex-shrink-0 ${activeTab === id ? "text-[hsl(42,62%,68%)]" : ""}`} />
+                <span className="text-[10px] sm:text-xs">{label}</span>
               </button>
             ))}
+            <div className="hidden lg:block mt-auto px-8 py-8 border-t border-white/10">
+              <p className="text-white/40 text-[11px] leading-relaxed">Strong. Beautiful. Prayag. — crafted for Indian homes since day one.</p>
+            </div>
           </div>
-          <div className="p-8 md:p-12 prose prose-gray max-w-none text-gray-600 leading-relaxed font-serif-lux text-lg">
+
+          {/* Content area */}
+          <div className="bg-white relative min-h-[320px]">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[radial-gradient(circle_at_top_right,hsl(42,62%,68%,0.12),transparent_70%)] pointer-events-none" />
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
@@ -260,15 +276,70 @@ export default function ProductDetailPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
+                className="p-8 md:p-12"
               >
-                {activeTab === "description" && <p>{product.description || "The epitome of craftsmanship, designed to elevate your living spaces with enduring quality and timeless aesthetics."}</p>}
+                {activeTab === "description" && (
+                  <div>
+                    <h3 className="font-serif-lux text-2xl text-gray-900 mb-6">The Story of This Piece</h3>
+                    <p className="text-gray-600 leading-loose font-serif-lux text-lg first-letter:text-6xl first-letter:font-serif-lux first-letter:text-[hsl(42,62%,68%)] first-letter:float-left first-letter:mr-3 first-letter:leading-[0.85]">
+                      {product.description || "The epitome of craftsmanship, designed to elevate your living spaces with enduring quality and timeless aesthetics."}
+                    </p>
+                    <div className="grid sm:grid-cols-3 gap-4 mt-10 pt-8 border-t border-gray-100">
+                      {[
+                        { title: "Premium Build", desc: "Engineered with rigorously tested materials" },
+                        { title: "Made in India", desc: "Proudly manufactured for Indian conditions" },
+                        { title: "Trusted Brand", desc: "Chosen by thousands of homes and dealers" },
+                      ].map(f => (
+                        <div key={f.title} className="border border-gray-100 bg-[#FAF9F7] p-5">
+                          <CheckCircle2 className="w-4 h-4 text-[hsl(42,62%,68%)] mb-3" />
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-1">{f.title}</h4>
+                          <p className="text-[12px] text-gray-500 leading-relaxed">{f.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {activeTab === "specifications" && (
-                  product.specifications ? (
-                    <pre className="whitespace-pre-wrap font-sans text-sm bg-gray-50 p-6 border border-gray-100 rounded-none text-gray-700">{product.specifications}</pre>
-                  ) : <p>Detailed specifications are included in the product manual. Contact your nearest showroom for precise technical dimensions.</p>
+                  <div>
+                    <h3 className="font-serif-lux text-2xl text-gray-900 mb-6">Technical Specifications</h3>
+                    {product.specifications ? (
+                      <div className="divide-y divide-gray-100 border border-gray-100">
+                        {product.specifications.split(/\r?\n/).filter(l => l.trim()).map((line, i) => {
+                          const idx = line.indexOf(":");
+                          const label = idx > 0 ? line.slice(0, idx).trim() : null;
+                          const value = idx > 0 ? line.slice(idx + 1).trim() : line.trim();
+                          return (
+                            <div key={i} className={`grid sm:grid-cols-[220px_1fr] ${i % 2 === 0 ? "bg-[#FAF9F7]" : "bg-white"}`}>
+                              <div className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">{label || `Detail ${i + 1}`}</div>
+                              <div className="px-5 py-3.5 text-sm text-gray-800">{value}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-gray-600 leading-relaxed">Detailed specifications are included in the product manual. Contact your nearest showroom for precise technical dimensions.</p>
+                    )}
+                  </div>
                 )}
                 {activeTab === "warranty" && (
-                  <p>{product.warranty || "Backed by our comprehensive manufacturer warranty. We stand behind the quality and durability of every piece that bears our name."}</p>
+                  <div className="grid md:grid-cols-[auto_1fr] gap-8 items-start">
+                    <div className="w-24 h-24 rounded-full border-2 border-[hsl(42,62%,68%)] flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
+                      <Shield className="w-10 h-10 text-[hsl(42,62%,68%)]" />
+                    </div>
+                    <div>
+                      <h3 className="font-serif-lux text-2xl text-gray-900 mb-4">Our Promise, In Writing</h3>
+                      <p className="text-gray-600 leading-loose font-serif-lux text-lg mb-8">
+                        {product.warranty || "Backed by our comprehensive manufacturer warranty. We stand behind the quality and durability of every piece that bears our name."}
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        {["Genuine Parts", "Pan-India Service", "Easy Claims"].map(b => (
+                          <span key={b} className="inline-flex items-center gap-2 border border-gray-200 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-gray-700">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(42,62%,68%)]" /> {b}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </motion.div>
             </AnimatePresence>
