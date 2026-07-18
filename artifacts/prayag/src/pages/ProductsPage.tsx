@@ -94,7 +94,7 @@ export default function ProductsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className={`text-4xl md:text-5xl lg:text-6xl font-serif-lux font-bold uppercase mb-4 ${bannerUrl ? "text-white drop-shadow-md" : "text-gray-900"}`}
               >
-                {filters.category ? filters.category.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : filters.search ? `Search: "${filters.search}"` : "The Collection"}
+                {filters.category ? (filters.category === "pipes-fittings" ? "Pipes & Fittings" : filters.category.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())) : filters.search ? `Search: "${filters.search}"` : "The Collection"}
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0 }}
