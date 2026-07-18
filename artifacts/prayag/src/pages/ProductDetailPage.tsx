@@ -197,7 +197,7 @@ export default function ProductDetailPage() {
                   whileTap={{ scale: 0.98 }}
                   onClick={handleAddToCart} 
                   disabled={!product.inStock || addToCart.isPending}
-                  className="flex-1 h-14 bg-[hsl(24,10%,16%)] text-white font-bold uppercase tracking-widest text-xs hover:bg-[hsl(42,62%,68%)] disabled:opacity-50 transition-colors flex items-center justify-center gap-3 relative overflow-hidden group"
+                  className="flex-1 h-14 bg-[hsl(24,10%,16%)] text-white font-bold uppercase tracking-widest text-xs hover:bg-[hsl(38,52%,42%)] disabled:opacity-50 transition-colors flex items-center justify-center gap-3 relative overflow-hidden group"
                   data-testid="button-add-to-cart">
                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                   <ShoppingCart className="w-4 h-4 relative z-10" />
