@@ -1,4 +1,65 @@
+import nodemailer from "nodemailer";
 import { logger } from "./logger";
+
+function getSmtpTransport(): { transporter: nodemailer.Transporter; fromEmail: string } | null {
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !pass) return null;
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: { user, pass },
+  });
+  return { transporter, fromEmail: user };
+}
+
+async function sendHtmlEmail(to: string, subject: string, html: string): Promise<boolean> {
+  // Prefer SMTP (Gmail App Password) — the Replit Gmail connector is read-only and cannot send
+  const smtp = getSmtpTransport();
+  if (smtp) {
+    try {
+      await smtp.transporter.sendMail({ from: `PRAYAG <${smtp.fromEmail}>`, to, subject, html });
+      logger.info({ to, subject }, "Email sent via SMTP");
+      return true;
+    } catch (err) {
+      logger.error({ err, to }, "SMTP email send failed");
+      return false;
+    }
+  }
+
+  const conn = await getGmailConnection();
+  if (!conn) {
+    logger.warn({ to }, "No email transport configured (GMAIL_USER/GMAIL_APP_PASSWORD not set, Gmail connector unavailable)");
+    return false;
+  }
+  const mime = [
+    `From: ${conn.fromEmail}`,
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    "MIME-Version: 1.0",
+    'Content-Type: text/html; charset="UTF-8"',
+    "",
+    html,
+  ].join("\r\n");
+  try {
+    const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${conn.accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ raw: base64url(mime) }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      logger.error({ status: res.status, body }, "Gmail API email send failed");
+      return false;
+    }
+    logger.info({ to, subject }, "Email sent via Gmail API");
+    return true;
+  } catch (err) {
+    logger.error({ err }, "Gmail API email send error");
+    return false;
+  }
+}
 
 async function getGmailConnection(): Promise<{ accessToken: string; fromEmail: string } | null> {
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
@@ -44,12 +105,6 @@ export async function sendPasswordResetEmail(opts: {
   name: string;
   code: string;
 }): Promise<boolean> {
-  const conn = await getGmailConnection();
-  if (!conn) {
-    logger.warn({ to: opts.to }, "Gmail not connected — skipping password reset email");
-    return false;
-  }
-
   const subject = "PRAYAG — Your Password Reset Code";
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;border:1px solid #eee;border-radius:12px;overflow:hidden">
@@ -69,39 +124,7 @@ export async function sendPasswordResetEmail(opts: {
       </div>
     </div>`;
 
-  const mime = [
-    `From: ${conn.fromEmail}`,
-    `To: ${opts.to}`,
-    `Subject: ${subject}`,
-    "MIME-Version: 1.0",
-    'Content-Type: text/html; charset="UTF-8"',
-    "",
-    html,
-  ].join("\r\n");
-
-  try {
-    const res = await fetch(
-      "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${conn.accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ raw: base64url(mime) }),
-      },
-    );
-    if (!res.ok) {
-      const body = await res.text();
-      logger.error({ status: res.status, body }, "Password reset email send failed");
-      return false;
-    }
-    logger.info({ to: opts.to }, "Password reset email sent");
-    return true;
-  } catch (err) {
-    logger.error({ err }, "Password reset email send error");
-    return false;
-  }
+  return sendHtmlEmail(opts.to, subject, html);
 }
 
 export async function sendInvoiceEmail(opts: {
@@ -111,15 +134,6 @@ export async function sendInvoiceEmail(opts: {
   total: number;
   pdf: Buffer;
 }): Promise<boolean> {
-  const conn = await getGmailConnection();
-  if (!conn) {
-    logger.warn(
-      { orderNumber: opts.orderNumber },
-      "Gmail not connected — skipping invoice email",
-    );
-    return false;
-  }
-
   const boundary = "prayag_invoice_boundary";
   const subject = `Your PRAYAG Invoice — Order ${opts.orderNumber}`;
   const html = `
@@ -139,6 +153,31 @@ export async function sendInvoiceEmail(opts: {
         <p style="color:#999;font-size:12px;margin-top:24px">— Team PRAYAG | Customer Care: 1800 123 4567</p>
       </div>
     </div>`;
+
+  // Prefer SMTP (Gmail App Password) — the Replit Gmail connector is read-only and cannot send
+  const smtp = getSmtpTransport();
+  if (smtp) {
+    try {
+      await smtp.transporter.sendMail({
+        from: `PRAYAG <${smtp.fromEmail}>`,
+        to: opts.to,
+        subject,
+        html,
+        attachments: [{ filename: `Invoice-${opts.orderNumber}.pdf`, content: opts.pdf, contentType: "application/pdf" }],
+      });
+      logger.info({ orderNumber: opts.orderNumber, to: opts.to }, "Invoice email sent via SMTP");
+      return true;
+    } catch (err) {
+      logger.error({ err, to: opts.to }, "SMTP invoice email send failed");
+      return false;
+    }
+  }
+
+  const conn = await getGmailConnection();
+  if (!conn) {
+    logger.warn({ orderNumber: opts.orderNumber }, "No email transport configured — skipping invoice email");
+    return false;
+  }
 
   const mime = [
     `From: ${conn.fromEmail}`,
