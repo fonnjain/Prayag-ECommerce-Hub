@@ -114,16 +114,35 @@ router.post("/admin/import-products", async (req, res): Promise<void> => {
     images?: Array<{ id: number; productId: number; imageUrl: string; sortOrder?: number }>;
     deleteIds?: number[];
     keepOnlyIds?: number[];
+    categories?: Array<Record<string, unknown>>;
   };
+  const categories = (req.body as { categories?: Array<Record<string, unknown>> }).categories;
+  const hasCategories = Array.isArray(categories) && categories.length > 0;
   const hasProducts = Array.isArray(products) && products.length > 0;
   const hasImages = Array.isArray(images) && images.length > 0;
   const hasDeleteIds = Array.isArray(deleteIds) && deleteIds.length > 0;
   const hasKeepOnly = Array.isArray(keepOnlyIds) && keepOnlyIds.length > 0;
-  if (!hasProducts && !hasImages && !hasDeleteIds && !hasKeepOnly) {
-    res.status(400).json({ error: "products, images, deleteIds or keepOnlyIds required" });
+  if (!hasProducts && !hasImages && !hasDeleteIds && !hasKeepOnly && !hasCategories) {
+    res.status(400).json({ error: "products, images, categories, deleteIds or keepOnlyIds required" });
     return;
   }
   const result = await db.transaction(async (tx) => {
+    let categoriesUpserted = 0;
+    if (hasCategories) {
+      for (const c of categories!) {
+        const catRow = {
+          id: c.id as number,
+          name: c.name as string,
+          slug: c.slug as string,
+          imageUrl: (c.imageUrl as string | null) ?? null,
+        };
+        const { id: catId, ...catUpdates } = catRow;
+        await tx.insert(categoriesTable).values(catRow)
+          .onConflictDoUpdate({ target: categoriesTable.id, set: catUpdates });
+        categoriesUpserted++;
+      }
+      await tx.execute(sql`SELECT setval(pg_get_serial_sequence('categories','id'), (SELECT COALESCE(MAX(id),1) FROM categories))`);
+    }
     let deleted = 0;
     if (hasDeleteIds || hasKeepOnly) {
       const explicit = hasDeleteIds ? deleteIds!.filter((n) => Number.isInteger(n)) : [];
@@ -186,9 +205,9 @@ router.post("/admin/import-products", async (req, res): Promise<void> => {
     }
     await tx.execute(sql`SELECT setval(pg_get_serial_sequence('products','id'), (SELECT COALESCE(MAX(id),1) FROM products))`);
     await tx.execute(sql`SELECT setval(pg_get_serial_sequence('product_images','id'), (SELECT COALESCE(MAX(id),1) FROM product_images))`);
-    return { upserted, imagesUpserted, deleted };
+    return { upserted, imagesUpserted, deleted, categoriesUpserted };
   });
-  res.json({ success: true, products: result.upserted, images: result.imagesUpserted, deleted: result.deleted });
+  res.json({ success: true, products: result.upserted, images: result.imagesUpserted, deleted: result.deleted, categories: result.categoriesUpserted });
 });
 
 router.delete("/admin/products/:id", async (req, res): Promise<void> => {
