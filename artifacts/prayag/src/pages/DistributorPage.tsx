@@ -31,8 +31,8 @@ const navItems = [
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-blue-100 text-blue-700",
-  packed: "bg-indigo-100 text-indigo-700",
+  confirmed: "bg-amber-100 text-[hsl(30,50%,35%)]",
+  packed: "bg-stone-200 text-stone-700",
   dispatched: "bg-purple-100 text-purple-700",
   delivered: "bg-green-100 text-green-700",
   cancelled: "bg-red-100 text-red-600",
@@ -47,15 +47,15 @@ export default function DistributorPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <aside className="w-56 bg-[hsl(215,100%,28%)] text-white flex-shrink-0 min-h-screen flex flex-col">
-        <div className="p-5 border-b border-[hsl(215,100%,22%)]">
+      <aside className="w-56 bg-[hsl(24,9%,26%)] text-white flex-shrink-0 min-h-screen flex flex-col">
+        <div className="p-5 border-b border-[hsl(24,10%,12%)]">
           <div className="text-xl font-black">PRAYAG</div>
-          <div className="text-blue-200 text-xs mt-0.5">Distributor Portal</div>
+          <div className="text-[hsl(42,62%,68%)] text-xs mt-0.5">Distributor Portal</div>
         </div>
         <nav className="py-2 flex-1">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => setActive(id)}
-              className={`w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors ${active === id ? "bg-[hsl(215,100%,22%)] font-medium" : "text-blue-100 hover:bg-[hsl(215,100%,22%)]"}`}
+              className={`w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors ${active === id ? "bg-[hsl(24,10%,12%)] font-medium" : "text-[hsl(42,40%,80%)] hover:bg-[hsl(24,10%,12%)]"}`}
               data-testid={`nav-distributor-${id}`}>
               <Icon className="w-4 h-4" /> {label}
             </button>
@@ -63,7 +63,7 @@ export default function DistributorPage() {
         </nav>
         <div className="p-4">
           <Link href="/products">
-            <button className="w-full bg-white text-[hsl(215,100%,34%)] text-sm font-bold py-2.5 rounded-lg hover:bg-blue-50 transition-colors">
+            <button className="w-full bg-white text-[hsl(38,52%,40%)] text-sm font-bold py-2.5 rounded-lg hover:bg-amber-50 transition-colors">
               Place Bulk Order
             </button>
           </Link>
@@ -77,7 +77,7 @@ export default function DistributorPage() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Distributor Dashboard</h1>
-              <span className="text-xs bg-indigo-100 text-indigo-700 font-semibold px-3 py-1 rounded-full">Premium Tier</span>
+              <span className="text-xs bg-stone-200 text-stone-700 font-semibold px-3 py-1 rounded-full">Premium Tier</span>
             </div>
 
             {dashLoading ? (
@@ -86,7 +86,7 @@ export default function DistributorPage() {
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   {[
-                    { label: "Monthly Orders", value: dashboard?.monthlyOrders ?? 0, icon: Package, color: "bg-blue-500" },
+                    { label: "Monthly Orders", value: dashboard?.monthlyOrders ?? 0, icon: Package, color: "bg-amber-500" },
                     { label: "Total Revenue", value: `₹${((dashboard?.totalRevenue ?? 0) / 100000).toFixed(1)}L`, icon: TrendingUp, color: "bg-green-500" },
                     { label: "Pending Orders", value: dashboard?.pendingOrders ?? 0, icon: Clock, color: "bg-yellow-500" },
                     { label: "Delivered", value: dashboard?.deliveredOrders ?? 0, icon: CheckCircle, color: "bg-emerald-500" },
@@ -107,7 +107,7 @@ export default function DistributorPage() {
                 <div className="grid sm:grid-cols-3 gap-4 mb-6">
                   <div className="bg-white rounded-xl border border-gray-100 p-4" data-testid="stat-dist-territory">
                     <div className="flex items-center gap-2 mb-2">
-                      <MapPin className="w-4 h-4 text-[hsl(215,100%,34%)]" />
+                      <MapPin className="w-4 h-4 text-[hsl(38,52%,40%)]" />
                       <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Territory</span>
                     </div>
                     <div className="font-bold text-gray-900">{dashboard?.territory || "Not Assigned"}</div>
@@ -137,8 +137,8 @@ export default function DistributorPage() {
             <div className="bg-white rounded-xl border border-gray-100 p-5">
               <h2 className="font-bold text-gray-900 mb-4">Quick Actions</h2>
               <div className="grid sm:grid-cols-4 gap-3">
-                <Link href="/products"><button className="w-full bg-[hsl(215,100%,34%)] text-white font-medium py-3 rounded-xl text-sm hover:bg-[hsl(215,100%,28%)] transition-colors" data-testid="button-dist-bulk-order">Bulk Order</button></Link>
-                <button onClick={() => setActive("schemes")} className="w-full border border-[hsl(215,100%,34%)] text-[hsl(215,100%,34%)] font-medium py-3 rounded-xl text-sm hover:bg-blue-50 transition-colors" data-testid="button-dist-schemes">View Schemes</button>
+                <Link href="/products"><button className="w-full bg-[hsl(24,10%,16%)] text-white font-medium py-3 rounded-xl text-sm hover:bg-[hsl(24,9%,26%)] transition-colors" data-testid="button-dist-bulk-order">Bulk Order</button></Link>
+                <button onClick={() => setActive("schemes")} className="w-full border border-[hsl(38,52%,40%)] text-[hsl(38,52%,40%)] font-medium py-3 rounded-xl text-sm hover:bg-amber-50 transition-colors" data-testid="button-dist-schemes">View Schemes</button>
                 <button onClick={() => setActive("territory")} className="w-full border border-gray-200 text-gray-700 font-medium py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors" data-testid="button-dist-territory">My Territory</button>
                 <button onClick={() => setActive("catalogues")} className="w-full border border-gray-200 text-gray-700 font-medium py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors" data-testid="button-dist-catalogue">Catalogues</button>
               </div>
@@ -165,12 +165,12 @@ export default function DistributorPage() {
                       <tr key={order.id} className="hover:bg-gray-50 transition-colors" data-testid={`row-dist-order-${order.id}`}>
                         <td className="px-4 py-3 font-medium text-gray-900">{order.orderNumber}</td>
                         <td className="px-4 py-3 text-gray-500">{new Date(order.createdAt).toLocaleDateString("en-IN")}</td>
-                        <td className="px-4 py-3 font-bold text-[hsl(215,100%,34%)]">₹{order.total.toLocaleString("en-IN")}</td>
+                        <td className="px-4 py-3 font-bold text-[hsl(38,52%,40%)]">₹{order.total.toLocaleString("en-IN")}</td>
                         <td className="px-4 py-3">
                           <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${statusColors[order.status] || "bg-gray-100 text-gray-600"}`}>{order.status}</span>
                         </td>
                         <td className="px-4 py-3">
-                          <Link href={`/account/orders/${order.id}`}><button className="text-[hsl(215,100%,34%)] text-xs font-medium hover:underline" data-testid={`button-track-dist-order-${order.id}`}>Track</button></Link>
+                          <Link href={`/account/orders/${order.id}`}><button className="text-[hsl(38,52%,40%)] text-xs font-medium hover:underline" data-testid={`button-track-dist-order-${order.id}`}>Track</button></Link>
                         </td>
                       </tr>
                     ))}
@@ -198,14 +198,14 @@ export default function DistributorPage() {
             ) : schemes && schemes.length > 0 ? (
               <div className="grid sm:grid-cols-2 gap-4">
                 {schemes.map((scheme: any) => (
-                  <div key={scheme.id} className="bg-white rounded-xl border border-gray-100 p-5 border-l-4 border-l-[hsl(215,100%,28%)]" data-testid={`card-dist-scheme-${scheme.id}`}>
+                  <div key={scheme.id} className="bg-white rounded-xl border border-gray-100 p-5 border-l-4 border-l-[hsl(30,35%,30%)]" data-testid={`card-dist-scheme-${scheme.id}`}>
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-bold text-gray-900">{scheme.title}</h3>
                       <span className="bg-green-100 text-green-700 font-bold text-sm px-3 py-0.5 rounded-full">{scheme.discount}% OFF</span>
                     </div>
                     <p className="text-sm text-gray-500 mb-3">{scheme.description}</p>
                     {scheme.minOrderValue && (
-                      <div className="text-xs text-[hsl(215,100%,34%)] font-medium mb-1">Min. Order: ₹{scheme.minOrderValue.toLocaleString("en-IN")}</div>
+                      <div className="text-xs text-[hsl(38,52%,40%)] font-medium mb-1">Min. Order: ₹{scheme.minOrderValue.toLocaleString("en-IN")}</div>
                     )}
                     <div className="text-xs text-gray-400">Valid until: {scheme.validUntil}</div>
                   </div>
@@ -226,14 +226,14 @@ export default function DistributorPage() {
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Product Catalogues</h1>
             <div className="grid sm:grid-cols-3 gap-4">
               {["Full Product Catalogue 2024", "CP Faucets Range", "Sanitaryware Guide", "Pipes & Fittings", "Water Heaters", "Accessories", "Distributor Price List", "Trade Terms 2024"].map(title => (
-                <div key={title} className="bg-white rounded-xl border border-gray-100 p-5 flex items-center justify-between hover:border-[hsl(215,100%,34%)] transition-all cursor-pointer group" data-testid={`card-dist-catalogue-${title.replace(/\s+/g, "-").toLowerCase()}`}>
+                <div key={title} className="bg-white rounded-xl border border-gray-100 p-5 flex items-center justify-between hover:border-[hsl(38,52%,40%)] transition-all cursor-pointer group" data-testid={`card-dist-catalogue-${title.replace(/\s+/g, "-").toLowerCase()}`}>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[hsl(215,100%,34%)]/10 rounded-lg flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-[hsl(215,100%,34%)]" />
+                    <div className="w-10 h-10 bg-[hsl(24,10%,16%)]/10 rounded-lg flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-[hsl(38,52%,40%)]" />
                     </div>
                     <span className="font-medium text-sm text-gray-900">{title}</span>
                   </div>
-                  <span className="text-xs text-[hsl(215,100%,34%)] font-medium opacity-0 group-hover:opacity-100 transition-opacity">Download</span>
+                  <span className="text-xs text-[hsl(38,52%,40%)] font-medium opacity-0 group-hover:opacity-100 transition-opacity">Download</span>
                 </div>
               ))}
             </div>
@@ -259,8 +259,8 @@ export default function DistributorPage() {
             <div className="grid sm:grid-cols-2 gap-6">
               <div className="bg-white rounded-xl border border-gray-100 p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[hsl(215,100%,34%)]/10 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-5 h-5 text-[hsl(215,100%,34%)]" />
+                  <div className="w-10 h-10 bg-[hsl(24,10%,16%)]/10 rounded-lg flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-[hsl(38,52%,40%)]" />
                   </div>
                   <div>
                     <h2 className="font-bold text-gray-900">Territory Assignment</h2>

@@ -57,7 +57,7 @@ export default function DistributorRegistrationPage() {
           <p className="text-gray-500 mb-2">Thank you for applying to be a PRAYAG Distributor.</p>
           <p className="text-sm text-gray-400 mb-8">Our regional team will contact you within 2–3 business days to verify documents and finalize your territory.</p>
           <Link href="/">
-            <button className="bg-[hsl(215,100%,34%)] text-white font-bold px-8 py-3 rounded-xl hover:bg-[hsl(215,100%,28%)] transition-colors">
+            <button className="bg-[hsl(24,10%,16%)] text-white font-bold px-8 py-3 rounded-xl hover:bg-[hsl(24,9%,26%)] transition-colors">
               Back to Home
             </button>
           </Link>
@@ -70,7 +70,7 @@ export default function DistributorRegistrationPage() {
     <div className="max-w-5xl mx-auto px-4 py-12">
       {/* Hero */}
       <div className="text-center mb-10">
-        <div className="text-sm font-semibold text-[hsl(215,100%,34%)] uppercase tracking-widest mb-2">Become a Partner</div>
+        <div className="text-sm font-semibold text-[hsl(38,52%,40%)] uppercase tracking-widest mb-2">Become a Partner</div>
         <h1 className="text-3xl font-black text-gray-900 mb-3">PRAYAG Distributor Registration</h1>
         <p className="text-gray-500 max-w-xl mx-auto">Join our exclusive distributor network. Get premium margins, dedicated territory, and priority support from India's leading plumbing brand.</p>
       </div>
@@ -83,9 +83,9 @@ export default function DistributorRegistrationPage() {
           { icon: CreditCard, title: "Credit Facility", desc: "Up to ₹25L credit limit based on track record" },
           { icon: Truck, title: "Direct Supply", desc: "Directly from our factory, no middlemen" },
         ].map(({ icon: Icon, title, desc }) => (
-          <div key={title} className="bg-white border border-gray-100 rounded-xl p-4 text-center hover:border-[hsl(215,100%,34%)] transition-colors">
-            <div className="w-10 h-10 bg-[hsl(215,100%,34%)]/10 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <Icon className="w-5 h-5 text-[hsl(215,100%,34%)]" />
+          <div key={title} className="bg-white border border-gray-100 rounded-xl p-4 text-center hover:border-[hsl(38,52%,40%)] transition-colors">
+            <div className="w-10 h-10 bg-[hsl(24,10%,16%)]/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Icon className="w-5 h-5 text-[hsl(38,52%,40%)]" />
             </div>
             <h3 className="font-bold text-sm text-gray-900 mb-1">{title}</h3>
             <p className="text-xs text-gray-500">{desc}</p>
@@ -94,18 +94,18 @@ export default function DistributorRegistrationPage() {
       </div>
 
       {/* Difference: Dealer vs Distributor */}
-      <div className="bg-[hsl(215,100%,34%)]/5 border border-[hsl(215,100%,34%)]/20 rounded-xl p-5 mb-10">
+      <div className="bg-[hsl(24,10%,16%)]/5 border border-[hsl(38,52%,40%)]/20 rounded-xl p-5 mb-10">
         <h2 className="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wide">Dealer vs. Distributor — What's the Difference?</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[hsl(215,100%,34%)]/20">
+              <tr className="border-b border-[hsl(38,52%,40%)]/20">
                 <th className="text-left py-2 pr-4 text-gray-500 font-medium">Feature</th>
-                <th className="text-left py-2 pr-4 text-[hsl(215,100%,34%)] font-bold">Dealer</th>
-                <th className="text-left py-2 font-bold text-[hsl(215,100%,28%)]">Distributor ★</th>
+                <th className="text-left py-2 pr-4 text-[hsl(38,52%,40%)] font-bold">Dealer</th>
+                <th className="text-left py-2 font-bold text-[hsl(30,35%,30%)]">Distributor ★</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[hsl(215,100%,34%)]/10">
+            <tbody className="divide-y divide-[hsl(38,52%,40%)]/10">
               {[
                 ["Margin", "15–20%", "25–35%"],
                 ["Territory", "City-level", "District / Zone-level"],
@@ -117,7 +117,7 @@ export default function DistributorRegistrationPage() {
                 <tr key={f}>
                   <td className="py-2 pr-4 text-gray-500">{f}</td>
                   <td className="py-2 pr-4 text-gray-700">{d}</td>
-                  <td className="py-2 font-semibold text-[hsl(215,100%,28%)]">{dist}</td>
+                  <td className="py-2 font-semibold text-[hsl(30,35%,30%)]">{dist}</td>
                 </tr>
               ))}
             </tbody>
@@ -127,9 +127,9 @@ export default function DistributorRegistrationPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="bg-[hsl(215,100%,34%)] px-6 py-4">
+        <div className="bg-[hsl(24,10%,16%)] px-6 py-4">
           <h2 className="text-white font-bold text-lg">Distributor Application Form</h2>
-          <p className="text-blue-200 text-sm">All fields marked * are required</p>
+          <p className="text-[hsl(42,62%,68%)] text-sm">All fields marked * are required</p>
         </div>
         <div className="p-6 space-y-6">
           {/* Business Info */}
@@ -147,7 +147,7 @@ export default function DistributorRegistrationPage() {
                 <div key={name}>
                   <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
                   <input name={name} value={(form as any)[name]} onChange={handleChange} placeholder={placeholder}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(215,100%,34%)] focus:border-transparent outline-none" />
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(38,52%,40%)] focus:border-transparent outline-none" />
                 </div>
               ))}
             </div>
@@ -160,12 +160,12 @@ export default function DistributorRegistrationPage() {
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">City</label>
                 <input name="city" value={form.city} onChange={handleChange} placeholder="City"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(215,100%,34%)] focus:border-transparent outline-none" />
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(38,52%,40%)] focus:border-transparent outline-none" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">State</label>
                 <select name="state" value={form.state} onChange={handleChange}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(215,100%,34%)] focus:border-transparent outline-none bg-white">
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(38,52%,40%)] focus:border-transparent outline-none bg-white">
                   <option value="">Select State</option>
                   {states.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -173,7 +173,7 @@ export default function DistributorRegistrationPage() {
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Pincode</label>
                 <input name="pincode" value={form.pincode} onChange={handleChange} placeholder="400001"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(215,100%,34%)] focus:border-transparent outline-none" />
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(38,52%,40%)] focus:border-transparent outline-none" />
               </div>
             </div>
           </div>
@@ -185,25 +185,25 @@ export default function DistributorRegistrationPage() {
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Expected Annual Business (₹)</label>
                 <input name="annualTarget" value={form.annualTarget} onChange={handleChange} type="number" placeholder="e.g. 5000000"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(215,100%,34%)] focus:border-transparent outline-none" />
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(38,52%,40%)] focus:border-transparent outline-none" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Credit Limit Requested (₹)</label>
                 <input name="creditLimit" value={form.creditLimit} onChange={handleChange} type="number" placeholder="e.g. 1000000"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(215,100%,34%)] focus:border-transparent outline-none" />
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[hsl(38,52%,40%)] focus:border-transparent outline-none" />
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-4 pt-2">
             <button type="submit" disabled={loading}
-              className="bg-[hsl(215,100%,34%)] text-white font-bold px-10 py-3 rounded-xl hover:bg-[hsl(215,100%,28%)] transition-colors disabled:opacity-60 flex items-center gap-2"
+              className="bg-[hsl(24,10%,16%)] text-white font-bold px-10 py-3 rounded-xl hover:bg-[hsl(24,9%,26%)] transition-colors disabled:opacity-60 flex items-center gap-2"
               data-testid="button-submit-distributor-reg">
               {loading ? <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4 inline-block" /> : null}
               Submit Application
             </button>
             <Link href="/dealer-registration">
-              <span className="text-sm text-[hsl(215,100%,34%)] hover:underline cursor-pointer">Apply as Dealer instead →</span>
+              <span className="text-sm text-[hsl(38,52%,40%)] hover:underline cursor-pointer">Apply as Dealer instead →</span>
             </Link>
           </div>
         </div>

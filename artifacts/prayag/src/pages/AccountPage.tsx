@@ -17,8 +17,8 @@ const sections = [
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-amber-100 text-blue-700",
-  packed: "bg-indigo-100 text-indigo-700",
+  confirmed: "bg-amber-100 text-[hsl(30,50%,35%)]",
+  packed: "bg-stone-200 text-stone-700",
   dispatched: "bg-purple-100 text-purple-700",
   delivered: "bg-green-100 text-green-700",
   cancelled: "bg-red-100 text-red-600",
@@ -56,7 +56,7 @@ export default function AccountPage() {
                 <User className="w-6 h-6" />
               </div>
               <div className="font-bold text-sm">{user.name}</div>
-              <div className="text-blue-200 text-xs">{user.email}</div>
+              <div className="text-[hsl(42,62%,68%)] text-xs">{user.email}</div>
             </div>
             <nav className="py-1">
               {sections.map(({ id, label, icon: Icon }) => (

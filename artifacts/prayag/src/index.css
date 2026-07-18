@@ -274,7 +274,7 @@
     border: 1px solid rgba(255,255,255,0.22);
   }
   .text-gradient-blue {
-    background: linear-gradient(120deg, hsl(215,100%,55%), hsl(200,100%,45%), hsl(215,100%,34%));
+    background: linear-gradient(120deg, hsl(42,62%,68%), hsl(38,52%,50%), hsl(30,35%,30%));
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
 

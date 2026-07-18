@@ -62,7 +62,7 @@ export default function DealerRegistrationPage() {
       <div className="grid md:grid-cols-2 gap-10">
         {/* Benefits */}
         <div>
-          <div className="inline-block bg-[hsl(215,100%,34%)]/10 text-[hsl(215,100%,34%)] text-xs font-semibold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">Dealer Program</div>
+          <div className="inline-block bg-[hsl(24,10%,16%)]/10 text-[hsl(38,52%,40%)] text-xs font-semibold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">Dealer Program</div>
           <h1 className="text-3xl font-black text-gray-900 mb-4">Partner with PRAYAG</h1>
           <p className="text-gray-500 leading-relaxed mb-6">Join India's fastest-growing plumbing dealer network. Get access to 4500+ premium products, exclusive pricing, and dedicated support.</p>
           <div className="space-y-3">
@@ -73,9 +73,9 @@ export default function DealerRegistrationPage() {
               </div>
             ))}
           </div>
-          <div className="mt-8 bg-[hsl(215,100%,34%)] text-white rounded-2xl p-5">
+          <div className="mt-8 bg-[hsl(24,10%,16%)] text-white rounded-2xl p-5">
             <div className="text-3xl font-black mb-1">10,000+</div>
-            <div className="text-blue-100 text-sm">Active dealers trust PRAYAG across India</div>
+            <div className="text-[hsl(42,40%,80%)] text-sm">Active dealers trust PRAYAG across India</div>
           </div>
         </div>
 
@@ -99,7 +99,7 @@ export default function DealerRegistrationPage() {
                   <div className="relative">
                     <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                     <input {...form.register(name)} placeholder={label}
-                      className="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-[hsl(215,100%,34%)] transition-colors"
+                      className="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-[hsl(38,52%,40%)] transition-colors"
                       data-testid={`input-dealer-${name}`} />
                   </div>
                   {form.formState.errors[name] && <p className="text-xs text-red-500 mt-0.5">{(form.formState.errors[name] as any)?.message}</p>}
@@ -107,7 +107,7 @@ export default function DealerRegistrationPage() {
               ))}
             </div>
             <button type="submit" disabled={registerDealer.isPending}
-              className="w-full bg-[hsl(215,100%,34%)] text-white font-bold py-3 rounded-xl hover:bg-[hsl(215,100%,28%)] transition-colors disabled:opacity-50"
+              className="w-full bg-[hsl(24,10%,16%)] text-white font-bold py-3 rounded-xl hover:bg-[hsl(24,9%,26%)] transition-colors disabled:opacity-50"
               data-testid="button-submit-dealer">
               {registerDealer.isPending ? "Submitting..." : "Submit Registration"}
             </button>

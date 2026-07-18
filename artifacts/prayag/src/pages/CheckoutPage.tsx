@@ -72,7 +72,7 @@ export default function CheckoutPage() {
           {/* Address */}
           <div className="bg-white rounded-xl border border-gray-100 p-5">
             <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[hsl(215,100%,34%)]" /> Shipping Address
+              <MapPin className="w-4 h-4 text-[hsl(38,52%,40%)]" /> Shipping Address
             </h3>
             <form id="checkout-form" onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-2 gap-3">
               {[
@@ -86,7 +86,7 @@ export default function CheckoutPage() {
                 <div key={field} className={span === 2 ? "col-span-2" : ""}>
                   <label className="text-xs font-medium text-gray-600 block mb-1">{label}</label>
                   <input {...form.register(field)} placeholder={label}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[hsl(215,100%,34%)] transition-colors"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[hsl(38,52%,40%)] transition-colors"
                     data-testid={`input-${field}`} />
                   {form.formState.errors[field] && (
                     <p className="text-xs text-red-500 mt-0.5">{form.formState.errors[field]?.message}</p>
@@ -99,22 +99,22 @@ export default function CheckoutPage() {
           {/* Payment */}
           <div className="bg-white rounded-xl border border-gray-100 p-5">
             <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-[hsl(215,100%,34%)]" /> Payment Method
+              <Lock className="w-4 h-4 text-[hsl(38,52%,40%)]" /> Payment Method
             </h3>
             <div className="space-y-2">
               {paymentMethods.map(m => (
-                <label key={m.id} className={`flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all ${payMethod === m.id ? "border-[hsl(215,100%,34%)] bg-blue-50" : "border-gray-100 hover:border-gray-200"}`}
+                <label key={m.id} className={`flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all ${payMethod === m.id ? "border-[hsl(38,52%,40%)] bg-amber-50" : "border-gray-100 hover:border-gray-200"}`}
                   data-testid={`label-payment-${m.id}`}>
                   <input type="radio" name="payment" value={m.id} checked={payMethod === m.id} onChange={() => setPayMethod(m.id)} className="hidden" />
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${payMethod === m.id ? "bg-[hsl(215,100%,34%)] text-white" : "bg-gray-100 text-gray-500"}`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${payMethod === m.id ? "bg-[hsl(24,10%,16%)] text-white" : "bg-gray-100 text-gray-500"}`}>
                     <m.icon className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="text-sm font-medium text-gray-900">{m.label}</div>
                     <div className="text-xs text-gray-400">{m.desc}</div>
                   </div>
-                  <div className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center ${payMethod === m.id ? "border-[hsl(215,100%,34%)]" : "border-gray-300"}`}>
-                    {payMethod === m.id && <div className="w-2 h-2 rounded-full bg-[hsl(215,100%,34%)]" />}
+                  <div className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center ${payMethod === m.id ? "border-[hsl(38,52%,40%)]" : "border-gray-300"}`}>
+                    {payMethod === m.id && <div className="w-2 h-2 rounded-full bg-[hsl(24,10%,16%)]" />}
                   </div>
                 </label>
               ))}
@@ -145,11 +145,11 @@ export default function CheckoutPage() {
               {cart.discount > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>-₹{cart.discount.toLocaleString("en-IN")}</span></div>}
               <div className="flex justify-between font-bold text-base pt-2 border-t border-gray-100">
                 <span>Total</span>
-                <span className="text-[hsl(215,100%,34%)]" data-testid="text-order-total">₹{cart.total.toLocaleString("en-IN")}</span>
+                <span className="text-[hsl(38,52%,40%)]" data-testid="text-order-total">₹{cart.total.toLocaleString("en-IN")}</span>
               </div>
             </div>
             <button type="submit" form="checkout-form" disabled={createOrder.isPending || createAddress.isPending}
-              className="mt-4 w-full bg-[hsl(215,100%,34%)] text-white font-bold py-3.5 rounded-xl hover:bg-[hsl(215,100%,28%)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="mt-4 w-full bg-[hsl(24,10%,16%)] text-white font-bold py-3.5 rounded-xl hover:bg-[hsl(24,9%,26%)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               data-testid="button-place-order">
               <Lock className="w-4 h-4" />
               {createOrder.isPending || createAddress.isPending ? "Placing Order..." : "Place Order"}

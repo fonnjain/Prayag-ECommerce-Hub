@@ -266,7 +266,7 @@ export default function ProductsPage() {
                 </div>
                 <h3 className="font-serif-lux text-2xl text-gray-900 mb-2">No masterworks found</h3>
                 <p className="text-gray-500 mb-8 max-w-md mx-auto">We couldn't find any pieces matching your refined criteria. Try broadening your selection.</p>
-                <button onClick={clearFilters} className="bg-[hsl(24,10%,16%)] text-white text-xs font-bold uppercase tracking-widest px-8 py-4 hover:bg-[hsl(215,100%,34%)] transition-colors">
+                <button onClick={clearFilters} className="bg-[hsl(24,10%,16%)] text-white text-xs font-bold uppercase tracking-widest px-8 py-4 hover:bg-[hsl(24,9%,26%)] transition-colors">
                   Reset Collection
                 </button>
               </div>

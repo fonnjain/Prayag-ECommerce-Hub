@@ -18,8 +18,8 @@ const navItems = [
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-blue-100 text-blue-700",
-  packed: "bg-indigo-100 text-indigo-700",
+  confirmed: "bg-amber-100 text-[hsl(30,50%,35%)]",
+  packed: "bg-stone-200 text-stone-700",
   dispatched: "bg-purple-100 text-purple-700",
   delivered: "bg-green-100 text-green-700",
   cancelled: "bg-red-100 text-red-600",
@@ -51,15 +51,15 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <aside className="w-56 bg-[hsl(215,100%,34%)] text-white flex-shrink-0 min-h-screen">
-        <div className="p-5 border-b border-[hsl(215,100%,28%)]">
+      <aside className="w-56 bg-[hsl(24,10%,16%)] text-white flex-shrink-0 min-h-screen">
+        <div className="p-5 border-b border-[hsl(24,9%,26%)]">
           <div className="text-xl font-black">PRAYAG</div>
-          <div className="text-blue-200 text-xs mt-0.5">Admin Panel</div>
+          <div className="text-[hsl(42,62%,68%)] text-xs mt-0.5">Admin Panel</div>
         </div>
         <nav className="py-2 flex-1">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => setActive(id)}
-              className={`w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors ${active === id ? "bg-[hsl(215,100%,28%)] font-medium" : "text-blue-100 hover:bg-[hsl(215,100%,28%)]"}`}
+              className={`w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors ${active === id ? "bg-[hsl(24,9%,26%)] font-medium" : "text-[hsl(42,40%,80%)] hover:bg-[hsl(24,9%,26%)]"}`}
               data-testid={`nav-admin-${id}`}>
               <Icon className="w-4 h-4" /> {label}
             </button>
@@ -77,7 +77,7 @@ export default function AdminPage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                 {[
-                  { label: "Revenue", value: `₹${((dashboard?.revenue || 0) / 100000).toFixed(1)}L`, icon: IndianRupee, color: "bg-[hsl(215,100%,34%)]" },
+                  { label: "Revenue", value: `₹${((dashboard?.revenue || 0) / 100000).toFixed(1)}L`, icon: IndianRupee, color: "bg-[hsl(24,10%,16%)]" },
                   { label: "Orders", value: dashboard?.orders || 0, icon: Package, color: "bg-purple-500" },
                   { label: "Customers", value: dashboard?.customers || 0, icon: Users, color: "bg-green-500" },
                   { label: "Dealers", value: dashboard?.dealers || 0, icon: Building2, color: "bg-orange-500" },
@@ -104,7 +104,7 @@ export default function AdminPage() {
                     <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}K`} />
                     <Tooltip formatter={(v: number) => [`₹${v.toLocaleString("en-IN")}`, "Revenue"]} />
-                    <Bar dataKey="revenue" fill="hsl(215,100%,34%)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="revenue" fill="hsl(38,52%,40%)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -120,7 +120,7 @@ export default function AdminPage() {
                     {dashboard.recentOrders.map((order: any) => (
                       <tr key={order.id} className="hover:bg-gray-50" data-testid={`row-recent-order-${order.id}`}>
                         <td className="px-4 py-3 font-medium">{order.orderNumber}</td>
-                        <td className="px-4 py-3 font-bold text-[hsl(215,100%,34%)]">₹{order.total?.toLocaleString("en-IN")}</td>
+                        <td className="px-4 py-3 font-bold text-[hsl(38,52%,40%)]">₹{order.total?.toLocaleString("en-IN")}</td>
                         <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusColors[order.status] || "bg-gray-100 text-gray-600"}`}>{order.status}</span></td>
                         <td className="px-4 py-3 text-gray-400 text-xs">{new Date(order.createdAt).toLocaleDateString("en-IN")}</td>
                       </tr>
@@ -147,9 +147,9 @@ export default function AdminPage() {
                       <td className="px-4 py-3 text-gray-400 text-xs font-mono">{p.sku}</td>
                       <td className="px-4 py-3 font-medium text-gray-900 max-w-xs truncate">{p.name}</td>
                       <td className="px-4 py-3 text-gray-500">{p.categoryName || "-"}</td>
-                      <td className="px-4 py-3 font-bold text-[hsl(215,100%,34%)]">₹{p.price.toLocaleString("en-IN")}</td>
+                      <td className="px-4 py-3 font-bold text-[hsl(38,52%,40%)]">₹{p.price.toLocaleString("en-IN")}</td>
                       <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-0.5 rounded-full ${p.inStock ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{p.inStock ? "In Stock" : "Out"}</span></td>
-                      <td className="px-4 py-3">{p.isFeatured ? <span className="text-xs bg-blue-100 text-[hsl(215,100%,34%)] px-2 py-0.5 rounded-full">Yes</span> : "-"}</td>
+                      <td className="px-4 py-3">{p.isFeatured ? <span className="text-xs bg-amber-100 text-[hsl(38,52%,40%)] px-2 py-0.5 rounded-full">Yes</span> : "-"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -168,7 +168,7 @@ export default function AdminPage() {
                   {(orders || []).map((order: any) => (
                     <tr key={order.id} className="hover:bg-gray-50" data-testid={`row-admin-order-${order.id}`}>
                       <td className="px-4 py-3 font-medium">{order.orderNumber}</td>
-                      <td className="px-4 py-3 font-bold text-[hsl(215,100%,34%)]">₹{order.total?.toLocaleString("en-IN")}</td>
+                      <td className="px-4 py-3 font-bold text-[hsl(38,52%,40%)]">₹{order.total?.toLocaleString("en-IN")}</td>
                       <td className="px-4 py-3 text-gray-500 capitalize">{order.paymentMethod || "cod"}</td>
                       <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusColors[order.status] || "bg-gray-100 text-gray-600"}`}>{order.status}</span></td>
                       <td className="px-4 py-3 text-gray-400 text-xs">{new Date(order.createdAt).toLocaleDateString("en-IN")}</td>
@@ -234,7 +234,7 @@ export default function AdminPage() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Distributor Management</h1>
-              <span className="text-xs bg-indigo-100 text-indigo-700 font-semibold px-3 py-1 rounded-full">{(distributors || []).length} registered</span>
+              <span className="text-xs bg-stone-200 text-stone-700 font-semibold px-3 py-1 rounded-full">{(distributors || []).length} registered</span>
             </div>
             <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
               <table className="w-full text-sm">

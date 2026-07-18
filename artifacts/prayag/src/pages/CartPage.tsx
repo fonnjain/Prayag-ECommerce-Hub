@@ -57,7 +57,7 @@ export default function CartPage() {
       <h2 className="text-xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
       <p className="text-gray-500 mb-6">Add some products to get started</p>
       <Link href="/products">
-        <button className="bg-[hsl(215,100%,34%)] text-white font-bold px-8 py-3 rounded-xl hover:bg-[hsl(215,100%,28%)] transition-colors" data-testid="button-shop-now">
+        <button className="bg-[hsl(24,10%,16%)] text-white font-bold px-8 py-3 rounded-xl hover:bg-[hsl(24,9%,26%)] transition-colors" data-testid="button-shop-now">
           Shop Now
         </button>
       </Link>
@@ -77,9 +77,9 @@ export default function CartPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <Link href={`/products/${item.productSlug}`}>
-                  <p className="font-medium text-gray-900 text-sm hover:text-[hsl(215,100%,34%)] line-clamp-2">{item.productName}</p>
+                  <p className="font-medium text-gray-900 text-sm hover:text-[hsl(38,52%,40%)] line-clamp-2">{item.productName}</p>
                 </Link>
-                <p className="text-[hsl(215,100%,34%)] font-bold mt-1">₹{item.price.toLocaleString("en-IN")}</p>
+                <p className="text-[hsl(38,52%,40%)] font-bold mt-1">₹{item.price.toLocaleString("en-IN")}</p>
                 <div className="flex items-center gap-3 mt-2">
                   <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
                     <button onClick={() => handleQtyChange(item.id, item.quantity - 1)} className="px-2.5 py-1 hover:bg-gray-50" data-testid={`button-dec-${item.id}`}><Minus className="w-3 h-3" /></button>
@@ -111,7 +111,7 @@ export default function CartPage() {
             <div className="border-t border-gray-100 mt-4 pt-4">
               <div className="flex justify-between font-bold text-base">
                 <span>Grand Total</span>
-                <span className="text-[hsl(215,100%,34%)]" data-testid="text-grand-total">₹{cart.total.toLocaleString("en-IN")}</span>
+                <span className="text-[hsl(38,52%,40%)]" data-testid="text-grand-total">₹{cart.total.toLocaleString("en-IN")}</span>
               </div>
             </div>
           </div>
@@ -119,7 +119,7 @@ export default function CartPage() {
           {/* Coupon */}
           <div className="bg-white rounded-xl border border-gray-100 p-4">
             <div className="flex items-center gap-1.5 mb-3">
-              <Tag className="w-4 h-4 text-[hsl(215,100%,34%)]" />
+              <Tag className="w-4 h-4 text-[hsl(38,52%,40%)]" />
               <span className="font-medium text-sm">Apply Coupon</span>
             </div>
             {cart.couponCode ? (
@@ -129,9 +129,9 @@ export default function CartPage() {
             ) : (
               <div className="flex gap-2">
                 <input value={coupon} onChange={e => setCoupon(e.target.value)} placeholder="Enter coupon code"
-                  className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-[hsl(215,100%,34%)]" data-testid="input-coupon" />
+                  className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-[hsl(38,52%,40%)]" data-testid="input-coupon" />
                 <button onClick={handleApplyCoupon} disabled={applyCoupon.isPending}
-                  className="bg-[hsl(215,100%,34%)] text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-[hsl(215,100%,28%)] transition-colors disabled:opacity-50" data-testid="button-apply-coupon">
+                  className="bg-[hsl(24,10%,16%)] text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-[hsl(24,9%,26%)] transition-colors disabled:opacity-50" data-testid="button-apply-coupon">
                   Apply
                 </button>
               </div>
@@ -140,12 +140,12 @@ export default function CartPage() {
           </div>
 
           <Link href="/checkout">
-            <button className="w-full bg-[hsl(215,100%,34%)] text-white font-bold py-3.5 rounded-xl hover:bg-[hsl(215,100%,28%)] transition-colors flex items-center justify-center gap-2" data-testid="button-checkout">
+            <button className="w-full bg-[hsl(24,10%,16%)] text-white font-bold py-3.5 rounded-xl hover:bg-[hsl(24,9%,26%)] transition-colors flex items-center justify-center gap-2" data-testid="button-checkout">
               Proceed to Checkout <ArrowRight className="w-4 h-4" />
             </button>
           </Link>
           <Link href="/products">
-            <button className="w-full text-center text-sm text-gray-500 hover:text-[hsl(215,100%,34%)] transition-colors py-2">Continue Shopping</button>
+            <button className="w-full text-center text-sm text-gray-500 hover:text-[hsl(38,52%,40%)] transition-colors py-2">Continue Shopping</button>
           </Link>
         </div>
       </div>

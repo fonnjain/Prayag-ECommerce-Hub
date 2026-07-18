@@ -111,8 +111,8 @@ export default function Header() {
                   </Link>
                   <Link href="/distributor" onClick={() => setShowBulkMenu(false)}
                     className="flex items-center gap-3 px-3 py-2.5 hover:bg-stone-100 transition-colors" data-testid="link-bulk-distributor">
-                    <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                      <Truck className="w-3.5 h-3.5 text-indigo-600" />
+                    <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+                      <Truck className="w-3.5 h-3.5 text-[hsl(38,52%,40%)]" />
                     </div>
                     <div>
                       <div className="text-xs font-semibold text-gray-800">Distributor Dashboard</div>
