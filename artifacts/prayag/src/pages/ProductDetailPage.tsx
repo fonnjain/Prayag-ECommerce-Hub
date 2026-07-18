@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
-import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, Minus, Plus } from "lucide-react";
+import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, Minus, Plus, ArrowLeft } from "lucide-react";
 import { useGetProduct, useGetRelatedProducts, useListCategories, useAddToCart, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/lib/store";
@@ -74,6 +74,10 @@ export default function ProductDetailPage() {
     <div className="max-w-7xl mx-auto px-4 py-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-gray-400 mb-6">
+        <button onClick={() => window.history.back()} className="flex items-center gap-1 text-gray-600 hover:text-[hsl(215,100%,34%)] font-medium mr-2" data-testid="button-back">
+          <ArrowLeft className="w-3.5 h-3.5" /> Back
+        </button>
+        <span className="text-gray-300">|</span>
         <Link href="/" className="hover:text-[hsl(215,100%,34%)]">Home</Link>
         <ChevronRight className="w-3 h-3" />
         <Link href="/products" className="hover:text-[hsl(215,100%,34%)]">Products</Link>
