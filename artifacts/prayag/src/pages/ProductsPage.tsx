@@ -78,7 +78,9 @@ export default function ProductsPage() {
         const bannerSlugs = ["cp-faucets", "ptmt-faucets", "sanitaryware", "kitchen-sinks", "water-heaters", "bathroom-accessories", "pipes-fittings", "storage-tanks"];
         const bannerUrl = filters.category && bannerSlugs.includes(filters.category)
           ? `${import.meta.env.BASE_URL}images/category-banners/${filters.category}.png`
-          : null;
+          : filters.search
+            ? null
+            : `${import.meta.env.BASE_URL}images/category-banners/the-collection.png`;
         return (
           <div
             className={`relative border-b border-gray-100 overflow-hidden ${bannerUrl ? "bg-[hsl(24,10%,16%)]" : "bg-white"}`}
