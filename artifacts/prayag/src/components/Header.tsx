@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Search, Heart, ShoppingCart, User, ChevronDown, Menu, X, Phone, MapPin, Package, BookOpen, Building2, Truck, Grid3X3 } from "lucide-react";
 import { useCartStore, useAuthStore } from "@/lib/store";
-import { useGetCart, useGetSearchSuggestions, getGetSearchSuggestionsQueryKey } from "@workspace/api-client-react";
+import { useGetCart, useGetWishlist, useGetSearchSuggestions, getGetSearchSuggestionsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import logoDark from "@assets/logo_1783664087489.png";
 
@@ -47,6 +47,8 @@ export default function Header() {
   const userRef = useRef<HTMLDivElement>(null);
 
   const { data: cart } = useGetCart();
+  const { data: wishlist } = useGetWishlist();
+  const wishlistCount = wishlist?.length ?? 0;
   const { data: suggestions } = useGetSearchSuggestions(
     { q: searchQ },
     { query: { enabled: searchQ.length >= 2, queryKey: getGetSearchSuggestionsQueryKey({ q: searchQ }) } }
@@ -191,7 +193,14 @@ export default function Header() {
         {/* Actions */}
         <div className="flex items-center gap-4">
           <Link href="/account/wishlist" className="flex flex-col items-center text-gray-600 hover:text-[hsl(24,10%,16%)] transition-colors" data-testid="link-wishlist">
-            <Heart className="w-5 h-5" />
+            <div className="relative">
+              <Heart className="w-5 h-5" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[hsl(24,10%,16%)] text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold" data-testid="wishlist-count">
+                  {wishlistCount}
+                </span>
+              )}
+            </div>
             <span className="text-[10px] mt-0.5">Wishlist</span>
           </Link>
 
