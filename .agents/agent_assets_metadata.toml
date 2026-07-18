@@ -6,6 +6,54 @@ uri = "file://attached_assets/generated_images/prayag_hero_luxury.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "T5rI6eGBLyrfi0HlR_n2-"
+uri = "file://artifacts/prayag/public/images/category-banners/cp-faucets.png"
+type = "image"
+title = "cp-faucets banner"
+
+[[generated]]
+id = "WHsuXJWBGzxPdoriZDEMq"
+uri = "file://artifacts/prayag/public/images/category-banners/ptmt-faucets.png"
+type = "image"
+title = "ptmt-faucets banner"
+
+[[generated]]
+id = "5lMKUvJ9wPIBoJAdH3yAX"
+uri = "file://artifacts/prayag/public/images/category-banners/sanitaryware.png"
+type = "image"
+title = "sanitaryware banner"
+
+[[generated]]
+id = "_jMJopRkRDCgIOnhCLY8A"
+uri = "file://artifacts/prayag/public/images/category-banners/kitchen-sinks.png"
+type = "image"
+title = "kitchen-sinks banner"
+
+[[generated]]
+id = "HwtwB5mwaX4SFFGLi02jB"
+uri = "file://artifacts/prayag/public/images/category-banners/water-heaters.png"
+type = "image"
+title = "water-heaters banner"
+
+[[generated]]
+id = "P-tP2NN8PBtfgXhmMagBU"
+uri = "file://artifacts/prayag/public/images/category-banners/bathroom-accessories.png"
+type = "image"
+title = "bathroom-accessories banner"
+
+[[generated]]
+id = "RCTw-FJI8AMS3_tE2sena"
+uri = "file://artifacts/prayag/public/images/category-banners/pipes-fittings.png"
+type = "image"
+title = "pipes-fittings banner"
+
+[[generated]]
+id = "y0yD200u86wsCb-mRavl7"
+uri = "file://artifacts/prayag/public/images/category-banners/storage-tanks.png"
+type = "image"
+title = "storage-tanks banner"
+
 [[outputs]]
 id = "o7rZRykSZGmnbFS6a4KKv"
 uri = "file://attached_assets/stock_images/prayag_hero_faucet_1.jpg"

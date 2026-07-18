@@ -74,31 +74,44 @@ export default function ProductsPage() {
   return (
     <div className="bg-[#FAF9F7] min-h-screen pb-20">
       {/* Premium Header Area */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-[1400px] mx-auto px-6 py-12 md:py-16 lg:py-20 text-center">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-serif-lux text-gray-900 mb-4"
+      {(() => {
+        const bannerSlugs = ["cp-faucets", "ptmt-faucets", "sanitaryware", "kitchen-sinks", "water-heaters", "bathroom-accessories", "pipes-fittings", "storage-tanks"];
+        const bannerUrl = filters.category && bannerSlugs.includes(filters.category)
+          ? `${import.meta.env.BASE_URL}images/category-banners/${filters.category}.png`
+          : null;
+        return (
+          <div
+            className={`relative border-b border-gray-100 overflow-hidden ${bannerUrl ? "bg-[hsl(24,10%,16%)]" : "bg-white"}`}
+            style={bannerUrl ? { backgroundImage: `url(${bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
           >
-            {filters.category ? filters.category.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : filters.search ? `Search: "${filters.search}"` : "The Collection"}
-          </motion.h1>
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="w-16 h-0.5 bg-[hsl(42,62%,68%)] mx-auto mb-6" 
-          />
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-gray-500 font-medium tracking-wide uppercase text-xs"
-          >
-            {data?.total ?? "..."} exceptional pieces discovered
-          </motion.p>
-        </div>
-      </div>
+            {bannerUrl && <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/60" />}
+            <div className="relative max-w-[1400px] mx-auto px-6 py-12 md:py-16 lg:py-20 text-center">
+              <motion.h1
+                key={filters.category || "all"}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`text-4xl md:text-5xl lg:text-6xl font-serif-lux mb-4 ${bannerUrl ? "text-white drop-shadow-md" : "text-gray-900"}`}
+              >
+                {filters.category ? filters.category.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : filters.search ? `Search: "${filters.search}"` : "The Collection"}
+              </motion.h1>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="w-16 h-0.5 bg-[hsl(42,62%,68%)] mx-auto mb-6"
+              />
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className={`font-medium tracking-wide uppercase text-xs ${bannerUrl ? "text-[hsl(42,62%,68%)]" : "text-gray-500"}`}
+              >
+                {data?.total ?? "..."} exceptional pieces discovered
+              </motion.p>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="max-w-[1400px] mx-auto px-6 py-10">
         <div className="flex flex-col lg:flex-row gap-10">
