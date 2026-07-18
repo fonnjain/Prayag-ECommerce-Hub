@@ -6,7 +6,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/ProductCard";
-import { ProductOnBlack } from "@/components/ProductOnBlack";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -374,9 +373,9 @@ export default function ProductDetailPage() {
                       {related.slice(0, 8).map((p, i) => (
                         <Link key={`${dup}-${p.id}`} href={`/products/${p.slug}`} data-testid={dup === 0 ? `card-related-${p.id}` : undefined} tabIndex={dup === 1 ? -1 : undefined}>
                           <div className="group relative bg-white/[0.05] border border-white/10 hover:border-[hsl(42,62%,68%)]/60 transition-colors duration-500 cursor-pointer h-full flex flex-col overflow-hidden w-[240px] md:w-[300px]">
-                            <div className="relative aspect-square bg-black m-3 mb-0 flex items-center justify-center p-4 overflow-hidden">
+                            <div className="relative aspect-square bg-white m-3 mb-0 flex items-center justify-center p-4 overflow-hidden">
                               {p.imageUrl ? (
-                                <ProductOnBlack src={p.imageUrl} alt={p.name}
+                                <img src={p.imageUrl} alt={p.name} loading="lazy"
                                   className="relative w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 ease-out" />
                               ) : (
                                 <Star className="w-10 h-10 text-gray-200" />
