@@ -90,7 +90,7 @@ export default function ProductsPage() {
                 key={filters.category || "all"}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`text-4xl md:text-5xl lg:text-6xl font-serif-lux mb-4 ${bannerUrl ? "text-white drop-shadow-md" : "text-gray-900"}`}
+                className={`text-4xl md:text-5xl lg:text-6xl font-serif-lux font-bold mb-4 ${bannerUrl ? "text-white drop-shadow-md" : "text-gray-900"}`}
               >
                 {filters.category ? filters.category.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : filters.search ? `Search: "${filters.search}"` : "The Collection"}
               </motion.h1>
@@ -104,7 +104,7 @@ export default function ProductsPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className={`font-medium tracking-wide uppercase text-xs ${bannerUrl ? "text-[hsl(42,62%,68%)]" : "text-gray-500"}`}
+                className={`font-bold tracking-wide uppercase text-xs ${bannerUrl ? "text-[hsl(42,62%,68%)]" : "text-gray-500"}`}
               >
                 {data?.total ?? "..."} exceptional pieces discovered
               </motion.p>
