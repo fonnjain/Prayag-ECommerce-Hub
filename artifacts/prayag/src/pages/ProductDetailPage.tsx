@@ -328,8 +328,8 @@ export default function ProductDetailPage() {
                       <Shield className="w-10 h-10 text-[hsl(42,62%,68%)]" />
                     </div>
                     <div>
-                      <h3 className="font-serif-lux text-2xl text-gray-900 mb-4">Our Promise, In Writing</h3>
-                      <p className="text-gray-600 leading-loose font-serif-lux text-lg mb-8">
+                      <h3 className="font-serif-lux font-bold text-2xl text-gray-900 mb-4">Our Promise, In Writing</h3>
+                      <p className="text-gray-700 leading-relaxed text-base font-medium mb-8">
                         {product.warranty || "Backed by our comprehensive manufacturer warranty. We stand behind the quality and durability of every piece that bears our name."}
                       </p>
                       <div className="flex flex-wrap gap-3">

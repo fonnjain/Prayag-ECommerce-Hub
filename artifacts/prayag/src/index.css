@@ -279,8 +279,8 @@
   }
 
   /* ── Luxury ── */
-  .font-display { font-family: 'Playfair Display', Georgia, serif; }
-  .font-serif-lux { font-family: 'Cormorant Garamond', Georgia, serif; }
+  .font-display { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; }
+  .font-serif-lux { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; }
 
   .text-gradient-gold {
     background: linear-gradient(120deg, hsl(42,62%,68%), hsl(38,52%,52%), hsl(36,45%,42%));
