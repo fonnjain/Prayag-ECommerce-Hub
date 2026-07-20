@@ -149,7 +149,7 @@ export default function ProductDetailPage() {
           <div className="xl:col-span-5 flex flex-col py-4 lg:py-8">
             <div className="text-[11px] font-mono tracking-[0.2em] text-gray-400 uppercase mb-4" data-testid="text-sku">SKU: {product.sku}</div>
             
-            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-gray-900 mb-6 leading-[1.15]" data-testid="text-product-name">
+            <h1 className="text-3xl lg:text-[48px] font-bold tracking-tight text-gray-900 mb-6 leading-[1.15]" data-testid="text-product-name">
               {product.name}
             </h1>
 
