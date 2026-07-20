@@ -1517,9 +1517,11 @@ components:
         size:
           type: integer
           minimum: 1
+          maximum: 5242880
         contentType:
           type: string
           minLength: 1
+          pattern: '^image/(jpeg|png|webp|gif|avif|svg\+xml)$'
 
     UploadFinalizeRequest:
       type: object
@@ -1578,7 +1580,7 @@ components:
 
     Cart:
       type: object
-      required: [items, subtotal, gst, shipping, total, itemCount]
+      required: [items, subtotal, gst, shipping, discount, total, itemCount]
       properties:
         items:
           type: array

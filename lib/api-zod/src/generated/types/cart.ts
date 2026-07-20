@@ -12,7 +12,7 @@ export interface Cart {
   subtotal: number;
   gst: number;
   shipping: number;
-  discount?: number;
+  discount: number;
   /** @nullable */
   couponCode?: string | null;
   total: number;

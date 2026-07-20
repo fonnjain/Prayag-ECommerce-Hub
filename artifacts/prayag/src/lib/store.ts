@@ -6,7 +6,7 @@ interface CartStore {
 }
 
 interface AuthStore {
-  user: { id: number; name: string; email: string; role: string } | null;
+  user: { id: number; name: string; email: string; role: string; phone?: string | null } | null;
   token: string | null;
   setUser: (user: AuthStore["user"], token: string) => void;
   logout: () => void;

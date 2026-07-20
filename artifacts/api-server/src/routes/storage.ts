@@ -36,6 +36,15 @@ const objectStorageService = new ObjectStorageService();
 router.post("/storage/uploads/request-url", requireAdmin, async (req: Request, res: Response) => {
   const parsed = RequestUploadUrlBody.safeParse(req.body);
   if (!parsed.success) {
+    const issues = parsed.error.issues;
+    if (issues.some((i) => i.path[0] === "size")) {
+      res.status(400).json({ error: "File too large. Maximum size is 5 MB." });
+      return;
+    }
+    if (issues.some((i) => i.path[0] === "contentType")) {
+      res.status(400).json({ error: "Unsupported file type. Only JPEG, PNG, WebP, GIF, AVIF or SVG images are allowed." });
+      return;
+    }
     res.status(400).json({ error: "Missing or invalid required fields" });
     return;
   }

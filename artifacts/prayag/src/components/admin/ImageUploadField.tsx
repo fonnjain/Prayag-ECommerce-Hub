@@ -3,6 +3,9 @@ import { Upload, Loader2 } from "lucide-react";
 import { requestUploadUrl, finalizeUpload } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/svg+xml"];
+const MAX_SIZE_BYTES = 5 * 1024 * 1024;
+
 export function toDisplayUrl(objectPath: string): string {
   if (objectPath.startsWith("/objects/")) return `/api/storage${objectPath}`;
   return objectPath;
@@ -14,10 +17,20 @@ export default function ImageUploadField({ value, onChange, label }: { value: st
   const { toast } = useToast();
 
   async function handleFile(file: File) {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast({ title: "Unsupported file type", description: "Only JPEG, PNG, WebP, GIF, AVIF or SVG images are allowed.", variant: "destructive" });
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+    if (file.size > MAX_SIZE_BYTES) {
+      toast({ title: "File too large", description: `Maximum size is 5 MB. This file is ${(file.size / (1024 * 1024)).toFixed(1)} MB.`, variant: "destructive" });
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
     setUploading(true);
     try {
-      const { uploadURL, objectPath } = await requestUploadUrl({ name: file.name, size: file.size, contentType: file.type || "application/octet-stream" });
-      const putRes = await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type || "application/octet-stream" } });
+      const { uploadURL, objectPath } = await requestUploadUrl({ name: file.name, size: file.size, contentType: file.type });
+      const putRes = await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
       if (!putRes.ok) throw new Error(`Upload failed (${putRes.status})`);
       await finalizeUpload({ objectPath });
       onChange(toDisplayUrl(objectPath));
@@ -46,7 +59,7 @@ export default function ImageUploadField({ value, onChange, label }: { value: st
           data-testid="button-upload-image">
           {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />} Upload
         </button>
-        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+        <input ref={inputRef} type="file" accept={ALLOWED_TYPES.join(",")} className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
       </div>
     </div>
   );

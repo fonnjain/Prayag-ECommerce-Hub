@@ -289,7 +289,7 @@ export const GetCartResponse = zod.object({
   "subtotal": zod.number(),
   "gst": zod.number(),
   "shipping": zod.number(),
-  "discount": zod.number().optional(),
+  "discount": zod.number(),
   "couponCode": zod.string().nullish(),
   "total": zod.number(),
   "itemCount": zod.number()
@@ -318,7 +318,7 @@ export const AddToCartResponse = zod.object({
   "subtotal": zod.number(),
   "gst": zod.number(),
   "shipping": zod.number(),
-  "discount": zod.number().optional(),
+  "discount": zod.number(),
   "couponCode": zod.string().nullish(),
   "total": zod.number(),
   "itemCount": zod.number()
@@ -350,7 +350,7 @@ export const UpdateCartItemResponse = zod.object({
   "subtotal": zod.number(),
   "gst": zod.number(),
   "shipping": zod.number(),
-  "discount": zod.number().optional(),
+  "discount": zod.number(),
   "couponCode": zod.string().nullish(),
   "total": zod.number(),
   "itemCount": zod.number()
@@ -378,7 +378,7 @@ export const RemoveCartItemResponse = zod.object({
   "subtotal": zod.number(),
   "gst": zod.number(),
   "shipping": zod.number(),
-  "discount": zod.number().optional(),
+  "discount": zod.number(),
   "couponCode": zod.string().nullish(),
   "total": zod.number(),
   "itemCount": zod.number()
@@ -406,7 +406,7 @@ export const ApplyCouponResponse = zod.object({
   "subtotal": zod.number(),
   "gst": zod.number(),
   "shipping": zod.number(),
-  "discount": zod.number().optional(),
+  "discount": zod.number(),
   "couponCode": zod.string().nullish(),
   "total": zod.number(),
   "itemCount": zod.number()
@@ -1184,19 +1184,25 @@ export const FinalizeUploadResponse = zod.object({
  * @summary Request a presigned URL for file upload
  */
 
+export const requestUploadUrlBodySizeMax = 5242880;
 
 
+
+export const requestUploadUrlBodyContentTypeRegExp = new RegExp('^image\/(jpeg|png|webp|gif|avif|svg\\+xml)$');
 
 
 export const RequestUploadUrlBody = zod.object({
   "name": zod.string().min(1),
-  "size": zod.number().min(1),
-  "contentType": zod.string().min(1)
+  "size": zod.number().min(1).max(requestUploadUrlBodySizeMax),
+  "contentType": zod.string().min(1).regex(requestUploadUrlBodyContentTypeRegExp)
 })
 
 
+export const requestUploadUrlResponseMetadataSizeMax = 5242880;
 
 
+
+export const requestUploadUrlResponseMetadataContentTypeRegExp = new RegExp('^image\/(jpeg|png|webp|gif|avif|svg\\+xml)$');
 
 
 export const RequestUploadUrlResponse = zod.object({
@@ -1204,8 +1210,8 @@ export const RequestUploadUrlResponse = zod.object({
   "objectPath": zod.string(),
   "metadata": zod.object({
   "name": zod.string().min(1),
-  "size": zod.number().min(1),
-  "contentType": zod.string().min(1)
+  "size": zod.number().min(1).max(requestUploadUrlResponseMetadataSizeMax),
+  "contentType": zod.string().min(1).regex(requestUploadUrlResponseMetadataContentTypeRegExp)
 }).optional()
 })
 
