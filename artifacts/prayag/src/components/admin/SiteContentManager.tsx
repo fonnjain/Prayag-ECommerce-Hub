@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Loader2, Plus, Trash2 } from "lucide-react";
-import { useGetSiteContent, useUpdateSiteContent, getGetSiteContentQueryKey } from "@workspace/api-client-react";
+import { useGetSiteContent, useUpdateSiteContent, getGetSiteContentQueryKey, useListCategories } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { cmsDefaults, mergeWithDefaults, type CmsSectionKey, type HeroContent, type CollectionCard, type RoomCard, type TrustItem, type TopbarContent, type FooterContent, type AboutContent, type ContactContent, type DealerRegContent, type FaqContent, type PoliciesContent, type CareersContent, type ProductsPageContent } from "@/lib/siteContent";
+import { cmsDefaults, mergeWithDefaults, type CmsSectionKey, type HeroContent, type CollectionCard, type RoomCard, type TrustItem, type TopbarContent, type FooterContent, type AboutContent, type ContactContent, type DealerRegContent, type FaqContent, type PoliciesContent, type CareersContent, type ProductsPageContent, type CategoryPagesContent } from "@/lib/siteContent";
 import ImageUploadField from "./ImageUploadField";
 
 const inputCls = "w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[hsl(38,52%,40%)]";
@@ -65,6 +65,8 @@ export default function SiteContentManager() {
   const [policies, setPolicies] = useState<PoliciesContent>(cmsDefaults.policies);
   const [careers, setCareers] = useState<CareersContent>(cmsDefaults.careers);
   const [productsPage, setProductsPage] = useState<ProductsPageContent>(cmsDefaults.productsPage);
+  const [categoryPages, setCategoryPages] = useState<CategoryPagesContent>(cmsDefaults.categoryPages);
+  const { data: categories } = useListCategories();
   const [savingSection, setSavingSection] = useState<string | null>(null);
   const [tab, setTab] = useState("home");
 
@@ -85,7 +87,19 @@ export default function SiteContentManager() {
     setPolicies(mergeWithDefaults(cmsDefaults.policies, content.policies));
     setCareers(mergeWithDefaults(cmsDefaults.careers, content.careers));
     setProductsPage(mergeWithDefaults(cmsDefaults.productsPage, content.productsPage));
+    setCategoryPages(mergeWithDefaults(cmsDefaults.categoryPages, content.categoryPages));
   }, [data]);
+
+  function catEntry(slug: string) {
+    return categoryPages.entries.find(e => e.slug === slug) || { slug, title: "", bannerImage: "" };
+  }
+  function setCatEntry(slug: string, patch: Partial<{ title: string; bannerImage: string }>) {
+    const existing = categoryPages.entries.find(e => e.slug === slug);
+    const entries = existing
+      ? categoryPages.entries.map(e => e.slug === slug ? { ...e, ...patch } : e)
+      : [...categoryPages.entries, { slug, title: "", bannerImage: "", ...patch }];
+    setCategoryPages({ entries });
+  }
 
   function save(section: CmsSectionKey, payload: Record<string, unknown>) {
     setSavingSection(section);
@@ -220,6 +234,20 @@ export default function SiteContentManager() {
           <Field label='Count text (count ke baad, e.g. "exceptional pieces discovered")' value={productsPage.countText} onChange={v => setProductsPage({ ...productsPage, countText: v })} />
         </div>
         <ImageUploadField label="Banner image (blank = default)" value={productsPage.bannerImage} onChange={v => setProductsPage({ ...productsPage, bannerImage: v })} />
+      </SectionCard>
+
+      <SectionCard title="Category Pages" onSave={() => save("categoryPages", { entries: categoryPages.entries.map(e => ({ slug: e.slug, title: e.title.trim(), bannerImage: e.bannerImage.trim() })).filter(e => e.title || e.bannerImage) })} saving={savingSection === "categoryPages"}>
+        <div className="text-xs text-gray-400 -mt-1 mb-1">Har category ke page ka title aur banner. Blank chhodne par default (category ka naam / built-in banner) use hoga.</div>
+        {(categories || []).map(c => {
+          const e = catEntry(c.slug);
+          return (
+            <div key={c.slug} className="border border-gray-100 rounded-lg p-3 space-y-2">
+              <div className="text-xs font-bold text-gray-700">{c.name} <span className="font-normal text-gray-400">({c.slug})</span></div>
+              <Field label={`Page title (blank = "${c.name}")`} value={e.title} onChange={v => setCatEntry(c.slug, { title: v })} />
+              <ImageUploadField label="Banner image (blank = default)" value={e.bannerImage} onChange={v => setCatEntry(c.slug, { bannerImage: v })} />
+            </div>
+          );
+        })}
       </SectionCard>
       </>}
 

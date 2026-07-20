@@ -237,6 +237,9 @@ const cmsSectionSchemas: Record<string, z.ZodTypeAny> = {
     countText: z.string(),
     bannerImage: z.string(),
   }),
+  categoryPages: z.object({
+    entries: z.array(z.object({ slug: z.string(), title: z.string(), bannerImage: z.string() })),
+  }),
 };
 
 router.put("/admin/site-content/:section", async (req, res): Promise<void> => {

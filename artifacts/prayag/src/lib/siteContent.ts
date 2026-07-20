@@ -255,6 +255,11 @@ export const defaultProductsPage: ProductsPageContent = {
   bannerImage: "",
 };
 
+export interface CategoryPageEntry { slug: string; title: string; bannerImage: string }
+export interface CategoryPagesContent { entries: CategoryPageEntry[] }
+
+export const defaultCategoryPages: CategoryPagesContent = { entries: [] };
+
 export const defaultCareers: CareersContent = {
   heroSubtitle: "Build a career with one of India's most trusted plumbing and sanitaryware brands.",
   introBadge: "Join The Team",
@@ -292,6 +297,7 @@ export const cmsDefaults = {
   policies: defaultPolicies,
   careers: defaultCareers,
   productsPage: defaultProductsPage,
+  categoryPages: defaultCategoryPages,
 } as const;
 
 export type CmsSectionKey = keyof typeof cmsDefaults;

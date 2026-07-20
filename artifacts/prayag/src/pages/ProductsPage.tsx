@@ -19,6 +19,7 @@ export default function ProductsPage() {
   const [view, setView] = useState<"grid" | "list">("grid");
   const { section } = useSiteContent();
   const productsPage = section("productsPage");
+  const categoryPages = section("categoryPages");
   const [showFilters, setShowFilters] = useState(false);
 
   const [filters, setFilters] = useState({
@@ -79,8 +80,9 @@ export default function ProductsPage() {
       {/* Premium Header Area */}
       {(() => {
         const bannerSlugs = ["cp-faucets", "ptmt-faucets", "sanitaryware", "kitchen-sinks", "water-heaters", "bathroom-accessories", "pipes-fittings", "storage-tanks"];
-        const bannerUrl = filters.category && bannerSlugs.includes(filters.category)
-          ? `${import.meta.env.BASE_URL}images/category-banners/${filters.category}.png`
+        const catEntry = filters.category ? categoryPages.entries.find(e => e.slug === filters.category) : undefined;
+        const bannerUrl = filters.category
+          ? (catEntry?.bannerImage || (bannerSlugs.includes(filters.category) ? `${import.meta.env.BASE_URL}images/category-banners/${filters.category}.png` : null))
           : filters.search
             ? null
             : (productsPage.bannerImage || `${import.meta.env.BASE_URL}images/category-banners/the-collection.png`);
@@ -97,7 +99,7 @@ export default function ProductsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className={`text-4xl md:text-5xl lg:text-6xl font-serif-lux font-bold uppercase mb-4 ${bannerUrl ? "text-white drop-shadow-md" : "text-gray-900"}`}
               >
-                {filters.category ? (filters.category === "pipes-fittings" ? "Pipes & Fittings" : filters.category.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())) : filters.search ? `Search: "${filters.search}"` : productsPage.allTitle}
+                {filters.category ? (catEntry?.title || (filters.category === "pipes-fittings" ? "Pipes & Fittings" : filters.category.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()))) : filters.search ? `Search: "${filters.search}"` : productsPage.allTitle}
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0 }}
