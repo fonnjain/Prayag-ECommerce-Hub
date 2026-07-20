@@ -70,6 +70,91 @@ export const defaultFooter: FooterContent = {
   about: "India's trusted plumbing and sanitaryware brand — delivering timeless quality for homes and commercial spaces since 1985.",
 };
 
+export interface AboutValue { title: string; desc: string }
+export interface AboutMilestone { year: string; text: string }
+export interface AboutStat { n: string; l: string }
+export interface AboutContent {
+  heroTitle: string;
+  heroSubtitle: string;
+  storyHeading: string;
+  storyAccent: string;
+  storyPara1: string;
+  storyPara2: string;
+  storyImage: string;
+  stats: AboutStat[];
+  values: AboutValue[];
+  milestones: AboutMilestone[];
+  ctaTitle: string;
+  ctaSubtitle: string;
+}
+
+export interface ContactContent {
+  title: string;
+  subtitle: string;
+  phone: string;
+}
+
+export interface DealerRegContent {
+  badge: string;
+  title: string;
+  intro: string;
+  benefits: string[];
+  statNumber: string;
+  statText: string;
+}
+
+export const defaultAbout: AboutContent = {
+  heroTitle: "About Prayag",
+  heroSubtitle: "India's trusted plumbing and sanitaryware brand — crafting strong, beautiful spaces since 1985.",
+  storyHeading: "Four Decades of",
+  storyAccent: "Craftsmanship",
+  storyPara1: "What began in 1985 as a modest faucet workshop has grown into one of India's most recognised names in plumbing and sanitaryware. For nearly forty years, Prayag has stood for products that combine engineering precision with timeless design.",
+  storyPara2: "From CP and PTMT faucets to kitchen sinks, water heaters and complete bathroom solutions, every Prayag product is built to a single promise — Strong. Beautiful. Prayag.",
+  storyImage: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=700&h=520&fit=crop",
+  stats: [
+    { n: "40+", l: "Years of Legacy" },
+    { n: "4,500+", l: "Products" },
+    { n: "10,000+", l: "Dealers" },
+    { n: "28", l: "States Served" },
+  ],
+  values: [
+    { title: "Built to Last", desc: "Every product is engineered and stress-tested for a lifetime of reliable performance." },
+    { title: "Uncompromising Quality", desc: "Premium-grade brass, ceramic and PTMT materials with rigorous quality control." },
+    { title: "Water Conscious", desc: "Aerated flow and precision valves that conserve water without sacrificing pressure." },
+    { title: "Trusted Network", desc: "10,000+ dealers and distributors serving homes and businesses across India." },
+  ],
+  milestones: [
+    { year: "1985", text: "Prayag founded with a single faucet workshop." },
+    { year: "1998", text: "Expanded into complete sanitaryware & bath fittings." },
+    { year: "2010", text: "Launched pan-India dealer & distributor network." },
+    { year: "2024", text: "4,500+ SKUs across faucets, sinks, heaters & accessories." },
+  ],
+  ctaTitle: "Partner With",
+  ctaSubtitle: "Join our growing network of dealers and distributors across India.",
+};
+
+export const defaultContact: ContactContent = {
+  title: "Still have questions?",
+  subtitle: "Our support team is available Mon–Sat, 9AM–6PM.",
+  phone: "1800 123 4567",
+};
+
+export const defaultDealerReg: DealerRegContent = {
+  badge: "Dealer Program",
+  title: "Partner with PRAYAG",
+  intro: "Join India's fastest-growing plumbing dealer network. Get access to 4500+ premium products, exclusive pricing, and dedicated support.",
+  benefits: [
+    "Exclusive dealer pricing & margins",
+    "Free marketing support materials",
+    "Dedicated relationship manager",
+    "Priority order processing",
+    "GST invoice generation",
+    "Access to dealer schemes",
+  ],
+  statNumber: "10,000+",
+  statText: "Active dealers trust PRAYAG across India",
+};
+
 export const cmsDefaults = {
   hero: defaultHero,
   collections: { cards: defaultCollections },
@@ -78,6 +163,9 @@ export const cmsDefaults = {
   marquee: { words: defaultMarquee },
   topbar: defaultTopbar,
   footer: defaultFooter,
+  about: defaultAbout,
+  contact: defaultContact,
+  dealerReg: defaultDealerReg,
 } as const;
 
 export type CmsSectionKey = keyof typeof cmsDefaults;

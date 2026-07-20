@@ -106,7 +106,7 @@ export default function CartPage() {
               <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>₹{cart.subtotal.toLocaleString("en-IN")}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">GST (18%)</span><span>₹{cart.gst.toLocaleString("en-IN")}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Shipping</span><span className={cart.shipping === 0 ? "text-green-600 font-medium" : ""}>{cart.shipping === 0 ? "FREE" : `₹${cart.shipping}`}</span></div>
-              {cart.discount > 0 && <div className="flex justify-between text-green-600"><span>Coupon Discount</span><span>-₹{cart.discount.toLocaleString("en-IN")}</span></div>}
+              {(cart.discount ?? 0) > 0 && <div className="flex justify-between text-green-600"><span>Coupon Discount</span><span>-₹{(cart.discount ?? 0).toLocaleString("en-IN")}</span></div>}
             </div>
             <div className="border-t border-gray-100 mt-4 pt-4">
               <div className="flex justify-between font-bold text-base">

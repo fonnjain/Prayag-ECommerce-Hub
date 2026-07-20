@@ -3,7 +3,7 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useGetSiteContent, useUpdateSiteContent, getGetSiteContentQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { cmsDefaults, mergeWithDefaults, type CmsSectionKey, type HeroContent, type CollectionCard, type RoomCard, type TrustItem, type TopbarContent, type FooterContent } from "@/lib/siteContent";
+import { cmsDefaults, mergeWithDefaults, type CmsSectionKey, type HeroContent, type CollectionCard, type RoomCard, type TrustItem, type TopbarContent, type FooterContent, type AboutContent, type ContactContent, type DealerRegContent } from "@/lib/siteContent";
 import ImageUploadField from "./ImageUploadField";
 
 const inputCls = "w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[hsl(38,52%,40%)]";
@@ -58,6 +58,9 @@ export default function SiteContentManager() {
   const [marquee, setMarquee] = useState<string>((cmsDefaults.marquee.words as string[]).join(", "));
   const [topbar, setTopbar] = useState<TopbarContent>(cmsDefaults.topbar);
   const [footer, setFooter] = useState<FooterContent>(cmsDefaults.footer);
+  const [about, setAbout] = useState<AboutContent>(cmsDefaults.about);
+  const [contact, setContact] = useState<ContactContent>(cmsDefaults.contact);
+  const [dealerReg, setDealerReg] = useState<DealerRegContent>(cmsDefaults.dealerReg);
   const [savingSection, setSavingSection] = useState<string | null>(null);
 
   useEffect(() => {
@@ -70,6 +73,9 @@ export default function SiteContentManager() {
     setMarquee((mergeWithDefaults(cmsDefaults.marquee, content.marquee).words as string[]).join(", "));
     setTopbar(mergeWithDefaults(cmsDefaults.topbar, content.topbar));
     setFooter(mergeWithDefaults(cmsDefaults.footer, content.footer));
+    setAbout(mergeWithDefaults(cmsDefaults.about, content.about));
+    setContact(mergeWithDefaults(cmsDefaults.contact, content.contact));
+    setDealerReg(mergeWithDefaults(cmsDefaults.dealerReg, content.dealerReg));
   }, [data]);
 
   function save(section: CmsSectionKey, payload: Record<string, unknown>) {
@@ -186,6 +192,91 @@ export default function SiteContentManager() {
           <Field label="Phone" value={footer.phone} onChange={v => setFooter({ ...footer, phone: v })} />
           <Field label="Email" value={footer.email} onChange={v => setFooter({ ...footer, email: v })} />
           <Field label="Hours" value={footer.hours} onChange={v => setFooter({ ...footer, hours: v })} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="About Page" onSave={() => save("about", about as unknown as Record<string, unknown>)} saving={savingSection === "about"}>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Hero title" value={about.heroTitle} onChange={v => setAbout({ ...about, heroTitle: v })} />
+          <Field label="Hero subtitle" value={about.heroSubtitle} onChange={v => setAbout({ ...about, heroSubtitle: v })} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Story heading" value={about.storyHeading} onChange={v => setAbout({ ...about, storyHeading: v })} />
+          <Field label="Story accent (gold word)" value={about.storyAccent} onChange={v => setAbout({ ...about, storyAccent: v })} />
+        </div>
+        <Field label="Story paragraph 1" textarea value={about.storyPara1} onChange={v => setAbout({ ...about, storyPara1: v })} />
+        <Field label="Story paragraph 2" textarea value={about.storyPara2} onChange={v => setAbout({ ...about, storyPara2: v })} />
+        <ImageUploadField label="Story image" value={about.storyImage} onChange={v => setAbout({ ...about, storyImage: v })} />
+        <div className="border-t border-gray-100 pt-3">
+          <div className="text-xs font-bold text-gray-700 mb-2">Stats strip</div>
+          <div className="grid grid-cols-2 gap-3">
+            {about.stats.map((s, i) => (
+              <div key={i} className="border border-gray-100 rounded-lg p-2.5 space-y-2">
+                <Field label={`Stat ${i + 1} number`} value={s.n} onChange={v => setAbout({ ...about, stats: about.stats.map((x, j) => j === i ? { ...x, n: v } : x) })} />
+                <Field label="Label" value={s.l} onChange={v => setAbout({ ...about, stats: about.stats.map((x, j) => j === i ? { ...x, l: v } : x) })} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="border-t border-gray-100 pt-3">
+          <div className="text-xs font-bold text-gray-700 mb-2">Values ("What We Stand For")</div>
+          {about.values.map((v0, i) => (
+            <div key={i} className="grid grid-cols-2 gap-3 mb-2">
+              <Field label={`Value ${i + 1} title`} value={v0.title} onChange={v => setAbout({ ...about, values: about.values.map((x, j) => j === i ? { ...x, title: v } : x) })} />
+              <Field label="Description" value={v0.desc} onChange={v => setAbout({ ...about, values: about.values.map((x, j) => j === i ? { ...x, desc: v } : x) })} />
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-gray-100 pt-3">
+          <div className="text-xs font-bold text-gray-700 mb-2">Journey timeline</div>
+          {about.milestones.map((m, i) => (
+            <div key={i} className="flex gap-3 mb-2 items-end">
+              <div className="w-24 flex-shrink-0">
+                <Field label="Year" value={m.year} onChange={v => setAbout({ ...about, milestones: about.milestones.map((x, j) => j === i ? { ...x, year: v } : x) })} />
+              </div>
+              <div className="flex-1">
+                <Field label="Text" value={m.text} onChange={v => setAbout({ ...about, milestones: about.milestones.map((x, j) => j === i ? { ...x, text: v } : x) })} />
+              </div>
+              <button onClick={() => setAbout({ ...about, milestones: about.milestones.filter((_, j) => j !== i) })} className="text-red-400 hover:text-red-600 pb-2.5"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+          ))}
+          <button onClick={() => setAbout({ ...about, milestones: [...about.milestones, { year: "", text: "" }] })}
+            className="flex items-center gap-1 text-xs font-semibold text-[hsl(38,52%,40%)]"><Plus className="w-3.5 h-3.5" /> Add milestone</button>
+        </div>
+        <div className="border-t border-gray-100 pt-3 grid grid-cols-2 gap-3">
+          <Field label="Bottom CTA title" value={about.ctaTitle} onChange={v => setAbout({ ...about, ctaTitle: v })} />
+          <Field label="Bottom CTA subtitle" value={about.ctaSubtitle} onChange={v => setAbout({ ...about, ctaSubtitle: v })} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Contact Block (FAQ page)" onSave={() => save("contact", contact as unknown as Record<string, unknown>)} saving={savingSection === "contact"}>
+        <Field label="Title" value={contact.title} onChange={v => setContact({ ...contact, title: v })} />
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Subtitle" value={contact.subtitle} onChange={v => setContact({ ...contact, subtitle: v })} />
+          <Field label="Phone" value={contact.phone} onChange={v => setContact({ ...contact, phone: v })} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Dealer Registration Page" onSave={() => save("dealerReg", dealerReg as unknown as Record<string, unknown>)} saving={savingSection === "dealerReg"}>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Badge text" value={dealerReg.badge} onChange={v => setDealerReg({ ...dealerReg, badge: v })} />
+          <Field label="Title" value={dealerReg.title} onChange={v => setDealerReg({ ...dealerReg, title: v })} />
+        </div>
+        <Field label="Intro text" textarea value={dealerReg.intro} onChange={v => setDealerReg({ ...dealerReg, intro: v })} />
+        <div>
+          <div className="text-xs font-bold text-gray-700 mb-2">Benefits list</div>
+          {dealerReg.benefits.map((b, i) => (
+            <div key={i} className="flex gap-2 mb-2 items-center">
+              <input value={b} onChange={e => setDealerReg({ ...dealerReg, benefits: dealerReg.benefits.map((x, j) => j === i ? e.target.value : x) })} className={inputCls} />
+              <button onClick={() => setDealerReg({ ...dealerReg, benefits: dealerReg.benefits.filter((_, j) => j !== i) })} className="text-red-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+          ))}
+          <button onClick={() => setDealerReg({ ...dealerReg, benefits: [...dealerReg.benefits, ""] })}
+            className="flex items-center gap-1 text-xs font-semibold text-[hsl(38,52%,40%)]"><Plus className="w-3.5 h-3.5" /> Add benefit</button>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Stat number (e.g. 10,000+)" value={dealerReg.statNumber} onChange={v => setDealerReg({ ...dealerReg, statNumber: v })} />
+          <Field label="Stat text" value={dealerReg.statText} onChange={v => setDealerReg({ ...dealerReg, statText: v })} />
         </div>
       </SectionCard>
     </div>

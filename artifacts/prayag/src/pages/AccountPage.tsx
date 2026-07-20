@@ -88,7 +88,7 @@ export default function AccountPage() {
                 {[
                   { label: "Full Name", value: user.name },
                   { label: "Email Address", value: user.email },
-                  { label: "Phone", value: user.phone || "Not provided" },
+                  { label: "Phone", value: (user as { phone?: string }).phone || "Not provided" },
                   { label: "Account Type", value: user.role.charAt(0).toUpperCase() + user.role.slice(1) },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-gray-50 rounded-lg p-4">

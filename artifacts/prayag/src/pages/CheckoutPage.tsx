@@ -142,7 +142,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>₹{cart.subtotal.toLocaleString("en-IN")}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">GST</span><span>₹{cart.gst.toLocaleString("en-IN")}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Shipping</span><span className={cart.shipping === 0 ? "text-green-600" : ""}>{cart.shipping === 0 ? "FREE" : `₹${cart.shipping}`}</span></div>
-              {cart.discount > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>-₹{cart.discount.toLocaleString("en-IN")}</span></div>}
+              {(cart.discount ?? 0) > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>-₹{(cart.discount ?? 0).toLocaleString("en-IN")}</span></div>}
               <div className="flex justify-between font-bold text-base pt-2 border-t border-gray-100">
                 <span>Total</span>
                 <span className="text-[hsl(38,52%,40%)]" data-testid="text-order-total">₹{cart.total.toLocaleString("en-IN")}</span>

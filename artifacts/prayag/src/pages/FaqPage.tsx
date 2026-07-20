@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { ChevronDown, MessageCircle } from "lucide-react";
 import PageHero from "@/components/PageHero";
+import { useSiteContent } from "@/lib/siteContent";
 
 const faqs = [
   {
@@ -40,6 +41,8 @@ const faqs = [
 
 export default function FaqPage() {
   const [open, setOpen] = useState<number | null>(0);
+  const { section } = useSiteContent();
+  const contact = section("contact");
   return (
     <div className="bg-white">
       <PageHero
@@ -72,10 +75,10 @@ export default function FaqPage() {
 
         <div className="mt-10 bg-gradient-to-br from-[hsl(24,12%,8%)] to-[hsl(24,10%,13%)] rounded-3xl p-8 text-center">
           <MessageCircle className="w-8 h-8 text-[hsl(42,62%,68%)] mx-auto mb-3" />
-          <h2 className="font-display text-2xl font-bold text-white mb-2">Still have questions?</h2>
-          <p className="text-stone-300 text-sm mb-6">Our support team is available Mon–Sat, 9AM–6PM.</p>
+          <h2 className="font-display text-2xl font-bold text-white mb-2">{contact.title}</h2>
+          <p className="text-stone-300 text-sm mb-6">{contact.subtitle}</p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <a href="tel:18001234567" className="bg-gold-gradient text-[hsl(24,14%,8%)] font-bold px-6 py-3 rounded-xl gold-sheen">Call 1800 123 4567</a>
+            <a href={`tel:${contact.phone.replace(/\s+/g, "")}`} className="bg-gold-gradient text-[hsl(24,14%,8%)] font-bold px-6 py-3 rounded-xl gold-sheen">Call {contact.phone}</a>
             <Link href="/account/orders" className="border border-white/20 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/5 transition-colors">Track My Order</Link>
           </div>
         </div>

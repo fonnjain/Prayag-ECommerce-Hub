@@ -181,6 +181,29 @@ const cmsSectionSchemas: Record<string, z.ZodTypeAny> = {
   marquee: z.object({ words: z.array(z.string()) }),
   topbar: z.object({ text: z.string(), phone: z.string() }),
   footer: z.object({ phone: z.string(), email: z.string(), hours: z.string(), about: z.string() }),
+  about: z.object({
+    heroTitle: z.string(),
+    heroSubtitle: z.string(),
+    storyHeading: z.string(),
+    storyAccent: z.string(),
+    storyPara1: z.string(),
+    storyPara2: z.string(),
+    storyImage: z.string(),
+    stats: z.array(z.object({ n: z.string(), l: z.string() })),
+    values: z.array(z.object({ title: z.string(), desc: z.string() })),
+    milestones: z.array(z.object({ year: z.string(), text: z.string() })),
+    ctaTitle: z.string(),
+    ctaSubtitle: z.string(),
+  }),
+  contact: z.object({ title: z.string(), subtitle: z.string(), phone: z.string() }),
+  dealerReg: z.object({
+    badge: z.string(),
+    title: z.string(),
+    intro: z.string(),
+    benefits: z.array(z.string()),
+    statNumber: z.string(),
+    statText: z.string(),
+  }),
 };
 
 router.put("/admin/site-content/:section", async (req, res): Promise<void> => {

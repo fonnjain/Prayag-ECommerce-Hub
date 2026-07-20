@@ -5,6 +5,7 @@ import { useRegisterDealer } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, Building2, MapPin, Phone, Mail, FileText } from "lucide-react";
 import { useState } from "react";
+import { useSiteContent } from "@/lib/siteContent";
 
 const schema = z.object({
   businessName: z.string().min(2, "Required"),
@@ -18,17 +19,10 @@ const schema = z.object({
 });
 type Form = z.infer<typeof schema>;
 
-const benefits = [
-  "Exclusive dealer pricing & margins",
-  "Free marketing support materials",
-  "Dedicated relationship manager",
-  "Priority order processing",
-  "GST invoice generation",
-  "Access to dealer schemes",
-];
-
 export default function DealerRegistrationPage() {
   const { toast } = useToast();
+  const { section } = useSiteContent();
+  const dealerReg = section("dealerReg");
   const [submitted, setSubmitted] = useState(false);
   const registerDealer = useRegisterDealer();
 
@@ -62,11 +56,11 @@ export default function DealerRegistrationPage() {
       <div className="grid md:grid-cols-2 gap-10">
         {/* Benefits */}
         <div>
-          <div className="inline-block bg-[hsl(24,10%,16%)]/10 text-[hsl(38,52%,40%)] text-xs font-semibold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">Dealer Program</div>
-          <h1 className="text-3xl font-black text-gray-900 mb-4">Partner with PRAYAG</h1>
-          <p className="text-gray-500 leading-relaxed mb-6">Join India's fastest-growing plumbing dealer network. Get access to 4500+ premium products, exclusive pricing, and dedicated support.</p>
+          <div className="inline-block bg-[hsl(24,10%,16%)]/10 text-[hsl(38,52%,40%)] text-xs font-semibold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">{dealerReg.badge}</div>
+          <h1 className="text-3xl font-black text-gray-900 mb-4">{dealerReg.title}</h1>
+          <p className="text-gray-500 leading-relaxed mb-6">{dealerReg.intro}</p>
           <div className="space-y-3">
-            {benefits.map(b => (
+            {dealerReg.benefits.map(b => (
               <div key={b} className="flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
                 <span className="text-sm text-gray-700">{b}</span>
@@ -74,8 +68,8 @@ export default function DealerRegistrationPage() {
             ))}
           </div>
           <div className="mt-8 bg-[hsl(24,10%,16%)] text-white rounded-2xl p-5">
-            <div className="text-3xl font-black mb-1">10,000+</div>
-            <div className="text-[hsl(42,40%,80%)] text-sm">Active dealers trust PRAYAG across India</div>
+            <div className="text-3xl font-black mb-1">{dealerReg.statNumber}</div>
+            <div className="text-[hsl(42,40%,80%)] text-sm">{dealerReg.statText}</div>
           </div>
         </div>
 
