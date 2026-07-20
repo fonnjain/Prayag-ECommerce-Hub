@@ -65,6 +65,7 @@ export default function SiteContentManager() {
   const [policies, setPolicies] = useState<PoliciesContent>(cmsDefaults.policies);
   const [careers, setCareers] = useState<CareersContent>(cmsDefaults.careers);
   const [savingSection, setSavingSection] = useState<string | null>(null);
+  const [tab, setTab] = useState("home");
 
   useEffect(() => {
     if (!data) return;
@@ -98,8 +99,31 @@ export default function SiteContentManager() {
 
   if (isLoading) return <div className="text-sm text-gray-400">Loading site content…</div>;
 
+  const tabs: { key: string; label: string }[] = [
+    { key: "home", label: "Home Page" },
+    { key: "global", label: "Top Bar & Footer" },
+    { key: "about", label: "About Page" },
+    { key: "faq", label: "FAQ Page" },
+    { key: "policies", label: "Policy Pages" },
+    { key: "careers", label: "Careers Page" },
+    { key: "dealer", label: "Dealer Page" },
+  ];
+
   return (
     <div className="max-w-3xl">
+      <div className="flex flex-wrap gap-2 mb-5">
+        {tabs.map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)}
+            data-testid={`tab-${t.key}`}
+            className={`text-xs font-bold px-3.5 py-2 rounded-lg border transition-colors ${tab === t.key
+              ? "bg-[hsl(38,52%,40%)] text-white border-[hsl(38,52%,40%)]"
+              : "bg-white text-gray-600 border-gray-200 hover:border-[hsl(38,52%,40%)]/40"}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "home" && <>
       <SectionCard title="Hero Section" onSave={() => save("hero", hero as unknown as Record<string, unknown>)} saving={savingSection === "hero"}>
         <Field label="Badge text" value={hero.badge} onChange={v => setHero({ ...hero, badge: v })} />
         <div className="grid grid-cols-2 gap-3">
@@ -184,7 +208,9 @@ export default function SiteContentManager() {
       <SectionCard title="Marquee Strip" onSave={() => save("marquee", { words: marquee.split(",").map(s => s.trim()).filter(Boolean) })} saving={savingSection === "marquee"}>
         <Field label="Words (comma separated)" textarea value={marquee} onChange={setMarquee} />
       </SectionCard>
+      </>}
 
+      {tab === "global" && <>
       <SectionCard title="Top Bar" onSave={() => save("topbar", topbar as unknown as Record<string, unknown>)} saving={savingSection === "topbar"}>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Text" value={topbar.text} onChange={v => setTopbar({ ...topbar, text: v })} />
@@ -200,7 +226,9 @@ export default function SiteContentManager() {
           <Field label="Hours" value={footer.hours} onChange={v => setFooter({ ...footer, hours: v })} />
         </div>
       </SectionCard>
+      </>}
 
+      {tab === "about" && <>
       <SectionCard title="About Page" onSave={() => save("about", about as unknown as Record<string, unknown>)} saving={savingSection === "about"}>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Hero title" value={about.heroTitle} onChange={v => setAbout({ ...about, heroTitle: v })} />
@@ -254,7 +282,9 @@ export default function SiteContentManager() {
           <Field label="Bottom CTA subtitle" value={about.ctaSubtitle} onChange={v => setAbout({ ...about, ctaSubtitle: v })} />
         </div>
       </SectionCard>
+      </>}
 
+      {tab === "faq" && <>
       <SectionCard title="Contact Block (FAQ page)" onSave={() => save("contact", contact as unknown as Record<string, unknown>)} saving={savingSection === "contact"}>
         <Field label="Title" value={contact.title} onChange={v => setContact({ ...contact, title: v })} />
         <div className="grid grid-cols-2 gap-3">
@@ -262,7 +292,9 @@ export default function SiteContentManager() {
           <Field label="Phone" value={contact.phone} onChange={v => setContact({ ...contact, phone: v })} />
         </div>
       </SectionCard>
+      </>}
 
+      {tab === "dealer" && <>
       <SectionCard title="Dealer Registration Page" onSave={() => save("dealerReg", dealerReg as unknown as Record<string, unknown>)} saving={savingSection === "dealerReg"}>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Badge text" value={dealerReg.badge} onChange={v => setDealerReg({ ...dealerReg, badge: v })} />
@@ -285,7 +317,9 @@ export default function SiteContentManager() {
           <Field label="Stat text" value={dealerReg.statText} onChange={v => setDealerReg({ ...dealerReg, statText: v })} />
         </div>
       </SectionCard>
+      </>}
 
+      {tab === "faq" && <>
       <SectionCard title="FAQ Page" onSave={() => save("faq", faq as unknown as Record<string, unknown>)} saving={savingSection === "faq"}>
         <Field label="Hero subtitle" textarea value={faq.heroSubtitle} onChange={v => setFaq({ ...faq, heroSubtitle: v })} />
         {faq.items.map((f, i) => (
@@ -301,7 +335,9 @@ export default function SiteContentManager() {
         <button onClick={() => setFaq({ ...faq, items: [...faq.items, { q: "", a: "" }] })}
           className="flex items-center gap-1 text-xs font-semibold text-[hsl(38,52%,40%)]"><Plus className="w-3.5 h-3.5" /> Add question</button>
       </SectionCard>
+      </>}
 
+      {tab === "policies" && <>
       <SectionCard title="Policy Pages" onSave={() => save("policies", policies as unknown as Record<string, unknown>)} saving={savingSection === "policies"}>
         <Field label="Contact email (shown at bottom of every policy)" value={policies.contactEmail} onChange={v => setPolicies({ ...policies, contactEmail: v })} />
         {(["shipping", "returns", "privacy", "terms"] as const).map(key => {
@@ -330,7 +366,9 @@ export default function SiteContentManager() {
           );
         })}
       </SectionCard>
+      </>}
 
+      {tab === "careers" && <>
       <SectionCard title="Careers Page" onSave={() => save("careers", careers as unknown as Record<string, unknown>)} saving={savingSection === "careers"}>
         <Field label="Hero subtitle" textarea value={careers.heroSubtitle} onChange={v => setCareers({ ...careers, heroSubtitle: v })} />
         <div className="grid grid-cols-3 gap-3">
@@ -373,6 +411,7 @@ export default function SiteContentManager() {
             className="flex items-center gap-1 text-xs font-semibold text-[hsl(38,52%,40%)]"><Plus className="w-3.5 h-3.5" /> Add position</button>
         </div>
       </SectionCard>
+      </>}
     </div>
   );
 }
