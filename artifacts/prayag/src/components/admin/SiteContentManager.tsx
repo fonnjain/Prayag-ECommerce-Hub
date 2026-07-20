@@ -69,6 +69,7 @@ export default function SiteContentManager() {
   const { data: categories } = useListCategories();
   const [savingSection, setSavingSection] = useState<string | null>(null);
   const [tab, setTab] = useState("home");
+  const [productTab, setProductTab] = useState("all");
 
   useEffect(() => {
     if (!data) return;
@@ -127,18 +128,23 @@ export default function SiteContentManager() {
   ];
 
   return (
-    <div className="max-w-3xl">
-      <div className="flex flex-wrap gap-2 mb-5">
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            data-testid={`tab-${t.key}`}
-            className={`text-xs font-bold px-3.5 py-2 rounded-lg border transition-colors ${tab === t.key
-              ? "bg-[hsl(38,52%,40%)] text-white border-[hsl(38,52%,40%)]"
-              : "bg-white text-gray-600 border-gray-200 hover:border-[hsl(38,52%,40%)]/40"}`}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+    <div className="max-w-5xl flex items-start gap-5">
+      <aside className="w-48 shrink-0 sticky top-4">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2 px-1">Pages</div>
+        <div className="flex flex-col gap-1">
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              data-testid={`tab-${t.key}`}
+              className={`text-left text-xs font-bold px-3 py-2 rounded-lg border transition-colors ${tab === t.key
+                ? "bg-[hsl(38,52%,40%)] text-white border-[hsl(38,52%,40%)]"
+                : "bg-white text-gray-600 border-gray-200 hover:border-[hsl(38,52%,40%)]/40"}`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <div className="flex-1 min-w-0">
 
       {tab === "home" && <>
       <SectionCard title="Hero Section" onSave={() => save("hero", hero as unknown as Record<string, unknown>)} saving={savingSection === "hero"}>
@@ -228,27 +234,40 @@ export default function SiteContentManager() {
       </>}
 
       {tab === "products" && <>
-      <SectionCard title="Products Page" onSave={() => save("productsPage", productsPage as unknown as Record<string, unknown>)} saving={savingSection === "productsPage"}>
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        {[{ slug: "all", name: "All Products" }, ...(categories || [])].map(c => (
+          <button key={c.slug} onClick={() => setProductTab(c.slug)}
+            data-testid={`product-tab-${c.slug}`}
+            className={`text-[11px] font-bold px-3 py-1.5 rounded-full border transition-colors ${productTab === c.slug
+              ? "bg-[hsl(24,10%,16%)] text-white border-[hsl(24,10%,16%)]"
+              : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"}`}>
+            {c.name}
+          </button>
+        ))}
+      </div>
+
+      {productTab === "all" && (
+      <SectionCard title="All Products Page" onSave={() => save("productsPage", productsPage as unknown as Record<string, unknown>)} saving={savingSection === "productsPage"}>
         <div className="grid grid-cols-2 gap-3">
           <Field label='Main title (jab koi category select na ho, e.g. "The Collection")' value={productsPage.allTitle} onChange={v => setProductsPage({ ...productsPage, allTitle: v })} />
           <Field label='Count text (count ke baad, e.g. "exceptional pieces discovered")' value={productsPage.countText} onChange={v => setProductsPage({ ...productsPage, countText: v })} />
         </div>
         <ImageUploadField label="Banner image (blank = default)" value={productsPage.bannerImage} onChange={v => setProductsPage({ ...productsPage, bannerImage: v })} />
       </SectionCard>
+      )}
 
-      <SectionCard title="Category Pages" onSave={() => save("categoryPages", { entries: categoryPages.entries.map(e => ({ slug: e.slug, title: e.title.trim(), bannerImage: e.bannerImage.trim() })).filter(e => e.title || e.bannerImage) })} saving={savingSection === "categoryPages"}>
-        <div className="text-xs text-gray-400 -mt-1 mb-1">Har category ke page ka title aur banner. Blank chhodne par default (category ka naam / built-in banner) use hoga.</div>
-        {(categories || []).map(c => {
-          const e = catEntry(c.slug);
-          return (
-            <div key={c.slug} className="border border-gray-100 rounded-lg p-3 space-y-2">
-              <div className="text-xs font-bold text-gray-700">{c.name} <span className="font-normal text-gray-400">({c.slug})</span></div>
-              <Field label={`Page title (blank = "${c.name}")`} value={e.title} onChange={v => setCatEntry(c.slug, { title: v })} />
-              <ImageUploadField label="Banner image (blank = default)" value={e.bannerImage} onChange={v => setCatEntry(c.slug, { bannerImage: v })} />
-            </div>
-          );
-        })}
-      </SectionCard>
+      {(categories || []).filter(c => c.slug === productTab).map(c => {
+        const e = catEntry(c.slug);
+        return (
+          <SectionCard key={c.slug} title={`${c.name} Page`}
+            onSave={() => save("categoryPages", { entries: categoryPages.entries.map(x => ({ slug: x.slug, title: x.title.trim(), bannerImage: x.bannerImage.trim() })).filter(x => x.title || x.bannerImage) })}
+            saving={savingSection === "categoryPages"}>
+            <div className="text-xs text-gray-400 -mt-1 mb-1">Blank chhodne par default (category ka naam / built-in banner) use hoga.</div>
+            <Field label={`Page title (blank = "${c.name}")`} value={e.title} onChange={v => setCatEntry(c.slug, { title: v })} />
+            <ImageUploadField label="Banner image (blank = default)" value={e.bannerImage} onChange={v => setCatEntry(c.slug, { bannerImage: v })} />
+          </SectionCard>
+        );
+      })}
       </>}
 
       {tab === "global" && <>
@@ -453,6 +472,7 @@ export default function SiteContentManager() {
         </div>
       </SectionCard>
       </>}
+      </div>
     </div>
   );
 }
