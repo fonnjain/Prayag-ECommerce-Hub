@@ -90,9 +90,13 @@ export default function AdminPage() {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 max-w-sm w-full text-center" data-testid="card-admin-auth-required">
           <div className="text-xl font-black text-gray-900 mb-1">PRAYAG Admin</div>
           <p className="text-sm text-gray-500 mb-6">
-            {sessionExpired ? "Your session has expired. Please log in again." : "Please log in with an admin account to access this panel."}
+            {sessionExpired
+              ? "Your session has expired. Please log in again."
+              : user
+                ? `You are logged in as ${user.email} (${user.role}). This panel needs an admin account — please log out and sign in as admin.`
+                : "Please log in with an admin account to access this panel."}
           </p>
-          <a href="/login" onClick={() => { if (sessionExpired) useAuthStore.getState().logout(); }}
+          <a href="/login" onClick={() => { if (sessionExpired || user) useAuthStore.getState().logout(); }}
             className="inline-block w-full bg-[hsl(24,10%,16%)] text-white text-sm font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity"
             data-testid="link-admin-login">
             Go to Login
