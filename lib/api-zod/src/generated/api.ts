@@ -98,7 +98,8 @@ export const ListCategoriesResponseItem = zod.object({
   "name": zod.string(),
   "slug": zod.string(),
   "imageUrl": zod.string().nullish(),
-  "description": zod.string().nullish()
+  "description": zod.string().nullish(),
+  "sortOrder": zod.number().optional()
 })
 export const ListCategoriesResponse = zod.array(ListCategoriesResponseItem)
 
@@ -111,6 +112,7 @@ export const ListCategoriesWithCountsResponseItem = zod.object({
   "name": zod.string(),
   "slug": zod.string(),
   "imageUrl": zod.string().nullish(),
+  "sortOrder": zod.number().optional(),
   "productCount": zod.number()
 })
 export const ListCategoriesWithCountsResponse = zod.array(ListCategoriesWithCountsResponseItem)
@@ -796,6 +798,7 @@ export const GetAdminDashboardResponse = zod.object({
   "name": zod.string(),
   "slug": zod.string(),
   "imageUrl": zod.string().nullish(),
+  "sortOrder": zod.number().optional(),
   "productCount": zod.number()
 }))
 })
@@ -1119,7 +1122,8 @@ export const CreateCategoryBody = zod.object({
   "name": zod.string(),
   "slug": zod.string().optional(),
   "description": zod.string().nullish(),
-  "imageUrl": zod.string().nullish()
+  "imageUrl": zod.string().nullish(),
+  "sortOrder": zod.number().optional()
 })
 
 
@@ -1134,7 +1138,8 @@ export const UpdateCategoryBody = zod.object({
   "name": zod.string().optional(),
   "slug": zod.string().optional(),
   "description": zod.string().nullish(),
-  "imageUrl": zod.string().nullish()
+  "imageUrl": zod.string().nullish(),
+  "sortOrder": zod.number().optional()
 })
 
 export const UpdateCategoryResponse = zod.object({
@@ -1142,7 +1147,8 @@ export const UpdateCategoryResponse = zod.object({
   "name": zod.string(),
   "slug": zod.string(),
   "imageUrl": zod.string().nullish(),
-  "description": zod.string().nullish()
+  "description": zod.string().nullish(),
+  "sortOrder": zod.number().optional()
 })
 
 
@@ -1156,6 +1162,21 @@ export const DeleteCategoryParams = zod.object({
 export const DeleteCategoryResponse = zod.object({
   "success": zod.boolean(),
   "message": zod.string().nullish()
+})
+
+
+/**
+ * @summary Finalize an upload by marking the object publicly readable (admin)
+ */
+
+
+
+export const FinalizeUploadBody = zod.object({
+  "objectPath": zod.string().min(1)
+})
+
+export const FinalizeUploadResponse = zod.object({
+  "objectPath": zod.string()
 })
 
 

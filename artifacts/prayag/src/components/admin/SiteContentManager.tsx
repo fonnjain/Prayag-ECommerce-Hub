@@ -95,6 +95,7 @@ export default function SiteContentManager() {
           <Field label="Title accent (gold word)" value={hero.titleAccent} onChange={v => setHero({ ...hero, titleAccent: v })} />
         </div>
         <Field label="Subtitle" textarea value={hero.subtitle} onChange={v => setHero({ ...hero, subtitle: v })} />
+        <ImageUploadField label="Hero background image (blank = default)" value={hero.backgroundImage} onChange={v => setHero({ ...hero, backgroundImage: v })} />
         <div className="grid grid-cols-3 gap-3">
           {hero.stats.map((s, i) => (
             <div key={i} className="border border-gray-100 rounded-lg p-2.5 space-y-2">

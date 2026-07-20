@@ -13,4 +13,5 @@ export interface CategoryInput {
   description?: string | null;
   /** @nullable */
   imageUrl?: string | null;
+  sortOrder?: number;
 }

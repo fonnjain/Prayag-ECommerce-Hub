@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useListCategoriesWithCounts, getListCategoriesWithCountsQueryKey, getListCategoriesQueryKey, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -55,6 +55,25 @@ export default function CategoryManager() {
     });
   }
 
+  const [reordering, setReordering] = useState(false);
+
+  async function handleMove(index: number, dir: -1 | 1) {
+    const list = categories || [];
+    const target = index + dir;
+    if (target < 0 || target >= list.length || reordering) return;
+    const newOrder = [...list];
+    [newOrder[index], newOrder[target]] = [newOrder[target], newOrder[index]];
+    setReordering(true);
+    try {
+      await Promise.all(newOrder.map((c, i) => updateCat.mutateAsync({ id: c.id, data: { sortOrder: i } })));
+      invalidate();
+    } catch {
+      toast({ title: "Reorder failed", variant: "destructive" });
+    } finally {
+      setReordering(false);
+    }
+  }
+
   const saving = createCat.isPending || updateCat.isPending;
 
   return (
@@ -70,7 +89,7 @@ export default function CategoryManager() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50"><tr>{["", "Name", "Slug", "Products", "Actions"].map(h => <th key={h} className="text-left px-4 py-2.5 text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-gray-50">
-              {(categories || []).map(c => (
+              {(categories || []).map((c, index) => (
                 <tr key={c.id} className="hover:bg-gray-50" data-testid={`row-category-${c.id}`}>
                   <td className="px-4 py-2.5 w-12">{c.imageUrl ? <img src={c.imageUrl} alt="" className="w-9 h-9 object-cover rounded-lg" /> : <div className="w-9 h-9 rounded-lg bg-gray-100" />}</td>
                   <td className="px-4 py-2.5 font-medium text-gray-900">{c.name}</td>
@@ -78,6 +97,8 @@ export default function CategoryManager() {
                   <td className="px-4 py-2.5">{c.productCount ?? 0}</td>
                   <td className="px-4 py-2.5">
                     <div className="flex gap-2">
+                      <button onClick={() => handleMove(index, -1)} disabled={index === 0 || reordering} className="text-gray-400 hover:text-[hsl(38,52%,40%)] disabled:opacity-30" data-testid={`button-move-up-category-${c.id}`}><ArrowUp className="w-4 h-4" /></button>
+                      <button onClick={() => handleMove(index, 1)} disabled={index === (categories?.length ?? 0) - 1 || reordering} className="text-gray-400 hover:text-[hsl(38,52%,40%)] disabled:opacity-30" data-testid={`button-move-down-category-${c.id}`}><ArrowDown className="w-4 h-4" /></button>
                       <button onClick={() => startEdit(c)} className="text-gray-400 hover:text-[hsl(38,52%,40%)]" data-testid={`button-edit-category-${c.id}`}><Pencil className="w-4 h-4" /></button>
                       <button onClick={() => handleDelete(c.id, c.name)} className="text-gray-400 hover:text-red-500" data-testid={`button-delete-category-${c.id}`}><Trash2 className="w-4 h-4" /></button>
                     </div>

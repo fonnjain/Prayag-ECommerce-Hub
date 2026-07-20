@@ -61,6 +61,7 @@ export interface Category {
   imageUrl?: string | null;
   /** @nullable */
   description?: string | null;
+  sortOrder?: number;
 }
 
 export interface CategoryWithCount {
@@ -69,6 +70,7 @@ export interface CategoryWithCount {
   slug: string;
   /** @nullable */
   imageUrl?: string | null;
+  sortOrder?: number;
   productCount: number;
 }
 
@@ -170,6 +172,7 @@ export interface CategoryInput {
   description?: string | null;
   /** @nullable */
   imageUrl?: string | null;
+  sortOrder?: number;
 }
 
 export interface CategoryUpdate {
@@ -179,6 +182,7 @@ export interface CategoryUpdate {
   description?: string | null;
   /** @nullable */
   imageUrl?: string | null;
+  sortOrder?: number;
 }
 
 export interface SiteContentMap { [key: string]: unknown }
@@ -203,6 +207,15 @@ export interface UploadUrlRequest {
   size: number;
   /** @minLength 1 */
   contentType: string;
+}
+
+export interface UploadFinalizeRequest {
+  /** @minLength 1 */
+  objectPath: string;
+}
+
+export interface UploadFinalizeResponse {
+  objectPath: string;
 }
 
 export interface UploadUrlResponse {

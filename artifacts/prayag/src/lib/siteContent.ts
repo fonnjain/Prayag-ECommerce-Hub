@@ -9,6 +9,7 @@ export interface HeroContent {
   subtitle: string;
   stats: HeroStat[];
   featured: HeroFeatured;
+  backgroundImage: string;
 }
 export interface CollectionCard { title: string; sub: string; img: string; chips: string[]; slug: string }
 export interface RoomCard { label: string; img: string; slug: string }
@@ -34,6 +35,7 @@ export const defaultHero: HeroContent = {
     reviews: 214,
     link: "/products?category=cp-faucets",
   },
+  backgroundImage: "",
 };
 
 export const defaultCollections: CollectionCard[] = [

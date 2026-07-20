@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Upload, Loader2 } from "lucide-react";
-import { requestUploadUrl } from "@workspace/api-client-react";
+import { requestUploadUrl, finalizeUpload } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 
 export function toDisplayUrl(objectPath: string): string {
@@ -19,6 +19,7 @@ export default function ImageUploadField({ value, onChange, label }: { value: st
       const { uploadURL, objectPath } = await requestUploadUrl({ name: file.name, size: file.size, contentType: file.type || "application/octet-stream" });
       const putRes = await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type || "application/octet-stream" } });
       if (!putRes.ok) throw new Error(`Upload failed (${putRes.status})`);
+      await finalizeUpload({ objectPath });
       onChange(toDisplayUrl(objectPath));
       toast({ title: "Image uploaded" });
     } catch (e) {

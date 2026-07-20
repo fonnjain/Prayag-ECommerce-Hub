@@ -60,6 +60,34 @@ router.post("/storage/uploads/request-url", requireAdmin, async (req: Request, r
 });
 
 /**
+ * POST /storage/uploads/finalize
+ *
+ * Mark an uploaded object as publicly readable (admin only).
+ * Called by the admin UI right after a successful presigned PUT.
+ */
+router.post("/storage/uploads/finalize", requireAdmin, async (req: Request, res: Response) => {
+  const objectPath = typeof req.body?.objectPath === "string" ? req.body.objectPath : "";
+  if (!objectPath) {
+    res.status(400).json({ error: "objectPath required" });
+    return;
+  }
+  try {
+    const normalized = await objectStorageService.trySetObjectEntityAclPolicy(objectPath, {
+      owner: "admin",
+      visibility: "public",
+    });
+    res.json({ objectPath: normalized });
+  } catch (error) {
+    if (error instanceof ObjectNotFoundError) {
+      res.status(404).json({ error: "Object not found" });
+      return;
+    }
+    req.log.error({ err: error }, "Error finalizing upload");
+    res.status(500).json({ error: "Failed to finalize upload" });
+  }
+});
+
+/**
  * GET /storage/public-objects/*
  *
  * Serve public assets from PUBLIC_OBJECT_SEARCH_PATHS.
@@ -107,20 +135,15 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
     const objectPath = `/objects/${wildcardPath}`;
     const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
 
-    // --- Protected route example (uncomment when using replit-auth) ---
-    // if (!req.isAuthenticated()) {
-    //   res.status(401).json({ error: "Unauthorized" });
-    //   return;
-    // }
-    // const canAccess = await objectStorageService.canAccessObjectEntity({
-    //   userId: req.user.id,
-    //   objectFile,
-    //   requestedPermission: ObjectPermission.READ,
-    // });
-    // if (!canAccess) {
-    //   res.status(403).json({ error: "Forbidden" });
-    //   return;
-    // }
+    // Only objects explicitly finalized as public are served anonymously.
+    const canAccess = await objectStorageService.canAccessObjectEntity({
+      objectFile,
+      requestedPermission: ObjectPermission.READ,
+    });
+    if (!canAccess) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
 
     const response = await objectStorageService.downloadObject(objectFile);
 

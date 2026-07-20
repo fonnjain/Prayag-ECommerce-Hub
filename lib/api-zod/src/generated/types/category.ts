@@ -14,4 +14,5 @@ export interface Category {
   imageUrl?: string | null;
   /** @nullable */
   description?: string | null;
+  sortOrder?: number;
 }

@@ -66,6 +66,8 @@ import type {
   SiteContentMap,
   SiteContentSection,
   SuccessResponse,
+  UploadFinalizeRequest,
+  UploadFinalizeResponse,
   UploadUrlRequest,
   UploadUrlResponse,
   User,
@@ -3835,6 +3837,77 @@ export const useDeleteCategory = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteCategoryMutationOptions(options));
+    }
+
+export const getFinalizeUploadUrl = () => {
+
+
+
+
+  return `/api/storage/uploads/finalize`
+}
+
+/**
+ * @summary Finalize an upload by marking the object publicly readable (admin)
+ */
+export const finalizeUpload = async (uploadFinalizeRequest: UploadFinalizeRequest, options?: RequestInit): Promise<UploadFinalizeResponse> => {
+
+  return customFetch<UploadFinalizeResponse>(getFinalizeUploadUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      uploadFinalizeRequest,)
+  }
+);}
+
+
+
+
+export const getFinalizeUploadMutationOptions = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeUpload>>, TError,{data: BodyType<UploadFinalizeRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof finalizeUpload>>, TError,{data: BodyType<UploadFinalizeRequest>}, TContext> => {
+
+const mutationKey = ['finalizeUpload'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof finalizeUpload>>, {data: BodyType<UploadFinalizeRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  finalizeUpload(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FinalizeUploadMutationResult = NonNullable<Awaited<ReturnType<typeof finalizeUpload>>>
+    export type FinalizeUploadMutationBody = BodyType<UploadFinalizeRequest>
+    export type FinalizeUploadMutationError = ErrorType<ErrorEnvelope>
+
+    /**
+ * @summary Finalize an upload by marking the object publicly readable (admin)
+ */
+export const useFinalizeUpload = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeUpload>>, TError,{data: BodyType<UploadFinalizeRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof finalizeUpload>>,
+        TError,
+        {data: BodyType<UploadFinalizeRequest>},
+        TContext
+      > => {
+      return useMutation(getFinalizeUploadMutationOptions(options));
     }
 
 export const getRequestUploadUrlUrl = () => {

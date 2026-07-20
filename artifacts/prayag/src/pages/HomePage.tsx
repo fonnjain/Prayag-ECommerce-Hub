@@ -141,7 +141,7 @@ export default function HomePage() {
         {/* animated blobs */}
         <div className="absolute top-[-120px] right-[10%] w-96 h-96 bg-[hsl(38,52%,52%)]/25 blur-3xl animate-blob" />
         <div className="absolute bottom-[-140px] left-[5%] w-[28rem] h-[28rem] bg-[hsl(24,9%,26%)]/20 blur-3xl animate-blob" style={{ animationDelay: "-6s" }} />
-        <img src={heroFaucet} alt="Luxury Prayag bathroom with gold fixtures" className="absolute inset-0 w-full h-full object-cover opacity-50" />
+        <img src={hero.backgroundImage || heroFaucet} alt="Luxury Prayag bathroom with gold fixtures" className="absolute inset-0 w-full h-full object-cover opacity-50" />
         <div className="absolute inset-0 bg-gradient-to-r from-[hsl(24,12%,8%)]/90 via-[hsl(24,12%,8%)]/55 to-transparent" />
 
         <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-20 grid lg:grid-cols-2 gap-10 items-center">
@@ -295,7 +295,7 @@ export default function HomePage() {
                   <Link href={`/products?category=${cat.slug}`} data-testid={`card-category-${cat.id}`}>
                     <motion.div whileHover={{ y: -6 }} className="group bg-white rounded-2xl border border-gray-100 p-3 flex flex-col items-center gap-2 hover:border-[hsl(24,10%,16%)]/40 hover:shadow-lg transition-shadow cursor-pointer">
                       <div className="w-full aspect-square rounded-xl overflow-hidden bg-stone-100">
-                        <img loading="lazy" decoding="async" src={categoryImages[cat.slug] || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop"} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        <img loading="lazy" decoding="async" src={cat.imageUrl || categoryImages[cat.slug] || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop"} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                       </div>
                       <span className="text-[11px] font-semibold text-gray-700 text-center leading-tight group-hover:text-[hsl(24,10%,16%)] transition-colors">{cat.name}</span>
                     </motion.div>

@@ -13,4 +13,5 @@ export interface CategoryUpdate {
   description?: string | null;
   /** @nullable */
   imageUrl?: string | null;
+  sortOrder?: number;
 }

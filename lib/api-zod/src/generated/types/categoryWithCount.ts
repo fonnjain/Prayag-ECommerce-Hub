@@ -12,5 +12,6 @@ export interface CategoryWithCount {
   slug: string;
   /** @nullable */
   imageUrl?: string | null;
+  sortOrder?: number;
   productCount: number;
 }

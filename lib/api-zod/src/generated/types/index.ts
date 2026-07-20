@@ -61,6 +61,8 @@ export * from './siteContentSection';
 export * from './siteContentSectionData';
 export * from './successResponse';
 export * from './trackingEvent';
+export * from './uploadFinalizeRequest';
+export * from './uploadFinalizeResponse';
 export * from './uploadUrlRequest';
 export * from './uploadUrlResponse';
 export * from './user';

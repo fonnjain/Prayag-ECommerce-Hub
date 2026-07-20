@@ -124,26 +124,27 @@ router.patch("/admin/products/:id", async (req, res): Promise<void> => {
 });
 
 router.post("/admin/categories", async (req, res): Promise<void> => {
-  const { name, slug, description, imageUrl } = req.body;
+  const { name, slug, description, imageUrl, sortOrder } = req.body;
   if (!name) { res.status(400).json({ error: "name required" }); return; }
   const finalSlug = (slug || name).toLowerCase().replace(/&/g, "and").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-  const [c] = await db.insert(categoriesTable).values({ name, slug: finalSlug, description: description ?? null, imageUrl: imageUrl ?? null }).returning();
-  res.status(201).json({ id: c.id, name: c.name, slug: c.slug, imageUrl: c.imageUrl, description: c.description });
+  const [c] = await db.insert(categoriesTable).values({ name, slug: finalSlug, description: description ?? null, imageUrl: imageUrl ?? null, sortOrder: typeof sortOrder === "number" ? sortOrder : 0 }).returning();
+  res.status(201).json({ id: c.id, name: c.name, slug: c.slug, imageUrl: c.imageUrl, description: c.description, sortOrder: c.sortOrder });
 });
 
 router.patch("/admin/categories/:id", async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
-  const { name, slug, description, imageUrl } = req.body;
+  const { name, slug, description, imageUrl, sortOrder } = req.body;
   const updates: Record<string, any> = {};
   if (name !== undefined) updates.name = name;
   if (slug !== undefined) updates.slug = slug;
   if (description !== undefined) updates.description = description;
   if (imageUrl !== undefined) updates.imageUrl = imageUrl;
+  if (typeof sortOrder === "number") updates.sortOrder = sortOrder;
   if (Object.keys(updates).length === 0) { res.status(400).json({ error: "No updates provided" }); return; }
   const [c] = await db.update(categoriesTable).set(updates).where(eq(categoriesTable.id, id)).returning();
   if (!c) { res.status(404).json({ error: "Category not found" }); return; }
-  res.json({ id: c.id, name: c.name, slug: c.slug, imageUrl: c.imageUrl, description: c.description });
+  res.json({ id: c.id, name: c.name, slug: c.slug, imageUrl: c.imageUrl, description: c.description, sortOrder: c.sortOrder });
 });
 
 router.delete("/admin/categories/:id", async (req, res): Promise<void> => {
@@ -166,6 +167,7 @@ const cmsSectionSchemas: Record<string, z.ZodTypeAny> = {
       name: z.string(), image: z.string(), price: z.number(), mrp: z.number(),
       reviews: z.number(), link: z.string(),
     }),
+    backgroundImage: z.string().optional(),
   }),
   collections: z.object({
     cards: z.array(z.object({ title: z.string(), sub: z.string(), img: z.string(), chips: z.array(z.string()), slug: z.string() })),
