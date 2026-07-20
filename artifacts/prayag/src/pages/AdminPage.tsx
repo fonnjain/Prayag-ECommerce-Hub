@@ -54,7 +54,8 @@ export default function AdminPage() {
   const { data: productsData } = useListAdminProducts({});
   const { data: customers } = useListAdminCustomers({});
   const { data: dealers } = useListAdminDealers({});
-  const { data: distributors } = useQuery({ queryKey: ["admin-distributors"], queryFn: async () => { const token = useAuthStore.getState().token; const r = await fetch("/api/admin/distributors", { headers: token ? { Authorization: `Bearer ${token}` } : {} }); return r.json(); } });
+  const { data: distributorsData } = useQuery({ queryKey: ["admin-distributors"], queryFn: async () => { const token = useAuthStore.getState().token; const r = await fetch("/api/admin/distributors", { headers: token ? { Authorization: `Bearer ${token}` } : {} }); if (!r.ok) throw new Error(`Failed to load distributors (${r.status})`); return r.json(); } });
+  const distributors = Array.isArray(distributorsData) ? distributorsData : [];
   const updateStatus = useUpdateOrderStatus();
   const { data: orderRequests } = useListAdminOrderRequests();
   const updateRequest = useUpdateOrderRequest();
