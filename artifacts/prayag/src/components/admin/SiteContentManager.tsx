@@ -3,7 +3,7 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useGetSiteContent, useUpdateSiteContent, getGetSiteContentQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { cmsDefaults, mergeWithDefaults, type CmsSectionKey, type HeroContent, type CollectionCard, type RoomCard, type TrustItem, type TopbarContent, type FooterContent, type AboutContent, type ContactContent, type DealerRegContent } from "@/lib/siteContent";
+import { cmsDefaults, mergeWithDefaults, type CmsSectionKey, type HeroContent, type CollectionCard, type RoomCard, type TrustItem, type TopbarContent, type FooterContent, type AboutContent, type ContactContent, type DealerRegContent, type FaqContent, type PoliciesContent, type CareersContent } from "@/lib/siteContent";
 import ImageUploadField from "./ImageUploadField";
 
 const inputCls = "w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[hsl(38,52%,40%)]";
@@ -61,6 +61,9 @@ export default function SiteContentManager() {
   const [about, setAbout] = useState<AboutContent>(cmsDefaults.about);
   const [contact, setContact] = useState<ContactContent>(cmsDefaults.contact);
   const [dealerReg, setDealerReg] = useState<DealerRegContent>(cmsDefaults.dealerReg);
+  const [faq, setFaq] = useState<FaqContent>(cmsDefaults.faq);
+  const [policies, setPolicies] = useState<PoliciesContent>(cmsDefaults.policies);
+  const [careers, setCareers] = useState<CareersContent>(cmsDefaults.careers);
   const [savingSection, setSavingSection] = useState<string | null>(null);
 
   useEffect(() => {
@@ -76,6 +79,9 @@ export default function SiteContentManager() {
     setAbout(mergeWithDefaults(cmsDefaults.about, content.about));
     setContact(mergeWithDefaults(cmsDefaults.contact, content.contact));
     setDealerReg(mergeWithDefaults(cmsDefaults.dealerReg, content.dealerReg));
+    setFaq(mergeWithDefaults(cmsDefaults.faq, content.faq));
+    setPolicies(mergeWithDefaults(cmsDefaults.policies, content.policies));
+    setCareers(mergeWithDefaults(cmsDefaults.careers, content.careers));
   }, [data]);
 
   function save(section: CmsSectionKey, payload: Record<string, unknown>) {
@@ -277,6 +283,94 @@ export default function SiteContentManager() {
         <div className="grid grid-cols-2 gap-3">
           <Field label="Stat number (e.g. 10,000+)" value={dealerReg.statNumber} onChange={v => setDealerReg({ ...dealerReg, statNumber: v })} />
           <Field label="Stat text" value={dealerReg.statText} onChange={v => setDealerReg({ ...dealerReg, statText: v })} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="FAQ Page" onSave={() => save("faq", faq as unknown as Record<string, unknown>)} saving={savingSection === "faq"}>
+        <Field label="Hero subtitle" textarea value={faq.heroSubtitle} onChange={v => setFaq({ ...faq, heroSubtitle: v })} />
+        {faq.items.map((f, i) => (
+          <div key={i} className="border border-gray-100 rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-bold text-gray-700">Question {i + 1}</div>
+              <button onClick={() => setFaq({ ...faq, items: faq.items.filter((_, j) => j !== i) })} className="text-red-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+            <Field label="Question" value={f.q} onChange={v => setFaq({ ...faq, items: faq.items.map((x, j) => j === i ? { ...x, q: v } : x) })} />
+            <Field label="Answer" textarea value={f.a} onChange={v => setFaq({ ...faq, items: faq.items.map((x, j) => j === i ? { ...x, a: v } : x) })} />
+          </div>
+        ))}
+        <button onClick={() => setFaq({ ...faq, items: [...faq.items, { q: "", a: "" }] })}
+          className="flex items-center gap-1 text-xs font-semibold text-[hsl(38,52%,40%)]"><Plus className="w-3.5 h-3.5" /> Add question</button>
+      </SectionCard>
+
+      <SectionCard title="Policy Pages" onSave={() => save("policies", policies as unknown as Record<string, unknown>)} saving={savingSection === "policies"}>
+        <Field label="Contact email (shown at bottom of every policy)" value={policies.contactEmail} onChange={v => setPolicies({ ...policies, contactEmail: v })} />
+        {(["shipping", "returns", "privacy", "terms"] as const).map(key => {
+          const p = policies[key];
+          const setP = (next: typeof p) => setPolicies({ ...policies, [key]: next });
+          return (
+            <div key={key} className="border border-gray-100 rounded-lg p-3 space-y-2">
+              <div className="text-xs font-bold text-gray-700 uppercase tracking-wide">{p.title}</div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Page title" value={p.title} onChange={v => setP({ ...p, title: v })} />
+                <Field label="Subtitle" value={p.subtitle} onChange={v => setP({ ...p, subtitle: v })} />
+              </div>
+              {p.sections.map((s, i) => (
+                <div key={i} className="border border-gray-50 bg-gray-50/50 rounded-lg p-2.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[11px] font-bold text-gray-500">Section {i + 1}</div>
+                    <button onClick={() => setP({ ...p, sections: p.sections.filter((_, j) => j !== i) })} className="text-red-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                  <Field label="Heading" value={s.h} onChange={v => setP({ ...p, sections: p.sections.map((x, j) => j === i ? { ...x, h: v } : x) })} />
+                  <Field label="Text" textarea value={s.p} onChange={v => setP({ ...p, sections: p.sections.map((x, j) => j === i ? { ...x, p: v } : x) })} />
+                </div>
+              ))}
+              <button onClick={() => setP({ ...p, sections: [...p.sections, { h: "", p: "" }] })}
+                className="flex items-center gap-1 text-xs font-semibold text-[hsl(38,52%,40%)]"><Plus className="w-3.5 h-3.5" /> Add section</button>
+            </div>
+          );
+        })}
+      </SectionCard>
+
+      <SectionCard title="Careers Page" onSave={() => save("careers", careers as unknown as Record<string, unknown>)} saving={savingSection === "careers"}>
+        <Field label="Hero subtitle" textarea value={careers.heroSubtitle} onChange={v => setCareers({ ...careers, heroSubtitle: v })} />
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Intro badge" value={careers.introBadge} onChange={v => setCareers({ ...careers, introBadge: v })} />
+          <Field label="Intro title" value={careers.introTitle} onChange={v => setCareers({ ...careers, introTitle: v })} />
+          <Field label="Intro accent (gold word)" value={careers.introAccent} onChange={v => setCareers({ ...careers, introAccent: v })} />
+        </div>
+        <Field label="Intro text" textarea value={careers.introText} onChange={v => setCareers({ ...careers, introText: v })} />
+        <Field label="Careers email" value={careers.email} onChange={v => setCareers({ ...careers, email: v })} />
+        <div className="border-t border-gray-100 pt-3">
+          <div className="text-xs font-bold text-gray-700 mb-2">Perks</div>
+          <div className="grid grid-cols-2 gap-3">
+            {careers.perks.map((p, i) => (
+              <div key={i} className="border border-gray-100 rounded-lg p-2.5 space-y-2">
+                <Field label={`Perk ${i + 1} title`} value={p.title} onChange={v => setCareers({ ...careers, perks: careers.perks.map((x, j) => j === i ? { ...x, title: v } : x) })} />
+                <Field label="Description" textarea value={p.desc} onChange={v => setCareers({ ...careers, perks: careers.perks.map((x, j) => j === i ? { ...x, desc: v } : x) })} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="border-t border-gray-100 pt-3">
+          <div className="text-xs font-bold text-gray-700 mb-2">Open positions</div>
+          {careers.openings.map((o, i) => (
+            <div key={i} className="border border-gray-100 rounded-lg p-2.5 space-y-2 mb-2">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-bold text-gray-500">Position {i + 1}</div>
+                <button onClick={() => setCareers({ ...careers, openings: careers.openings.filter((_, j) => j !== i) })} className="text-red-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Role" value={o.role} onChange={v => setCareers({ ...careers, openings: careers.openings.map((x, j) => j === i ? { ...x, role: v } : x) })} />
+                <Field label="Department" value={o.dept} onChange={v => setCareers({ ...careers, openings: careers.openings.map((x, j) => j === i ? { ...x, dept: v } : x) })} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Location" value={o.location} onChange={v => setCareers({ ...careers, openings: careers.openings.map((x, j) => j === i ? { ...x, location: v } : x) })} />
+                <Field label="Type (e.g. Full-time)" value={o.type} onChange={v => setCareers({ ...careers, openings: careers.openings.map((x, j) => j === i ? { ...x, type: v } : x) })} />
+              </div>
+            </div>
+          ))}
+          <button onClick={() => setCareers({ ...careers, openings: [...careers.openings, { role: "", dept: "", location: "", type: "Full-time" }] })}
+            className="flex items-center gap-1 text-xs font-semibold text-[hsl(38,52%,40%)]"><Plus className="w-3.5 h-3.5" /> Add position</button>
         </div>
       </SectionCard>
     </div>

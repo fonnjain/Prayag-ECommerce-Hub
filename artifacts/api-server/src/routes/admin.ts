@@ -204,6 +204,34 @@ const cmsSectionSchemas: Record<string, z.ZodTypeAny> = {
     statNumber: z.string(),
     statText: z.string(),
   }),
+  faq: z.object({
+    heroSubtitle: z.string(),
+    items: z.array(z.object({ q: z.string(), a: z.string() })),
+  }),
+  policies: (() => {
+    const policy = z.object({
+      title: z.string(),
+      subtitle: z.string(),
+      sections: z.array(z.object({ h: z.string(), p: z.string() })),
+    });
+    return z.object({
+      contactEmail: z.string(),
+      shipping: policy,
+      returns: policy,
+      privacy: policy,
+      terms: policy,
+    });
+  })(),
+  careers: z.object({
+    heroSubtitle: z.string(),
+    introBadge: z.string(),
+    introTitle: z.string(),
+    introAccent: z.string(),
+    introText: z.string(),
+    perks: z.array(z.object({ title: z.string(), desc: z.string() })),
+    openings: z.array(z.object({ role: z.string(), dept: z.string(), location: z.string(), type: z.string() })),
+    email: z.string(),
+  }),
 };
 
 router.put("/admin/site-content/:section", async (req, res): Promise<void> => {

@@ -4,56 +4,22 @@ import { ChevronDown, MessageCircle } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import { useSiteContent } from "@/lib/siteContent";
 
-const faqs = [
-  {
-    q: "What product categories does Prayag offer?",
-    a: "Prayag offers a complete range including CP faucets, PTMT faucets, sanitaryware, kitchen sinks, water heaters, pipes & fittings, bathroom accessories and flush tanks — over 4,500 products in all.",
-  },
-  {
-    q: "Do Prayag products come with a warranty?",
-    a: "Yes. Most faucets and sanitaryware carry a manufacturer warranty (typically 5–10 years on the cartridge/finish depending on the series). Warranty details are listed on each product page.",
-  },
-  {
-    q: "How can I track my order?",
-    a: "Once your order ships, you can track it anytime from the Track Order page or from your account under 'My Orders'. You'll also receive updates on your registered contact.",
-  },
-  {
-    q: "What is your shipping timeline?",
-    a: "Orders are typically dispatched within 1–2 business days and delivered within 3–7 business days depending on your location. See our Shipping Policy for full details.",
-  },
-  {
-    q: "Can I return or exchange a product?",
-    a: "Yes, unused products in their original packaging can be returned within 7 days of delivery. Please review our Returns & Refunds policy for eligibility and the step-by-step process.",
-  },
-  {
-    q: "How do I become a Prayag dealer or distributor?",
-    a: "We welcome new partners! Register through our Dealer Registration or Distributor Registration pages and our team will get in touch to discuss margins, schemes and onboarding.",
-  },
-  {
-    q: "Do you offer bulk or project pricing?",
-    a: "Absolutely. For bulk, builder or project requirements, use the Bulk Order option in the top bar or reach out via the Dealer portal for customised quotations.",
-  },
-  {
-    q: "Are spare parts available for older models?",
-    a: "Yes, cartridges, aerators and common spares are stocked for most current and recent series. Contact customer care with your product SKU for availability.",
-  },
-];
-
 export default function FaqPage() {
   const [open, setOpen] = useState<number | null>(0);
   const { section } = useSiteContent();
   const contact = section("contact");
+  const faq = section("faq");
   return (
     <div className="bg-white">
       <PageHero
         title="Frequently Asked Questions"
         breadcrumb="FAQs"
-        subtitle="Everything you need to know about Prayag products, orders, warranty and support."
+        subtitle={faq.heroSubtitle}
       />
 
       <section className="max-w-3xl mx-auto px-4 py-14">
         <div className="space-y-3">
-          {faqs.map((f, i) => {
+          {faq.items.map((f, i) => {
             const isOpen = open === i;
             return (
               <div key={i} className={`border rounded-2xl overflow-hidden transition-all ${isOpen ? "border-[hsl(38,52%,52%)]/40 shadow-sm" : "border-gray-100"}`}>
