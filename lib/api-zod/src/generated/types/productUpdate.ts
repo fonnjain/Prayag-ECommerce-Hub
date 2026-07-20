@@ -8,9 +8,19 @@
 
 export interface ProductUpdate {
   name?: string;
+  sku?: string;
   price?: number;
   mrp?: number;
+  categoryId?: number;
   description?: string;
+  /** @nullable */
+  specifications?: string | null;
+  /** @nullable */
+  warranty?: string | null;
+  gstPercent?: number;
+  /** @nullable */
+  imageUrl?: string | null;
+  images?: string[];
   isFeatured?: boolean;
   isNew?: boolean;
   inStock?: boolean;

@@ -1,4 +1,4 @@
-import { db, productsTable, productImagesTable, categoriesTable } from "@workspace/db";
+import { db, productsTable, productImagesTable, categoriesTable, siteContentTable } from "@workspace/db";
 
 const PROD_URL = process.env.PROD_URL || "https://e-commerce-hub-nishantjain29.replit.app";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@prayag.com";
@@ -35,6 +35,12 @@ async function main() {
   const categories = await db.select().from(categoriesTable);
   const catRes = await post({ categories });
   console.log(`categories synced: ${catRes.categories}`);
+
+  const siteContent = await db.select().from(siteContentTable);
+  if (siteContent.length > 0) {
+    const scRes = await post({ siteContent: siteContent.map((s) => ({ section: s.section, data: s.data })) });
+    console.log(`site content synced: ${scRes.siteContent}`);
+  }
 
   // prune anything in prod that's not in dev FIRST, so stale rows can't cause slug/sku conflicts
   const prune = await post({ keepOnlyIds: [...devIds] });

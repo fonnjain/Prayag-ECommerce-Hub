@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { SiInstagram, SiX, SiFacebook, SiYoutube } from "react-icons/si";
 import { Phone, Mail, Clock } from "lucide-react";
 import logoWhite from "@assets/Prayag_logo_W_1783664087488.png";
+import { useSiteContent } from "@/lib/siteContent";
 
 const shopLinks = [
   { label: "All Products", href: "/products" },
@@ -30,6 +31,8 @@ const serviceLinks = [
 ];
 
 export default function Footer() {
+  const { section } = useSiteContent();
+  const footer = section("footer");
   return (
     <footer className="bg-[hsl(24,14%,8%)] text-gray-300 mt-16 relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 gold-divider" />
@@ -42,7 +45,7 @@ export default function Footer() {
             <img src={logoWhite} alt="Prayag" className="h-9 w-auto object-contain mb-1" />
             <div className="text-[10px] text-[hsl(42,62%,68%)] tracking-[0.28em] uppercase mb-4">Strong · Beautiful · Prayag</div>
             <p className="text-sm leading-relaxed text-gray-400 mb-5 max-w-xs">
-              India's trusted plumbing and sanitaryware brand — delivering timeless quality for homes and commercial spaces since 1985.
+              {footer.about}
             </p>
             <div className="flex gap-3">
               {[
@@ -68,15 +71,15 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-gray-400">
               <li className="flex items-start gap-2.5">
                 <Phone className="w-4 h-4 text-[hsl(42,62%,68%)] mt-0.5 flex-shrink-0" />
-                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Call Us</div><a href="tel:18001234567" className="text-white font-semibold hover:text-[hsl(42,62%,68%)] transition-colors">1800 123 4567</a></div>
+                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Call Us</div><a href={`tel:${footer.phone.replace(/\s/g, "")}`} className="text-white font-semibold hover:text-[hsl(42,62%,68%)] transition-colors">{footer.phone}</a></div>
               </li>
               <li className="flex items-start gap-2.5">
                 <Mail className="w-4 h-4 text-[hsl(42,62%,68%)] mt-0.5 flex-shrink-0" />
-                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Email</div><a href="mailto:support@prayag.com" className="hover:text-[hsl(42,62%,68%)] transition-colors">support@prayag.com</a></div>
+                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Email</div><a href={`mailto:${footer.email}`} className="hover:text-[hsl(42,62%,68%)] transition-colors">{footer.email}</a></div>
               </li>
               <li className="flex items-start gap-2.5">
                 <Clock className="w-4 h-4 text-[hsl(42,62%,68%)] mt-0.5 flex-shrink-0" />
-                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Hours</div><span>Mon–Sat · 9AM – 6PM</span></div>
+                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Hours</div><span>{footer.hours}</span></div>
               </li>
             </ul>
           </div>

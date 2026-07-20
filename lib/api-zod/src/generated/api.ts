@@ -861,9 +861,16 @@ export const UpdateProductParams = zod.object({
 
 export const UpdateProductBody = zod.object({
   "name": zod.string().optional(),
+  "sku": zod.string().optional(),
   "price": zod.number().optional(),
   "mrp": zod.number().optional(),
+  "categoryId": zod.number().optional(),
   "description": zod.string().optional(),
+  "specifications": zod.string().nullish(),
+  "warranty": zod.string().nullish(),
+  "gstPercent": zod.number().optional(),
+  "imageUrl": zod.string().nullish(),
+  "images": zod.array(zod.string()).optional(),
   "isFeatured": zod.boolean().optional(),
   "isNew": zod.boolean().optional(),
   "inStock": zod.boolean().optional()
@@ -1080,6 +1087,122 @@ export const ListAdminDealersResponseItem = zod.object({
   "createdAt": zod.string()
 })
 export const ListAdminDealersResponse = zod.array(ListAdminDealersResponseItem)
+
+
+/**
+ * @summary Get all CMS site content sections
+ */
+export const GetSiteContentResponse = zod.record(zod.string(), zod.unknown())
+
+
+/**
+ * @summary Update a CMS content section (admin)
+ */
+export const UpdateSiteContentParams = zod.object({
+  "section": zod.coerce.string()
+})
+
+export const UpdateSiteContentBody = zod.object({
+  "data": zod.record(zod.string(), zod.unknown())
+})
+
+export const UpdateSiteContentResponse = zod.object({
+  "section": zod.string(),
+  "data": zod.record(zod.string(), zod.unknown())
+})
+
+
+/**
+ * @summary Create category (admin)
+ */
+export const CreateCategoryBody = zod.object({
+  "name": zod.string(),
+  "slug": zod.string().optional(),
+  "description": zod.string().nullish(),
+  "imageUrl": zod.string().nullish()
+})
+
+
+/**
+ * @summary Update category (admin)
+ */
+export const UpdateCategoryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateCategoryBody = zod.object({
+  "name": zod.string().optional(),
+  "slug": zod.string().optional(),
+  "description": zod.string().nullish(),
+  "imageUrl": zod.string().nullish()
+})
+
+export const UpdateCategoryResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "imageUrl": zod.string().nullish(),
+  "description": zod.string().nullish()
+})
+
+
+/**
+ * @summary Delete category (admin)
+ */
+export const DeleteCategoryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteCategoryResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string().nullish()
+})
+
+
+/**
+ * @summary Request a presigned URL for file upload
+ */
+
+
+
+
+
+export const RequestUploadUrlBody = zod.object({
+  "name": zod.string().min(1),
+  "size": zod.number().min(1),
+  "contentType": zod.string().min(1)
+})
+
+
+
+
+
+
+export const RequestUploadUrlResponse = zod.object({
+  "uploadURL": zod.string().url(),
+  "objectPath": zod.string(),
+  "metadata": zod.object({
+  "name": zod.string().min(1),
+  "size": zod.number().min(1),
+  "contentType": zod.string().min(1)
+}).optional()
+})
+
+
+/**
+ * @summary Serve a public asset from PUBLIC_OBJECT_SEARCH_PATHS
+ */
+export const GetPublicObjectParams = zod.object({
+  "filePath": zod.coerce.string()
+})
+
+
+/**
+ * @summary Serve an object entity from PRIVATE_OBJECT_DIR
+ */
+export const GetStorageObjectParams = zod.object({
+  "objectPath": zod.coerce.string()
+})
 
 
 /**

@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Package, Users, Building2, ShoppingBag, IndianRupee, LayoutDashboard, Truck, RotateCcw } from "lucide-react";
+import { Package, Users, Building2, ShoppingBag, IndianRupee, LayoutDashboard, Truck, RotateCcw, Palette, FolderTree, Pencil } from "lucide-react";
+import SiteContentManager from "@/components/admin/SiteContentManager";
+import CategoryManager from "@/components/admin/CategoryManager";
+import ProductEditModal from "@/components/admin/ProductEditModal";
+import type { Product } from "@workspace/api-client-react";
 import { useGetAdminDashboard, useGetRevenueStats, useListAdminOrders, useListAdminProducts, useListAdminCustomers, useListAdminDealers, useUpdateOrderStatus, getListAdminOrdersQueryKey, useListAdminOrderRequests, getListAdminOrderRequestsQueryKey, useUpdateOrderRequest } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,6 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "products", label: "Products", icon: ShoppingBag },
+  { id: "categories", label: "Categories", icon: FolderTree },
+  { id: "site-content", label: "Site Content", icon: Palette },
   { id: "orders", label: "Orders", icon: Package },
   { id: "requests", label: "Requests", icon: RotateCcw },
   { id: "customers", label: "Customers", icon: Users },
@@ -38,6 +44,7 @@ const requestStatusColors: Record<string, string> = {
 
 export default function AdminPage() {
   const [active, setActive] = useState("dashboard");
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -164,7 +171,7 @@ export default function AdminPage() {
                 <h2 className="font-bold text-gray-900">All Products ({productsData?.total || 0})</h2>
               </div>
               <table className="w-full text-sm">
-                <thead className="bg-gray-50"><tr>{["SKU", "Name", "Category", "Price", "Stock", "Featured"].map(h => <th key={h} className="text-left px-4 py-2.5 text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead>
+                <thead className="bg-gray-50"><tr>{["SKU", "Name", "Category", "Price", "Stock", "Featured", "Edit"].map(h => <th key={h} className="text-left px-4 py-2.5 text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead>
                 <tbody className="divide-y divide-gray-50">
                   {productsData?.products?.map(p => (
                     <tr key={p.id} className="hover:bg-gray-50" data-testid={`row-admin-product-${p.id}`}>
@@ -174,11 +181,28 @@ export default function AdminPage() {
                       <td className="px-4 py-3 font-bold text-[hsl(38,52%,40%)]">₹{p.price.toLocaleString("en-IN")}</td>
                       <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-0.5 rounded-full ${p.inStock ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{p.inStock ? "In Stock" : "Out"}</span></td>
                       <td className="px-4 py-3">{p.isFeatured ? <span className="text-xs bg-amber-100 text-[hsl(38,52%,40%)] px-2 py-0.5 rounded-full">Yes</span> : "-"}</td>
+                      <td className="px-4 py-3">
+                        <button onClick={() => setEditingProduct(p)} className="text-gray-400 hover:text-[hsl(38,52%,40%)]" data-testid={`button-edit-product-${p.id}`}><Pencil className="w-4 h-4" /></button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {active === "categories" && (
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Category Management</h1>
+            <CategoryManager />
+          </div>
+        )}
+
+        {active === "site-content" && (
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Site Content</h1>
+            <SiteContentManager />
           </div>
         )}
 
@@ -332,6 +356,7 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+      {editingProduct && <ProductEditModal product={editingProduct} onClose={() => setEditingProduct(null)} />}
     </div>
   );
 }

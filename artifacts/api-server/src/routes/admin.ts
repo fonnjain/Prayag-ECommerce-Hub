@@ -1,7 +1,8 @@
 import { Router, type IRouter } from "express";
 import jwt from "jsonwebtoken";
-import { db, ordersTable, productsTable, usersTable, dealersTable, categoriesTable, productImagesTable, orderRequestsTable } from "@workspace/db";
+import { db, ordersTable, productsTable, usersTable, dealersTable, categoriesTable, productImagesTable, orderRequestsTable, siteContentTable } from "@workspace/db";
 import { eq, ilike, sql, and, desc } from "drizzle-orm";
+import { z } from "zod";
 
 const JWT_SECRET = process.env.SESSION_SECRET;
 
@@ -94,18 +95,110 @@ router.post("/admin/products", async (req, res): Promise<void> => {
 router.patch("/admin/products/:id", async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
-  const { name, price, mrp, description, isFeatured, isNew, inStock } = req.body;
+  const { name, sku, price, mrp, categoryId, description, specifications, warranty, gstPercent, imageUrl, images, isFeatured, isNew, inStock } = req.body;
   const updates: Record<string, any> = {};
   if (name !== undefined) updates.name = name;
+  if (sku !== undefined) updates.sku = sku;
   if (price !== undefined) updates.price = price.toString();
   if (mrp !== undefined) updates.mrp = mrp.toString();
+  if (categoryId !== undefined) updates.categoryId = categoryId;
   if (description !== undefined) updates.description = description;
+  if (specifications !== undefined) updates.specifications = specifications;
+  if (warranty !== undefined) updates.warranty = warranty;
+  if (gstPercent !== undefined) updates.gstPercent = gstPercent.toString();
+  if (imageUrl !== undefined) updates.imageUrl = imageUrl;
   if (isFeatured !== undefined) updates.isFeatured = isFeatured;
   if (isNew !== undefined) updates.isNew = isNew;
   if (inStock !== undefined) updates.inStock = inStock;
-  const [p] = await db.update(productsTable).set(updates).where(eq(productsTable.id, id)).returning();
+  const [p] = Object.keys(updates).length > 0
+    ? await db.update(productsTable).set(updates).where(eq(productsTable.id, id)).returning()
+    : await db.select().from(productsTable).where(eq(productsTable.id, id));
   if (!p) { res.status(404).json({ error: "Product not found" }); return; }
-  res.json({ ...p, price: parseFloat(p.price as string), mrp: parseFloat(p.mrp as string), images: [], rating: 4, reviewCount: 0, gstPercent: 18 });
+  if (Array.isArray(images)) {
+    await db.delete(productImagesTable).where(eq(productImagesTable.productId, id));
+    for (let i = 0; i < images.length; i++) {
+      await db.insert(productImagesTable).values({ productId: id, imageUrl: images[i], sortOrder: i });
+    }
+  }
+  res.json({ ...p, price: parseFloat(p.price as string), mrp: parseFloat(p.mrp as string), images: Array.isArray(images) ? images : [], rating: parseFloat(p.rating as string), reviewCount: p.reviewCount, gstPercent: parseFloat(p.gstPercent as string) });
+});
+
+router.post("/admin/categories", async (req, res): Promise<void> => {
+  const { name, slug, description, imageUrl } = req.body;
+  if (!name) { res.status(400).json({ error: "name required" }); return; }
+  const finalSlug = (slug || name).toLowerCase().replace(/&/g, "and").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  const [c] = await db.insert(categoriesTable).values({ name, slug: finalSlug, description: description ?? null, imageUrl: imageUrl ?? null }).returning();
+  res.status(201).json({ id: c.id, name: c.name, slug: c.slug, imageUrl: c.imageUrl, description: c.description });
+});
+
+router.patch("/admin/categories/:id", async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+  const { name, slug, description, imageUrl } = req.body;
+  const updates: Record<string, any> = {};
+  if (name !== undefined) updates.name = name;
+  if (slug !== undefined) updates.slug = slug;
+  if (description !== undefined) updates.description = description;
+  if (imageUrl !== undefined) updates.imageUrl = imageUrl;
+  if (Object.keys(updates).length === 0) { res.status(400).json({ error: "No updates provided" }); return; }
+  const [c] = await db.update(categoriesTable).set(updates).where(eq(categoriesTable.id, id)).returning();
+  if (!c) { res.status(404).json({ error: "Category not found" }); return; }
+  res.json({ id: c.id, name: c.name, slug: c.slug, imageUrl: c.imageUrl, description: c.description });
+});
+
+router.delete("/admin/categories/:id", async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+  const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(productsTable).where(eq(productsTable.categoryId, id));
+  if (count > 0) { res.status(400).json({ error: `Category has ${count} products. Move them first.` }); return; }
+  await db.delete(categoriesTable).where(eq(categoriesTable.id, id));
+  res.json({ success: true });
+});
+
+const cmsSectionSchemas: Record<string, z.ZodTypeAny> = {
+  hero: z.object({
+    badge: z.string(),
+    titleLine1: z.string(),
+    titleAccent: z.string(),
+    subtitle: z.string(),
+    stats: z.array(z.object({ n: z.number(), s: z.string(), label: z.string() })),
+    featured: z.object({
+      name: z.string(), image: z.string(), price: z.number(), mrp: z.number(),
+      reviews: z.number(), link: z.string(),
+    }),
+  }),
+  collections: z.object({
+    cards: z.array(z.object({ title: z.string(), sub: z.string(), img: z.string(), chips: z.array(z.string()), slug: z.string() })),
+  }),
+  rooms: z.object({
+    cards: z.array(z.object({ label: z.string(), img: z.string(), slug: z.string() })),
+  }),
+  trust: z.object({
+    items: z.array(z.object({ label: z.string(), sub: z.string() })),
+  }),
+  marquee: z.object({ words: z.array(z.string()) }),
+  topbar: z.object({ text: z.string(), phone: z.string() }),
+  footer: z.object({ phone: z.string(), email: z.string(), hours: z.string(), about: z.string() }),
+};
+
+router.put("/admin/site-content/:section", async (req, res): Promise<void> => {
+  const rawSection = Array.isArray(req.params.section) ? req.params.section[0] : req.params.section;
+  let { data } = req.body;
+  if (!data || typeof data !== "object") { res.status(400).json({ error: "data object required" }); return; }
+  const schema = cmsSectionSchemas[rawSection];
+  if (schema) {
+    const parsed = schema.safeParse(data);
+    if (!parsed.success) {
+      res.status(400).json({ error: `Invalid ${rawSection} content: ${parsed.error.issues.map((i: { path: (string | number)[]; message: string }) => `${i.path.join(".")}: ${i.message}`).join("; ")}` });
+      return;
+    }
+    data = parsed.data;
+  }
+  const [row] = await db.insert(siteContentTable)
+    .values({ section: rawSection, data, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: siteContentTable.section, set: { data, updatedAt: new Date() } })
+    .returning();
+  res.json({ section: row.section, data: row.data });
 });
 
 router.post("/admin/import-products", async (req, res): Promise<void> => {
@@ -117,16 +210,28 @@ router.post("/admin/import-products", async (req, res): Promise<void> => {
     categories?: Array<Record<string, unknown>>;
   };
   const categories = (req.body as { categories?: Array<Record<string, unknown>> }).categories;
+  const siteContent = (req.body as { siteContent?: Array<{ section: string; data: unknown }> }).siteContent;
+  const hasSiteContent = Array.isArray(siteContent) && siteContent.length > 0;
   const hasCategories = Array.isArray(categories) && categories.length > 0;
   const hasProducts = Array.isArray(products) && products.length > 0;
   const hasImages = Array.isArray(images) && images.length > 0;
   const hasDeleteIds = Array.isArray(deleteIds) && deleteIds.length > 0;
   const hasKeepOnly = Array.isArray(keepOnlyIds) && keepOnlyIds.length > 0;
-  if (!hasProducts && !hasImages && !hasDeleteIds && !hasKeepOnly && !hasCategories) {
-    res.status(400).json({ error: "products, images, categories, deleteIds or keepOnlyIds required" });
+  if (!hasProducts && !hasImages && !hasDeleteIds && !hasKeepOnly && !hasCategories && !hasSiteContent) {
+    res.status(400).json({ error: "products, images, categories, siteContent, deleteIds or keepOnlyIds required" });
     return;
   }
   const result = await db.transaction(async (tx) => {
+    let siteContentUpserted = 0;
+    if (hasSiteContent) {
+      for (const sc of siteContent!) {
+        if (!sc.section || typeof sc.data !== "object" || sc.data === null) continue;
+        await tx.insert(siteContentTable)
+          .values({ section: sc.section, data: sc.data, updatedAt: new Date() })
+          .onConflictDoUpdate({ target: siteContentTable.section, set: { data: sc.data, updatedAt: new Date() } });
+        siteContentUpserted++;
+      }
+    }
     let categoriesUpserted = 0;
     if (hasCategories) {
       for (const c of categories!) {
@@ -205,9 +310,9 @@ router.post("/admin/import-products", async (req, res): Promise<void> => {
     }
     await tx.execute(sql`SELECT setval(pg_get_serial_sequence('products','id'), (SELECT COALESCE(MAX(id),1) FROM products))`);
     await tx.execute(sql`SELECT setval(pg_get_serial_sequence('product_images','id'), (SELECT COALESCE(MAX(id),1) FROM product_images))`);
-    return { upserted, imagesUpserted, deleted, categoriesUpserted };
+    return { upserted, imagesUpserted, deleted, categoriesUpserted, siteContentUpserted };
   });
-  res.json({ success: true, products: result.upserted, images: result.imagesUpserted, deleted: result.deleted, categories: result.categoriesUpserted });
+  res.json({ success: true, products: result.upserted, images: result.imagesUpserted, deleted: result.deleted, categories: result.categoriesUpserted, siteContent: result.siteContentUpserted });
 });
 
 router.delete("/admin/products/:id", async (req, res): Promise<void> => {

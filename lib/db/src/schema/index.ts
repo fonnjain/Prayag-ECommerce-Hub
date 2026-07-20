@@ -7,3 +7,4 @@ export * from "./wishlist";
 export * from "./dealers";
 export * from "./distributors";
 export * from "./banners";
+export * from "./siteContent";

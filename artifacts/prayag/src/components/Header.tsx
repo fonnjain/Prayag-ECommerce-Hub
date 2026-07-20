@@ -5,6 +5,7 @@ import { useCartStore, useAuthStore } from "@/lib/store";
 import { useGetCart, useGetWishlist, useGetSearchSuggestions, getGetSearchSuggestionsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import logoDark from "@assets/logo_1783664087489.png";
+import { useSiteContent } from "@/lib/siteContent";
 
 const allCategories = [
   { label: "CP Faucets", slug: "cp-faucets" },
@@ -29,6 +30,8 @@ const navItems = [
 ];
 
 export default function Header() {
+  const { section } = useSiteContent();
+  const topbar = section("topbar");
   const [searchQ, setSearchQ] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -125,7 +128,7 @@ export default function Header() {
               )}
             </div>
             <span className="flex items-center gap-1 hidden sm:flex">
-              <Phone className="w-3 h-3" /> Customer Care: <strong>1800 123 4567</strong>
+              <Phone className="w-3 h-3" /> {topbar.text} <strong>{topbar.phone}</strong>
             </span>
           </div>
         </div>

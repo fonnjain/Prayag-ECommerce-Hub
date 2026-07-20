@@ -8,6 +8,7 @@ import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSiteContent } from "@/lib/siteContent";
 import heroFaucet from "@assets/generated_images/prayag_hero_luxury.png";
 
 function AddToCartButton({ productId, productName }: { productId: number; productName: string }) {
@@ -50,28 +51,7 @@ const categoryImages: Record<string, string> = {
   "storage-tanks": "/images/categories/storage-tanks.webp",
 };
 
-const collectionCards = [
-  { title: "Premium Faucet Collection", sub: "Crafted to perfection", img: "/images/collections/faucet-collection.webp", chips: ["Royale Series", "Elegance Series", "Aqua Series"], slug: "cp-faucets" },
-  { title: "Luxury Bathroom Collection", sub: "Luxury that lasts", img: "/images/collections/bathroom-collection.webp", chips: ["Wall Hung Closets", "Wash Basins", "Concealed Cisterns"], slug: "sanitaryware" },
-  { title: "Kitchen Collection", sub: "Functional. Durable. Stylish.", img: "/images/collections/kitchen-collection.webp", chips: ["Stainless Steel Sinks", "Sink Mixers", "Drain Systems"], slug: "kitchen-sinks" },
-];
-
-const roomCards = [
-  { label: "Bathroom", img: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=400&h=300&fit=crop", slug: "sanitaryware" },
-  { label: "Kitchen", img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop", slug: "kitchen-sinks" },
-  { label: "Utility Area", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=300&fit=crop", slug: "pipes-fittings" },
-  { label: "Commercial Space", img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&h=300&fit=crop", slug: "cp-faucets" },
-];
-
-const trustItems = [
-  { icon: BadgeCheck, label: "100% Original Products", sub: "Sourced directly" },
-  { icon: RefreshCw, label: "Easy Returns", sub: "Within 7 days" },
-  { icon: Shield, label: "Secure Payments", sub: "Multiple options" },
-  { icon: Tag, label: "Best Price", sub: "Guaranteed" },
-  { icon: Headphones, label: "Expert Support", sub: "Available 24x7" },
-];
-
-const marqueeWords = ["CP FAUCETS", "SANITARYWARE", "KITCHEN SINKS", "WATER HEATERS", "PIPES & FITTINGS", "BATHROOM ACCESSORIES", "STORAGE TANKS", "PTMT FAUCETS"];
+const trustIcons = [BadgeCheck, RefreshCw, Shield, Tag, Headphones];
 
 /* Animated number counter */
 function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
@@ -125,6 +105,12 @@ export default function HomePage() {
   const { data: featured, isLoading: featLoading } = useListFeaturedProducts();
   const { data: newArrivals, isLoading: newLoading } = useListNewArrivals();
   const faucetScrollRef = useRef<HTMLDivElement>(null);
+  const { section } = useSiteContent();
+  const hero = section("hero");
+  const collectionCards = section("collections").cards;
+  const roomCards = section("rooms").cards;
+  const trustItems = section("trust").items;
+  const marqueeWords = section("marquee").words;
 
   // parallax mouse for hero product card
   const mx = useMotionValue(0);
@@ -163,20 +149,20 @@ export default function HomePage() {
           <div className="text-white">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs font-semibold mb-6 border border-[hsl(38,52%,52%)]/30">
-              <Droplets className="w-3.5 h-3.5 text-[hsl(42,62%,68%)]" /> <span className="tracking-[0.15em] uppercase text-[hsl(42,62%,78%)]">India's Premier Plumbing Maison</span>
+              <Droplets className="w-3.5 h-3.5 text-[hsl(42,62%,68%)]" /> <span className="tracking-[0.15em] uppercase text-[hsl(42,62%,78%)]">{hero.badge}</span>
             </motion.div>
             <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
               className="font-display text-5xl md:text-[4.2rem] font-bold leading-[1.05] mb-6 tracking-tight">
-              Complete Bathroom &<br />Plumbing{" "}
+              {hero.titleLine1}{" "}
               <span className="relative inline-block">
-                <span className="italic text-gradient-gold">Solutions</span>
+                <span className="italic text-gradient-gold">{hero.titleAccent}</span>
                 <motion.span initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.8, delay: 0.7 }}
                   className="absolute left-0 -bottom-1 w-full h-[3px] bg-gold-gradient origin-left rounded-full" />
               </span>
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }}
               className="text-stone-300 text-base md:text-lg mb-8 max-w-md leading-relaxed">
-              Premium faucets, sanitaryware, kitchen sinks & water heaters — engineered to last a lifetime.
+              {hero.subtitle}
             </motion.p>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.35 }}
               className="flex flex-wrap gap-3 mb-10">
@@ -195,11 +181,7 @@ export default function HomePage() {
             </motion.div>
             {/* animated stats */}
             <div className="grid grid-cols-3 gap-4 max-w-md">
-              {[
-                { n: 4500, s: "+", label: "Products" },
-                { n: 10000, s: "+", label: "Dealers" },
-                { n: 40, s: "+ yrs", label: "Legacy" },
-              ].map((stat, i) => (
+              {hero.stats.map((stat, i) => (
                 <motion.div key={stat.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.1 }}
                   className="glass rounded-2xl px-3 py-3 text-center border border-[hsl(38,52%,52%)]/20">
                   <div className="font-display text-2xl md:text-[1.7rem] font-bold text-gradient-gold"><Counter to={stat.n} suffix={stat.s} /></div>
@@ -223,19 +205,21 @@ export default function HomePage() {
                 <Sparkles className="w-3 h-3" /> Featured
               </div>
               <div className="rounded-2xl overflow-hidden mb-4 bg-stone-100">
-                <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=300&h=240&fit=crop" alt="Royale Series Basin Mixer" className="w-full h-40 object-cover" />
+                <img src={hero.featured.image} alt={hero.featured.name} className="w-full h-40 object-cover" />
               </div>
-              <div className="text-sm font-black text-gray-900 mb-1">Royale Series Basin Mixer</div>
+              <div className="text-sm font-black text-gray-900 mb-1">{hero.featured.name}</div>
               <div className="flex items-center gap-1 mb-3">
                 {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-[hsl(38,52%,52%)] text-[hsl(38,52%,52%)]" />)}
-                <span className="text-[11px] text-gray-400 ml-1">(214)</span>
+                <span className="text-[11px] text-gray-400 ml-1">({hero.featured.reviews})</span>
               </div>
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-2xl font-black text-[hsl(24,10%,16%)]">₹2,499</span>
-                <span className="text-sm text-gray-400 line-through">₹3,299</span>
-                <span className="text-[11px] font-bold text-green-600">24% OFF</span>
+                <span className="text-2xl font-black text-[hsl(24,10%,16%)]">₹{Number(hero.featured.price).toLocaleString("en-IN")}</span>
+                {hero.featured.mrp > hero.featured.price && <>
+                  <span className="text-sm text-gray-400 line-through">₹{Number(hero.featured.mrp).toLocaleString("en-IN")}</span>
+                  <span className="text-[11px] font-bold text-green-600">{Math.round((1 - hero.featured.price / hero.featured.mrp) * 100)}% OFF</span>
+                </>}
               </div>
-              <Link href="/products?category=cp-faucets">
+              <Link href={hero.featured.link}>
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                   className="gold-sheen w-full bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] text-white text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-1.5">
                   Explore Now <ArrowRight className="w-4 h-4" />
@@ -442,7 +426,9 @@ export default function HomePage() {
       {/* ══════════ TRUST STRIP ══════════ */}
       <section className="bg-white py-8 border-b">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
-          {trustItems.map(({ icon: Icon, label, sub }, i) => (
+          {trustItems.map(({ label, sub }, i) => {
+            const Icon = trustIcons[i % trustIcons.length];
+            return (
             <motion.div key={label} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
               className="flex items-center gap-3 group">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[hsl(24,10%,16%)]/10 to-[hsl(24,9%,26%)]/10 flex items-center justify-center flex-shrink-0 group-hover:from-[hsl(24,10%,16%)] group-hover:to-[hsl(24,9%,26%)] transition-colors">
@@ -453,7 +439,7 @@ export default function HomePage() {
                 <div className="text-[10px] text-gray-400 leading-tight">{sub}</div>
               </div>
             </motion.div>
-          ))}
+          );})}
         </div>
       </section>
 

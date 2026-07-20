@@ -11,6 +11,8 @@ import distributorRouter from "./distributor";
 import adminRouter from "./admin";
 import bannersRouter from "./banners";
 import addressesRouter from "./addresses";
+import siteContentRouter from "./siteContent";
+import storageRouter from "./storage";
 
 const router: IRouter = Router();
 
@@ -26,5 +28,7 @@ router.use(distributorRouter);
 router.use(adminRouter);
 router.use(bannersRouter);
 router.use(addressesRouter);
+router.use(siteContentRouter);
+router.use(storageRouter);
 
 export default router;

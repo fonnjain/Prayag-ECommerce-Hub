@@ -145,12 +145,74 @@ export interface ProductInput {
 
 export interface ProductUpdate {
   name?: string;
+  sku?: string;
   price?: number;
   mrp?: number;
+  categoryId?: number;
   description?: string;
+  /** @nullable */
+  specifications?: string | null;
+  /** @nullable */
+  warranty?: string | null;
+  gstPercent?: number;
+  /** @nullable */
+  imageUrl?: string | null;
+  images?: string[];
   isFeatured?: boolean;
   isNew?: boolean;
   inStock?: boolean;
+}
+
+export interface CategoryInput {
+  name: string;
+  slug?: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  imageUrl?: string | null;
+}
+
+export interface CategoryUpdate {
+  name?: string;
+  slug?: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  imageUrl?: string | null;
+}
+
+export interface SiteContentMap { [key: string]: unknown }
+
+export type SiteContentInputData = { [key: string]: unknown };
+
+export interface SiteContentInput {
+  data: SiteContentInputData;
+}
+
+export type SiteContentSectionData = { [key: string]: unknown };
+
+export interface SiteContentSection {
+  section: string;
+  data: SiteContentSectionData;
+}
+
+export interface UploadUrlRequest {
+  /** @minLength 1 */
+  name: string;
+  /** @minimum 1 */
+  size: number;
+  /** @minLength 1 */
+  contentType: string;
+}
+
+export interface UploadUrlResponse {
+  uploadURL: string;
+  objectPath: string;
+  metadata?: UploadUrlRequest;
+}
+
+export interface ErrorEnvelope {
+  error: string;
 }
 
 export interface CartItem {
