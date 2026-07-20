@@ -3,6 +3,7 @@ import { useLocation, useSearch } from "wouter";
 import { Grid3X3, List, SlidersHorizontal, X, ChevronDown, Check } from "lucide-react";
 import { useListProducts, useListCategories, getListProductsQueryKey } from "@workspace/api-client-react";
 import ProductCard from "@/components/ProductCard";
+import { useSiteContent } from "@/lib/siteContent";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -16,6 +17,8 @@ export default function ProductsPage() {
   const searchString = useSearch();
   const [, setLocation] = useLocation();
   const [view, setView] = useState<"grid" | "list">("grid");
+  const { section } = useSiteContent();
+  const productsPage = section("productsPage");
   const [showFilters, setShowFilters] = useState(false);
 
   const [filters, setFilters] = useState({
@@ -80,7 +83,7 @@ export default function ProductsPage() {
           ? `${import.meta.env.BASE_URL}images/category-banners/${filters.category}.png`
           : filters.search
             ? null
-            : `${import.meta.env.BASE_URL}images/category-banners/the-collection.png`;
+            : (productsPage.bannerImage || `${import.meta.env.BASE_URL}images/category-banners/the-collection.png`);
         return (
           <div
             className={`relative border-b border-gray-100 overflow-hidden ${bannerUrl ? "bg-[hsl(24,10%,16%)]" : "bg-white"}`}
@@ -94,7 +97,7 @@ export default function ProductsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className={`text-4xl md:text-5xl lg:text-6xl font-serif-lux font-bold uppercase mb-4 ${bannerUrl ? "text-white drop-shadow-md" : "text-gray-900"}`}
               >
-                {filters.category ? (filters.category === "pipes-fittings" ? "Pipes & Fittings" : filters.category.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())) : filters.search ? `Search: "${filters.search}"` : "The Collection"}
+                {filters.category ? (filters.category === "pipes-fittings" ? "Pipes & Fittings" : filters.category.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())) : filters.search ? `Search: "${filters.search}"` : productsPage.allTitle}
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -108,7 +111,7 @@ export default function ProductsPage() {
                 transition={{ delay: 0.3 }}
                 className={`font-bold tracking-wide uppercase text-xs ${bannerUrl ? "text-[hsl(42,62%,68%)]" : "text-gray-500"}`}
               >
-                {data?.total ?? "..."} exceptional pieces discovered
+                {data?.total ?? "..."} {productsPage.countText}
               </motion.p>
             </div>
           </div>

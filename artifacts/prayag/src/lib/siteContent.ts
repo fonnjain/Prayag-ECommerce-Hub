@@ -243,6 +243,18 @@ export const defaultPolicies: PoliciesContent = {
   },
 };
 
+export interface ProductsPageContent {
+  allTitle: string;
+  countText: string;
+  bannerImage: string;
+}
+
+export const defaultProductsPage: ProductsPageContent = {
+  allTitle: "The Collection",
+  countText: "exceptional pieces discovered",
+  bannerImage: "",
+};
+
 export const defaultCareers: CareersContent = {
   heroSubtitle: "Build a career with one of India's most trusted plumbing and sanitaryware brands.",
   introBadge: "Join The Team",
@@ -279,6 +291,7 @@ export const cmsDefaults = {
   faq: defaultFaq,
   policies: defaultPolicies,
   careers: defaultCareers,
+  productsPage: defaultProductsPage,
 } as const;
 
 export type CmsSectionKey = keyof typeof cmsDefaults;

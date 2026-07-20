@@ -3,7 +3,7 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useGetSiteContent, useUpdateSiteContent, getGetSiteContentQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { cmsDefaults, mergeWithDefaults, type CmsSectionKey, type HeroContent, type CollectionCard, type RoomCard, type TrustItem, type TopbarContent, type FooterContent, type AboutContent, type ContactContent, type DealerRegContent, type FaqContent, type PoliciesContent, type CareersContent } from "@/lib/siteContent";
+import { cmsDefaults, mergeWithDefaults, type CmsSectionKey, type HeroContent, type CollectionCard, type RoomCard, type TrustItem, type TopbarContent, type FooterContent, type AboutContent, type ContactContent, type DealerRegContent, type FaqContent, type PoliciesContent, type CareersContent, type ProductsPageContent } from "@/lib/siteContent";
 import ImageUploadField from "./ImageUploadField";
 
 const inputCls = "w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[hsl(38,52%,40%)]";
@@ -64,6 +64,7 @@ export default function SiteContentManager() {
   const [faq, setFaq] = useState<FaqContent>(cmsDefaults.faq);
   const [policies, setPolicies] = useState<PoliciesContent>(cmsDefaults.policies);
   const [careers, setCareers] = useState<CareersContent>(cmsDefaults.careers);
+  const [productsPage, setProductsPage] = useState<ProductsPageContent>(cmsDefaults.productsPage);
   const [savingSection, setSavingSection] = useState<string | null>(null);
   const [tab, setTab] = useState("home");
 
@@ -83,6 +84,7 @@ export default function SiteContentManager() {
     setFaq(mergeWithDefaults(cmsDefaults.faq, content.faq));
     setPolicies(mergeWithDefaults(cmsDefaults.policies, content.policies));
     setCareers(mergeWithDefaults(cmsDefaults.careers, content.careers));
+    setProductsPage(mergeWithDefaults(cmsDefaults.productsPage, content.productsPage));
   }, [data]);
 
   function save(section: CmsSectionKey, payload: Record<string, unknown>) {
@@ -101,6 +103,7 @@ export default function SiteContentManager() {
 
   const tabs: { key: string; label: string }[] = [
     { key: "home", label: "Home Page" },
+    { key: "products", label: "Products Page" },
     { key: "global", label: "Top Bar & Footer" },
     { key: "about", label: "About Page" },
     { key: "faq", label: "FAQ Page" },
@@ -207,6 +210,16 @@ export default function SiteContentManager() {
 
       <SectionCard title="Marquee Strip" onSave={() => save("marquee", { words: marquee.split(",").map(s => s.trim()).filter(Boolean) })} saving={savingSection === "marquee"}>
         <Field label="Words (comma separated)" textarea value={marquee} onChange={setMarquee} />
+      </SectionCard>
+      </>}
+
+      {tab === "products" && <>
+      <SectionCard title="Products Page" onSave={() => save("productsPage", productsPage as unknown as Record<string, unknown>)} saving={savingSection === "productsPage"}>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label='Main title (jab koi category select na ho, e.g. "The Collection")' value={productsPage.allTitle} onChange={v => setProductsPage({ ...productsPage, allTitle: v })} />
+          <Field label='Count text (count ke baad, e.g. "exceptional pieces discovered")' value={productsPage.countText} onChange={v => setProductsPage({ ...productsPage, countText: v })} />
+        </div>
+        <ImageUploadField label="Banner image (blank = default)" value={productsPage.bannerImage} onChange={v => setProductsPage({ ...productsPage, bannerImage: v })} />
       </SectionCard>
       </>}
 
