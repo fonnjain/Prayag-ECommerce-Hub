@@ -47,8 +47,9 @@ export default function AdminPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { user, token } = useAuthStore();
 
-  const { data: dashboard, isLoading: dashLoading } = useGetAdminDashboard();
+  const { data: dashboard, isLoading: dashLoading, error: dashError } = useGetAdminDashboard();
   const { data: revenueStats } = useGetRevenueStats();
   const { data: orders } = useListAdminOrders({});
   const { data: productsData } = useListAdminProducts({});
@@ -78,6 +79,27 @@ export default function AdminPage() {
       },
       onError: () => toast({ title: "Failed to update request", variant: "destructive" }),
     });
+  }
+
+  const isAdmin = !!token && user?.role === "admin";
+  const sessionExpired = isAdmin && !!dashError;
+
+  if (!isAdmin || sessionExpired) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 max-w-sm w-full text-center" data-testid="card-admin-auth-required">
+          <div className="text-xl font-black text-gray-900 mb-1">PRAYAG Admin</div>
+          <p className="text-sm text-gray-500 mb-6">
+            {sessionExpired ? "Your session has expired. Please log in again." : "Please log in with an admin account to access this panel."}
+          </p>
+          <a href="/login" onClick={() => { if (sessionExpired) useAuthStore.getState().logout(); }}
+            className="inline-block w-full bg-[hsl(24,10%,16%)] text-white text-sm font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+            data-testid="link-admin-login">
+            Go to Login
+          </a>
+        </div>
+      </div>
+    );
   }
 
   return (
