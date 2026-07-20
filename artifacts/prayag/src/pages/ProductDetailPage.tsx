@@ -281,8 +281,8 @@ export default function ProductDetailPage() {
               >
                 {activeTab === "description" && (
                   <div>
-                    <h3 className="font-serif-lux text-2xl text-gray-900 mb-6">The Story of This Piece</h3>
-                    <p className="text-gray-600 leading-loose font-serif-lux text-lg first-letter:text-6xl first-letter:font-serif-lux first-letter:text-[hsl(42,62%,68%)] first-letter:float-left first-letter:mr-3 first-letter:leading-[0.85]">
+                    <h3 className="font-serif-lux font-bold text-2xl text-gray-900 mb-6">The Story of This Piece</h3>
+                    <p className="text-gray-700 leading-relaxed text-base font-medium first-letter:text-6xl first-letter:font-serif-lux first-letter:font-bold first-letter:text-[hsl(38,52%,40%)] first-letter:float-left first-letter:mr-3 first-letter:leading-[0.85]">
                       {product.description || "The epitome of craftsmanship, designed to elevate your living spaces with enduring quality and timeless aesthetics."}
                     </p>
                     <div className="grid sm:grid-cols-3 gap-4 mt-10 pt-8 border-t border-gray-100">
