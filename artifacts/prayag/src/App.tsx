@@ -27,6 +27,7 @@ import FaqPage from "@/pages/FaqPage";
 import CareersPage from "@/pages/CareersPage";
 import PolicyPage from "@/pages/PolicyPage";
 import GalleryPage from "@/pages/GalleryPage";
+import CataloguesPage from "@/pages/CataloguesPage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30000 } },
@@ -88,6 +89,7 @@ function Router() {
       <Route path="/distributor" component={() => <RequireLogin><DistributorPage /></RequireLogin>} />
       <Route path="/direct-dealer" component={() => <RequireLogin><DirectDealerPage /></RequireLogin>} />
       <Route path="/find-dealer" component={FindDealerPage} />
+      <Route path="/catalogues" component={CataloguesPage} />
       <Route path="/" component={HomePage} />
       <Route path="/products" component={ProductsPage} />
       <Route path="/products/:slug" component={ProductDetailPage} />

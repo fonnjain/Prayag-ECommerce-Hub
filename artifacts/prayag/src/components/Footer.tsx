@@ -18,7 +18,7 @@ const infoLinks = [
   { label: "Dealer Locator", href: "/dealer-registration" },
   { label: "FAQs", href: "/faq" },
   { label: "Track Order", href: "/account/orders" },
-  { label: "Download Catalogue", href: "/products" },
+  { label: "Download Catalogue", href: "/catalogues" },
   { label: "Careers", href: "/careers" },
 ];
 

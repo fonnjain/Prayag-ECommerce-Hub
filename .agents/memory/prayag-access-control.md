@@ -7,3 +7,5 @@ Rule: Network/KYC endpoints (`/distributor|direct-dealer|retailer/network*`) req
 **Why:** Imported retailer data contains Aadhar/PAN/bank PII; user asked that customers only find dealers via Google-Maps locator, everything else behind login.
 
 **How to apply:** Any new endpoint exposing distributor/retailer records must use the business-role check, and locator-style public endpoints must return only name+address/location fields.
+
+**Known gap (accepted for now):** portal dashboard/orders/schemes endpoints use the app-wide demo pattern `req.userId || 1` and are not role-gated — they serve demo/aggregate data only. Sensitive network/KYC endpoints ARE gated. If real per-user order data ever lands in these endpoints, add JWT+role guards and frontend Authorization headers first.
