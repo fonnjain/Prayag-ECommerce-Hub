@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Package, DollarSign, Clock, CheckCircle, FileText, Tag, BookOpen, BarChart3, MapPin, Target, CreditCard, TrendingUp } from "lucide-react";
+import { Package, DollarSign, Clock, CheckCircle, FileText, Tag, BookOpen, BarChart3, MapPin, Target, CreditCard, TrendingUp, Users, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 
@@ -22,6 +22,7 @@ async function fetchDistributorSchemes() {
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+  { id: "network", label: "Distributors", icon: Users },
   { id: "orders", label: "My Orders", icon: Package },
   { id: "schemes", label: "Schemes", icon: Tag },
   { id: "catalogues", label: "Catalogues", icon: BookOpen },
@@ -38,8 +39,27 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-100 text-red-600",
 };
 
+async function fetchDistributorNetwork(search: string, state: string, page: number) {
+  const params = new URLSearchParams();
+  if (search) params.set("search", search);
+  if (state) params.set("state", state);
+  params.set("page", String(page));
+  const res = await fetch(`/api/distributor/network?${params.toString()}`);
+  if (!res.ok) throw new Error("Failed");
+  return res.json();
+}
+
 export default function DistributorPage() {
   const [active, setActive] = useState("dashboard");
+  const [netSearch, setNetSearch] = useState("");
+  const [netSearchInput, setNetSearchInput] = useState("");
+  const [netState, setNetState] = useState("");
+  const [netPage, setNetPage] = useState(1);
+  const { data: network, isLoading: networkLoading } = useQuery({
+    queryKey: ["distributor-network", netSearch, netState, netPage],
+    queryFn: () => fetchDistributorNetwork(netSearch, netState, netPage),
+    enabled: active === "network",
+  });
   const { data: dashboard, isLoading: dashLoading } = useQuery({ queryKey: ["distributor-dashboard"], queryFn: fetchDistributorDashboard });
   const { data: orders, isLoading: ordersLoading } = useQuery({ queryKey: ["distributor-orders"], queryFn: fetchDistributorOrders });
   const { data: schemes, isLoading: schemesLoading } = useQuery({ queryKey: ["distributor-schemes"], queryFn: fetchDistributorSchemes });
@@ -143,6 +163,101 @@ export default function DistributorPage() {
                 <button onClick={() => setActive("catalogues")} className="w-full border border-gray-200 text-gray-700 font-medium py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors" data-testid="button-dist-catalogue">Catalogues</button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ── DISTRIBUTOR NETWORK ── */}
+        {active === "network" && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">Distributor Network</h1>
+              {network && (
+                <span className="text-xs bg-stone-200 text-stone-700 font-semibold px-3 py-1 rounded-full" data-testid="text-network-total">
+                  {network.total.toLocaleString("en-IN")} distributors
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <form
+                className="relative flex-1"
+                onSubmit={(e) => { e.preventDefault(); setNetSearch(netSearchInput); setNetPage(1); }}
+              >
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  value={netSearchInput}
+                  onChange={(e) => setNetSearchInput(e.target.value)}
+                  placeholder="Search by company, contact, city or district..."
+                  className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[hsl(38,52%,40%)]"
+                  data-testid="input-network-search"
+                />
+              </form>
+              <select
+                value={netState}
+                onChange={(e) => { setNetState(e.target.value); setNetPage(1); }}
+                className="bg-white border border-gray-200 rounded-xl text-sm px-3 py-2.5 focus:outline-none focus:border-[hsl(38,52%,40%)]"
+                data-testid="select-network-state"
+              >
+                <option value="">All States</option>
+                {(network?.states || []).map((s: string) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+
+            {networkLoading ? (
+              <div className="space-y-3">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
+            ) : network && network.distributors.length > 0 ? (
+              <>
+                <div className="bg-white rounded-xl border border-gray-100 overflow-x-auto">
+                  <table className="w-full text-sm min-w-[800px]">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>{["Company", "Contact Person", "Phone", "City", "District", "State", "GST", "Status"].map(h => (
+                        <th key={h} className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">{h}</th>
+                      ))}</tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {network.distributors.map((d: any) => (
+                        <tr key={d.id} className="hover:bg-gray-50 transition-colors" data-testid={`row-network-${d.id}`}>
+                          <td className="px-4 py-3 font-medium text-gray-900">{d.businessName}</td>
+                          <td className="px-4 py-3 text-gray-600">{d.contactName}</td>
+                          <td className="px-4 py-3 text-gray-500">{d.phone || "—"}</td>
+                          <td className="px-4 py-3 text-gray-500">{d.city || "—"}</td>
+                          <td className="px-4 py-3 text-gray-500">{d.territory || "—"}</td>
+                          <td className="px-4 py-3 text-gray-500">{d.state || "—"}</td>
+                          <td className="px-4 py-3 text-gray-400 text-xs">{d.gstNumber || "—"}</td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${d.status === "approved" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{d.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex items-center justify-between mt-4">
+                  <span className="text-xs text-gray-400">
+                    Page {network.page} of {network.totalPages}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setNetPage(p => Math.max(1, p - 1))}
+                      disabled={network.page <= 1}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg bg-white text-gray-700 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                      data-testid="button-network-prev"
+                    ><ChevronLeft className="w-3.5 h-3.5" /> Prev</button>
+                    <button
+                      onClick={() => setNetPage(p => Math.min(network.totalPages, p + 1))}
+                      disabled={network.page >= network.totalPages}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg bg-white text-gray-700 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                      data-testid="button-network-next"
+                    >Next <ChevronRight className="w-3.5 h-3.5" /></button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-20 bg-white rounded-xl border border-gray-100">
+                <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                <p className="text-gray-500">No distributors found</p>
+              </div>
+            )}
           </div>
         )}
 

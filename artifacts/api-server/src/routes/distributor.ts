@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import jwt from "jsonwebtoken";
 import { db, distributorsTable, distributorSchemesTable, ordersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, ilike, or, and, sql, type SQL } from "drizzle-orm";
 
 const JWT_SECRET = process.env.SESSION_SECRET;
 
@@ -60,6 +60,52 @@ router.get("/distributor/schemes", async (_req, res): Promise<void> => {
     minOrderValue: s.minOrderValue ? parseFloat(s.minOrderValue as string) : null,
     validUntil: s.validUntil,
   })));
+});
+
+router.get("/distributor/network", async (req, res): Promise<void> => {
+  const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
+  const state = typeof req.query.state === "string" ? req.query.state.trim() : "";
+  const page = Math.max(1, parseInt(String(req.query.page || "1"), 10) || 1);
+  const pageSize = 25;
+
+  const conditions: SQL[] = [];
+  if (search) {
+    const pattern = `%${search}%`;
+    conditions.push(
+      or(
+        ilike(distributorsTable.businessName, pattern),
+        ilike(distributorsTable.contactName, pattern),
+        ilike(distributorsTable.city, pattern),
+        ilike(distributorsTable.territory, pattern),
+      )!,
+    );
+  }
+  if (state) conditions.push(ilike(distributorsTable.state, state));
+  const where = conditions.length ? and(...conditions) : undefined;
+
+  const baseQuery = db.select().from(distributorsTable);
+  const countQuery = db.select({ count: sql<number>`count(*)::int` }).from(distributorsTable);
+  const [rows, totalRes, statesRes] = await Promise.all([
+    (where ? baseQuery.where(where) : baseQuery)
+      .orderBy(distributorsTable.businessName)
+      .limit(pageSize)
+      .offset((page - 1) * pageSize),
+    where ? countQuery.where(where) : countQuery,
+    db.selectDistinct({ state: distributorsTable.state }).from(distributorsTable).orderBy(distributorsTable.state),
+  ]);
+  const total = totalRes[0]?.count ?? 0;
+  res.json({
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    states: statesRes.map(s => s.state).filter(Boolean),
+    distributors: rows.map(d => ({
+      id: d.id, businessName: d.businessName, contactName: d.contactName,
+      phone: d.phone, email: d.email, city: d.city, state: d.state,
+      pincode: d.pincode, gstNumber: d.gstNumber, territory: d.territory, status: d.status,
+    })),
+  });
 });
 
 router.post("/distributor/register", async (req, res): Promise<void> => {
