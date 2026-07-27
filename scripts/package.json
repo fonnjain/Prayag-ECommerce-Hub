@@ -6,6 +6,7 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "seed": "tsx ./src/seed.ts",
+    "import-distributors": "tsx ./src/import-distributors.ts",
     "sync-prod-products": "tsx ./src/sync-prod-products.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
