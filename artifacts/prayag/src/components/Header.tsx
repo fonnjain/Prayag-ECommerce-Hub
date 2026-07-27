@@ -83,7 +83,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-8">
           <span className="hidden sm:block font-medium">Welcome to Prayag India</span>
           <div className="flex items-center gap-5">
-            <Link href="/dealer-registration" className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors">
+            <Link href="/find-dealer" className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors">
               <MapPin className="w-3 h-3" /> Find a Dealer
             </Link>
             <Link href="/account/orders" className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors">

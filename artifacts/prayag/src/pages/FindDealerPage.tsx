@@ -1,0 +1,236 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { MapPin, Store, Search, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface Dealer {
+  id: number;
+  businessName: string;
+  address: string | null;
+  area: string | null;
+  city: string | null;
+  district: string | null;
+  state: string | null;
+  pincode: string | null;
+}
+
+function mapQuery(d: Dealer) {
+  return encodeURIComponent(
+    [d.businessName, d.address, d.area, d.city, d.district, d.state, d.pincode, "India"].filter(Boolean).join(", "),
+  );
+}
+
+async function fetchLocator(state: string, district: string, city: string, pincode: string, page: number) {
+  const params = new URLSearchParams();
+  if (state) params.set("state", state);
+  if (district) params.set("district", district);
+  if (city) params.set("city", city);
+  if (pincode) params.set("pincode", pincode);
+  params.set("page", String(page));
+  const res = await fetch(`/api/dealers/locator?${params.toString()}`);
+  if (!res.ok) throw new Error("Failed");
+  return res.json();
+}
+
+export default function FindDealerPage() {
+  const [state, setState] = useState("");
+  const [district, setDistrict] = useState("");
+  const [city, setCity] = useState("");
+  const [pincodeInput, setPincodeInput] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<Dealer | null>(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["dealer-locator", state, district, city, pincode, page],
+    queryFn: () => fetchLocator(state, district, city, pincode, page),
+  });
+
+  const hasFilter = !!(state || district || city || pincode);
+
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      {/* Hero */}
+      <div className="bg-[hsl(24,10%,16%)] text-white py-10">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex items-center gap-2 text-[hsl(42,62%,68%)] text-xs font-semibold uppercase tracking-widest mb-2">
+            <MapPin className="w-4 h-4" /> Dealer Locator
+          </div>
+          <h1 className="text-3xl font-black">Find Dealer Near By You</h1>
+          <p className="text-sm text-[hsl(42,40%,80%)] mt-2">
+            Select your Country, State, District, City or Pincode to locate the nearest PRAYAG dealer on Google Maps.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Filters */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6 shadow-sm">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div>
+              <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Country</label>
+              <select className="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl text-sm px-3 py-2.5" data-testid="select-locator-country">
+                <option>India</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">State</label>
+              <select
+                value={state}
+                onChange={(e) => { setState(e.target.value); setDistrict(""); setCity(""); setPage(1); setSelected(null); }}
+                className="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl text-sm px-3 py-2.5"
+                data-testid="select-locator-state"
+              >
+                <option value="">All States</option>
+                {(data?.states || []).map((s: string) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">District</label>
+              <select
+                value={district}
+                onChange={(e) => { setDistrict(e.target.value); setCity(""); setPage(1); setSelected(null); }}
+                disabled={!state}
+                className="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl text-sm px-3 py-2.5 disabled:opacity-50"
+                data-testid="select-locator-district"
+              >
+                <option value="">All Districts</option>
+                {(data?.districts || []).map((s: string) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">City</label>
+              <select
+                value={city}
+                onChange={(e) => { setCity(e.target.value); setPage(1); setSelected(null); }}
+                disabled={!state}
+                className="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl text-sm px-3 py-2.5 disabled:opacity-50"
+                data-testid="select-locator-city"
+              >
+                <option value="">All Cities</option>
+                {(data?.cities || []).map((s: string) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Pincode</label>
+              <form onSubmit={(e) => { e.preventDefault(); setPincode(pincodeInput.trim()); setPage(1); setSelected(null); }} className="relative mt-1">
+                <input
+                  value={pincodeInput}
+                  onChange={(e) => setPincodeInput(e.target.value)}
+                  placeholder="e.g. 452001"
+                  inputMode="numeric"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl text-sm px-3 py-2.5 pr-9"
+                  data-testid="input-locator-pincode"
+                />
+                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[hsl(38,52%,40%)]" data-testid="button-locator-search">
+                  <Search className="w-4 h-4" />
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Results */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold text-gray-900">Dealers {hasFilter ? "Found" : "Near You"}</h2>
+              {data && <span className="text-xs bg-stone-200 text-stone-700 font-semibold px-3 py-1 rounded-full" data-testid="text-locator-total">{data.total.toLocaleString("en-IN")} dealers</span>}
+            </div>
+            {isLoading ? (
+              <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>
+            ) : data && data.dealers.length > 0 ? (
+              <>
+                <div className="space-y-3 max-h-[560px] overflow-y-auto pr-1">
+                  {data.dealers.map((d: Dealer) => (
+                    <div
+                      key={d.id}
+                      className={`bg-white rounded-xl border p-4 cursor-pointer transition-colors ${selected?.id === d.id ? "border-[hsl(38,52%,40%)] ring-1 ring-[hsl(38,52%,40%)]" : "border-gray-100 hover:border-gray-300"}`}
+                      onClick={() => setSelected(d)}
+                      data-testid={`card-locator-dealer-${d.id}`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+                            <Store className="w-4.5 h-4.5 text-[hsl(38,52%,40%)]" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-900 text-sm">{d.businessName}</div>
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              {[d.address, d.area].filter(Boolean).join(", ") || "—"}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-0.5">
+                              {[d.city, d.district, d.state, d.pincode].filter(Boolean).join(", ")}
+                            </div>
+                          </div>
+                        </div>
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${mapQuery(d)}`}
+                          target="_blank" rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex items-center gap-1 text-xs font-semibold text-[hsl(38,52%,40%)] hover:underline flex-shrink-0"
+                          data-testid={`link-locator-gmaps-${d.id}`}
+                        >
+                          <MapPin className="w-3.5 h-3.5" /> Map <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between mt-4">
+                  <span className="text-xs text-gray-400">Page {data.page} of {data.totalPages}</span>
+                  <div className="flex gap-2">
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={data.page <= 1}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg bg-white text-gray-700 disabled:opacity-40 hover:bg-gray-50"
+                      data-testid="button-locator-prev"><ChevronLeft className="w-3.5 h-3.5" /> Prev</button>
+                    <button onClick={() => setPage(p => Math.min(data.totalPages, p + 1))} disabled={data.page >= data.totalPages}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg bg-white text-gray-700 disabled:opacity-40 hover:bg-gray-50"
+                      data-testid="button-locator-next">Next <ChevronRight className="w-3.5 h-3.5" /></button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
+                <MapPin className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">No dealers found for the selected location</p>
+              </div>
+            )}
+          </div>
+
+          {/* Map */}
+          <div>
+            <h2 className="font-bold text-gray-900 mb-3">Location on Google Map</h2>
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+              {selected ? (
+                <>
+                  <iframe
+                    title="Dealer location"
+                    src={`https://maps.google.com/maps?q=${mapQuery(selected)}&z=15&output=embed`}
+                    className="w-full h-[480px] border-0"
+                    loading="lazy"
+                    data-testid="iframe-locator-map"
+                  />
+                  <div className="p-4 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-sm text-gray-900">{selected.businessName}</div>
+                      <div className="text-xs text-gray-400">{[selected.city, selected.state, selected.pincode].filter(Boolean).join(", ")}</div>
+                    </div>
+                    <a href={`https://www.google.com/maps/search/?api=1&query=${mapQuery(selected)}`} target="_blank" rel="noreferrer"
+                      className="flex-shrink-0 bg-[hsl(24,10%,16%)] text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-[hsl(24,9%,26%)] transition-colors"
+                      data-testid="button-locator-open-gmaps">Open in Google Maps</a>
+                  </div>
+                </>
+              ) : (
+                <div className="h-[480px] flex flex-col items-center justify-center text-center px-8">
+                  <MapPin className="w-14 h-14 text-gray-200 mb-4" />
+                  <p className="text-gray-500 text-sm font-medium">Select a dealer from the list</p>
+                  <p className="text-gray-400 text-xs mt-1">The dealer's exact location will appear here on Google Maps</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

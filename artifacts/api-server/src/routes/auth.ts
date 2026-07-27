@@ -25,7 +25,9 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     return;
   }
   const passwordHash = await bcrypt.hash(password, 10);
-  const [user] = await db.insert(usersTable).values({ name, email, passwordHash, phone, role: role || "customer" }).returning();
+  // Public registration is always "customer" — business roles are assigned by admin only
+  void role;
+  const [user] = await db.insert(usersTable).values({ name, email, passwordHash, phone, role: "customer" }).returning();
   const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
   res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone, createdAt: user.createdAt } });
 });

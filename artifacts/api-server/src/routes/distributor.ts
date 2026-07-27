@@ -17,6 +17,20 @@ function isAdmin(req: any): boolean {
   }
 }
 
+// Business roles only — customers must not see network/KYC data
+const BUSINESS_ROLES = ["dealer", "distributor", "admin"];
+function isBusinessUser(req: any): boolean {
+  if (!JWT_SECRET) return false;
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) return false;
+  try {
+    const payload = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { role?: string };
+    return !!payload.role && BUSINESS_ROLES.includes(payload.role);
+  } catch {
+    return false;
+  }
+}
+
 const router: IRouter = Router();
 
 router.get("/distributor/dashboard", async (req, res): Promise<void> => {
@@ -63,6 +77,7 @@ router.get("/distributor/schemes", async (_req, res): Promise<void> => {
 });
 
 async function handleNetworkList(req: any, res: any, customerType: "Distributors" | "Direct Dealers" | "Retailer"): Promise<void> {
+  if (!isBusinessUser(req)) { res.status(401).json({ error: "Login required" }); return; }
   const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
   const state = typeof req.query.state === "string" ? req.query.state.trim() : "";
   const page = Math.max(1, parseInt(String(req.query.page || "1"), 10) || 1);
@@ -131,7 +146,68 @@ router.get("/retailer/network", async (req, res): Promise<void> => {
   await handleNetworkList(req, res, "Retailer");
 });
 
+// Public dealer locator — only safe location fields, no contact/KYC data
+router.get("/dealers/locator", async (req, res): Promise<void> => {
+  const q = (name: string) => (typeof req.query[name] === "string" ? (req.query[name] as string).trim() : "");
+  const state = q("state");
+  const district = q("district");
+  const city = q("city");
+  const pincode = q("pincode");
+  const page = Math.max(1, parseInt(q("page") || "1", 10) || 1);
+  const pageSize = 20;
+
+  const typeCond = or(
+    eq(distributorsTable.customerType, "Retailer"),
+    eq(distributorsTable.customerType, "Direct Dealers"),
+  )!;
+  const conditions: SQL[] = [typeCond];
+  if (state) conditions.push(ilike(distributorsTable.state, state));
+  if (district) conditions.push(ilike(distributorsTable.territory, district));
+  if (city) conditions.push(ilike(distributorsTable.city, city));
+  if (pincode) conditions.push(ilike(distributorsTable.pincode, `${pincode}%`));
+  const where = and(...conditions);
+
+  const districtWhere = state ? and(typeCond, ilike(distributorsTable.state, state)) : typeCond;
+  const cityWhere = district ? and(districtWhere, ilike(distributorsTable.territory, district)) : districtWhere;
+
+  const [rows, totalRes, statesRes, districtsRes, citiesRes] = await Promise.all([
+    db.select({
+      id: distributorsTable.id,
+      businessName: distributorsTable.businessName,
+      address: distributorsTable.address,
+      area: distributorsTable.area,
+      city: distributorsTable.city,
+      district: distributorsTable.territory,
+      state: distributorsTable.state,
+      pincode: distributorsTable.pincode,
+    }).from(distributorsTable).where(where)
+      .orderBy(distributorsTable.businessName)
+      .limit(pageSize)
+      .offset((page - 1) * pageSize),
+    db.select({ count: sql<number>`count(*)::int` }).from(distributorsTable).where(where),
+    db.selectDistinct({ v: distributorsTable.state }).from(distributorsTable).where(typeCond).orderBy(distributorsTable.state),
+    state
+      ? db.selectDistinct({ v: distributorsTable.territory }).from(distributorsTable).where(districtWhere).orderBy(distributorsTable.territory)
+      : Promise.resolve([] as { v: string | null }[]),
+    state
+      ? db.selectDistinct({ v: distributorsTable.city }).from(distributorsTable).where(cityWhere).orderBy(distributorsTable.city)
+      : Promise.resolve([] as { v: string | null }[]),
+  ]);
+  const total = totalRes[0]?.count ?? 0;
+  res.json({
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    states: statesRes.map(r => r.v).filter(Boolean),
+    districts: districtsRes.map(r => r.v).filter(Boolean),
+    cities: citiesRes.map(r => r.v).filter(Boolean),
+    dealers: rows,
+  });
+});
+
 router.get("/distributor/network/:id", async (req, res): Promise<void> => {
+  if (!isBusinessUser(req)) { res.status(401).json({ error: "Login required" }); return; }
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const rows = await db.select().from(distributorsTable).where(eq(distributorsTable.id, id)).limit(1);

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { Switch, Route, Router as WouterRouter, useLocation, useSearch } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation, useSearch, Redirect } from "wouter";
+import { useAuthStore } from "@/lib/store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/Header";
@@ -19,6 +20,7 @@ import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import DealerRegistrationPage from "@/pages/DealerRegistrationPage";
 import DistributorPage from "@/pages/DistributorPage";
 import DirectDealerPage from "@/pages/DirectDealerPage";
+import FindDealerPage from "@/pages/FindDealerPage";
 import DistributorRegistrationPage from "@/pages/DistributorRegistrationPage";
 import AboutPage from "@/pages/AboutPage";
 import FaqPage from "@/pages/FaqPage";
@@ -68,6 +70,16 @@ function WithLayout({ children }: { children: React.ReactNode }) {
 
 const BARE_ROUTES = ["/admin", "/dealer", "/distributor", "/direct-dealer"];
 
+const BUSINESS_ROLES = ["dealer", "distributor", "admin"];
+
+function RequireLogin({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user);
+  if (!user) return <Redirect to="/login" />;
+  // Customers only get the public dealer locator
+  if (!BUSINESS_ROLES.includes(user.role)) return <Redirect to="/find-dealer" />;
+  return <>{children}</>;
+}
+
 function Router() {
   const [location] = useLocation();
   const isBare = BARE_ROUTES.includes(location);
@@ -75,9 +87,10 @@ function Router() {
   const content = (
     <Switch>
       <Route path="/admin" component={() => <AdminPage />} />
-      <Route path="/dealer" component={() => <DealerPage />} />
-      <Route path="/distributor" component={() => <DistributorPage />} />
-      <Route path="/direct-dealer" component={() => <DirectDealerPage />} />
+      <Route path="/dealer" component={() => <RequireLogin><DealerPage /></RequireLogin>} />
+      <Route path="/distributor" component={() => <RequireLogin><DistributorPage /></RequireLogin>} />
+      <Route path="/direct-dealer" component={() => <RequireLogin><DirectDealerPage /></RequireLogin>} />
+      <Route path="/find-dealer" component={FindDealerPage} />
       <Route path="/" component={HomePage} />
       <Route path="/products" component={ProductsPage} />
       <Route path="/products/:slug" component={ProductDetailPage} />
