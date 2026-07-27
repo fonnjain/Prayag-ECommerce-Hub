@@ -77,6 +77,7 @@ router.get("/distributor/network", async (req, res): Promise<void> => {
         ilike(distributorsTable.contactName, pattern),
         ilike(distributorsTable.city, pattern),
         ilike(distributorsTable.territory, pattern),
+        ilike(distributorsTable.pincode, pattern),
       )!,
     );
   }

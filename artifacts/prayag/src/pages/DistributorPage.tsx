@@ -200,7 +200,7 @@ export default function DistributorPage() {
                 <input
                   value={netSearchInput}
                   onChange={(e) => setNetSearchInput(e.target.value)}
-                  placeholder="Search by company, contact, city or district..."
+                  placeholder="Search by company, contact, city, district or pincode..."
                   className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[hsl(38,52%,40%)]"
                   data-testid="input-network-search"
                 />
