@@ -156,10 +156,16 @@ router.get("/dealers/locator", async (req, res): Promise<void> => {
   const page = Math.max(1, parseInt(q("page") || "1", 10) || 1);
   const pageSize = 20;
 
-  const typeCond = or(
-    eq(distributorsTable.customerType, "Retailer"),
-    eq(distributorsTable.customerType, "Direct Dealers"),
-  )!;
+  // All sales points: retailers, distributors and direct dealers
+  const typeParam = q("type");
+  const TYPE_MAP: Record<string, string> = { retailer: "Retailer", distributor: "Distributors", "direct-dealer": "Direct Dealers" };
+  const typeCond = TYPE_MAP[typeParam]
+    ? eq(distributorsTable.customerType, TYPE_MAP[typeParam])
+    : or(
+        eq(distributorsTable.customerType, "Retailer"),
+        eq(distributorsTable.customerType, "Direct Dealers"),
+        eq(distributorsTable.customerType, "Distributors"),
+      )!;
   const conditions: SQL[] = [typeCond];
   if (state) conditions.push(ilike(distributorsTable.state, state));
   if (district) conditions.push(ilike(distributorsTable.territory, district));
@@ -180,6 +186,7 @@ router.get("/dealers/locator", async (req, res): Promise<void> => {
       district: distributorsTable.territory,
       state: distributorsTable.state,
       pincode: distributorsTable.pincode,
+      customerType: distributorsTable.customerType,
     }).from(distributorsTable).where(where)
       .orderBy(distributorsTable.businessName)
       .limit(pageSize)

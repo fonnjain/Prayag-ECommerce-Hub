@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Package, DollarSign, Clock, CheckCircle, FileText, Tag, BookOpen, BarChart3, Users } from "lucide-react";
-import NetworkDirectory from "@/components/NetworkDirectory";
+import { Package, DollarSign, Clock, CheckCircle, FileText, Tag, BookOpen, BarChart3 } from "lucide-react";
 import { useGetDealerDashboard, useListDealerOrders, useListDealerSchemes } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-  { id: "retailers", label: "Retailers", icon: Users },
   { id: "orders", label: "My Orders", icon: Package },
   { id: "schemes", label: "Schemes", icon: Tag },
   { id: "catalogues", label: "Catalogues", icon: BookOpen },
@@ -35,7 +33,7 @@ export default function DealerPage() {
       <aside className="w-56 bg-[hsl(24,10%,16%)] text-white flex-shrink-0 min-h-screen">
         <div className="p-5 border-b border-[hsl(24,9%,26%)]">
           <div className="text-xl font-black">PRAYAG</div>
-          <div className="text-[hsl(42,62%,68%)] text-xs mt-0.5">Retailers Portal</div>
+          <div className="text-[hsl(42,62%,68%)] text-xs mt-0.5">Dealer Portal</div>
         </div>
         <nav className="py-2">
           {navItems.map(({ id, label, icon: Icon }) => (
@@ -59,7 +57,7 @@ export default function DealerPage() {
       <main className="flex-1 p-6 overflow-auto min-w-0">
         {active === "dashboard" && (
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Retailers Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Dealer Dashboard</h1>
             {dashLoading ? (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}</div>
             ) : (
@@ -91,15 +89,6 @@ export default function DealerPage() {
               </div>
             </div>
           </div>
-        )}
-
-        {active === "retailers" && (
-          <NetworkDirectory
-            apiBase="/api/retailer/network"
-            title="Retailers"
-            entityLabel="retailers"
-            testPrefix="retailer-network"
-          />
         )}
 
         {active === "orders" && (

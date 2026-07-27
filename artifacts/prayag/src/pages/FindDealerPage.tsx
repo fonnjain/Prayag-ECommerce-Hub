@@ -12,7 +12,14 @@ interface Dealer {
   district: string | null;
   state: string | null;
   pincode: string | null;
+  customerType: string | null;
 }
+
+const TYPE_LABELS: Record<string, string> = {
+  Retailer: "Retailer",
+  Distributors: "Distributor",
+  "Direct Dealers": "Direct Dealer",
+};
 
 function mapQuery(d: Dealer) {
   return encodeURIComponent(
@@ -20,8 +27,9 @@ function mapQuery(d: Dealer) {
   );
 }
 
-async function fetchLocator(state: string, district: string, city: string, pincode: string, page: number) {
+async function fetchLocator(state: string, district: string, city: string, pincode: string, type: string, page: number) {
   const params = new URLSearchParams();
+  if (type) params.set("type", type);
   if (state) params.set("state", state);
   if (district) params.set("district", district);
   if (city) params.set("city", city);
@@ -38,12 +46,13 @@ export default function FindDealerPage() {
   const [city, setCity] = useState("");
   const [pincodeInput, setPincodeInput] = useState("");
   const [pincode, setPincode] = useState("");
+  const [type, setType] = useState("");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Dealer | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["dealer-locator", state, district, city, pincode, page],
-    queryFn: () => fetchLocator(state, district, city, pincode, page),
+    queryKey: ["dealer-locator", state, district, city, pincode, type, page],
+    queryFn: () => fetchLocator(state, district, city, pincode, type, page),
   });
 
   const hasFilter = !!(state || district || city || pincode);
@@ -66,7 +75,21 @@ export default function FindDealerPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Filters */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6 shadow-sm">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <div>
+              <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Type</label>
+              <select
+                value={type}
+                onChange={(e) => { setType(e.target.value); setPage(1); setSelected(null); }}
+                className="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl text-sm px-3 py-2.5"
+                data-testid="select-locator-type"
+              >
+                <option value="">All Types</option>
+                <option value="retailer">Retailers</option>
+                <option value="distributor">Distributors</option>
+                <option value="direct-dealer">Direct Dealers</option>
+              </select>
+            </div>
             <div>
               <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Country</label>
               <select className="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl text-sm px-3 py-2.5" data-testid="select-locator-country">
@@ -156,6 +179,11 @@ export default function FindDealerPage() {
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900 text-sm">{d.businessName}</div>
+                            {d.customerType && (
+                              <span className="inline-block text-[10px] font-semibold bg-amber-50 text-[hsl(38,52%,40%)] px-2 py-0.5 rounded-full mt-0.5">
+                                {TYPE_LABELS[d.customerType] || d.customerType}
+                              </span>
+                            )}
                             <div className="text-xs text-gray-500 mt-0.5">
                               {[d.address, d.area].filter(Boolean).join(", ") || "—"}
                             </div>
