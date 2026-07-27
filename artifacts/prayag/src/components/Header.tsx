@@ -110,7 +110,7 @@ export default function Header() {
                       <Building2 className="w-3.5 h-3.5 text-[hsl(24,10%,16%)]" />
                     </div>
                     <div>
-                      <div className="text-xs font-semibold text-gray-800">Dealer Dashboard</div>
+                      <div className="text-xs font-semibold text-gray-800">Retailer Dashboard</div>
                       <div className="text-[10px] text-gray-400">Orders, schemes & invoices</div>
                     </div>
                   </Link>
@@ -230,7 +230,7 @@ export default function Header() {
                     <Link href="/account" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>My Account</Link>
                     <Link href="/account/orders" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>My Orders</Link>
                     {user.role === "admin" && <Link href="/admin" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Admin Panel</Link>}
-                    {user.role === "dealer" && <Link href="/dealer" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Dealer Portal</Link>}
+                    {user.role === "dealer" && <Link href="/dealer" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Retailer Portal</Link>}
                     {user.role === "distributor" && <Link href="/distributor" className="block px-4 py-2 text-sm hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Distributor Portal</Link>}
                     <hr className="my-1" />
                     <button onClick={() => { logout(); queryClient.invalidateQueries(); setShowUserMenu(false); setLocation("/"); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50" data-testid="button-logout">Sign Out</button>
