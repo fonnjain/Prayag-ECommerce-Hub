@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Store, Search, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +20,48 @@ const TYPE_LABELS: Record<string, string> = {
   Distributors: "Distributor",
   "Direct Dealers": "Direct Dealer",
 };
+
+function SmoothMap({ src }: { src: string }) {
+  const [layers, setLayers] = useState<{ src: string; loaded: boolean }[]>([{ src, loaded: false }]);
+
+  useEffect(() => {
+    setLayers((prev) => {
+      if (prev[prev.length - 1]?.src === src) return prev;
+      // keep the last (visible) layer underneath, load the new one on top
+      return [...prev.slice(-1), { src, loaded: false }];
+    });
+  }, [src]);
+
+  const onLoad = (s: string) => {
+    setLayers((prev) => {
+      const next = prev.map((l) => (l.src === s ? { ...l, loaded: true } : l));
+      // once the newest layer is loaded, drop the old ones (after fade)
+      const last = next[next.length - 1];
+      if (last.loaded && next.length > 1) {
+        setTimeout(() => setLayers((p) => (p[p.length - 1]?.loaded ? p.slice(-1) : p)), 450);
+      }
+      return next;
+    });
+  };
+
+  return (
+    <div className="relative w-full h-[480px] bg-stone-100">
+      {layers.map((l, i) => (
+        <iframe
+          key={l.src}
+          title="Dealer location"
+          src={l.src}
+          loading="eager"
+          onLoad={() => onLoad(l.src)}
+          className={`absolute inset-0 w-full h-full border-0 transition-opacity duration-500 ease-out ${
+            l.loaded ? "opacity-100" : i === 0 ? "opacity-100" : "opacity-0"
+          }`}
+          data-testid={i === layers.length - 1 ? "iframe-locator-map" : undefined}
+        />
+      ))}
+    </div>
+  );
+}
 
 function mapQuery(d: Dealer) {
   return encodeURIComponent(
@@ -231,13 +273,7 @@ export default function FindDealerPage() {
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
               {selected ? (
                 <>
-                  <iframe
-                    title="Dealer location"
-                    src={`https://maps.google.com/maps?q=${mapQuery(selected)}&z=15&output=embed`}
-                    className="w-full h-[480px] border-0"
-                    loading="lazy"
-                    data-testid="iframe-locator-map"
-                  />
+                  <SmoothMap src={`https://maps.google.com/maps?q=${mapQuery(selected)}&z=15&output=embed`} />
                   <div className="p-4 flex items-center justify-between gap-3">
                     <div>
                       <div className="font-semibold text-sm text-gray-900">{selected.businessName}</div>
