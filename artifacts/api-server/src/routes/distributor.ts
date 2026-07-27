@@ -62,13 +62,13 @@ router.get("/distributor/schemes", async (_req, res): Promise<void> => {
   })));
 });
 
-router.get("/distributor/network", async (req, res): Promise<void> => {
+async function handleNetworkList(req: any, res: any, customerType: "Distributors" | "Direct Dealers"): Promise<void> {
   const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
   const state = typeof req.query.state === "string" ? req.query.state.trim() : "";
   const page = Math.max(1, parseInt(String(req.query.page || "1"), 10) || 1);
   const pageSize = 25;
 
-  const conditions: SQL[] = [];
+  const conditions: SQL[] = [eq(distributorsTable.customerType, customerType)];
   if (search) {
     const pattern = `%${search}%`;
     conditions.push(
@@ -82,17 +82,19 @@ router.get("/distributor/network", async (req, res): Promise<void> => {
     );
   }
   if (state) conditions.push(ilike(distributorsTable.state, state));
-  const where = conditions.length ? and(...conditions) : undefined;
+  const where = and(...conditions);
 
-  const baseQuery = db.select().from(distributorsTable);
-  const countQuery = db.select({ count: sql<number>`count(*)::int` }).from(distributorsTable);
   const [rows, totalRes, statesRes] = await Promise.all([
-    (where ? baseQuery.where(where) : baseQuery)
+    db.select().from(distributorsTable)
+      .where(where)
       .orderBy(distributorsTable.businessName)
       .limit(pageSize)
       .offset((page - 1) * pageSize),
-    where ? countQuery.where(where) : countQuery,
-    db.selectDistinct({ state: distributorsTable.state }).from(distributorsTable).orderBy(distributorsTable.state),
+    db.select({ count: sql<number>`count(*)::int` }).from(distributorsTable).where(where),
+    db.selectDistinct({ state: distributorsTable.state })
+      .from(distributorsTable)
+      .where(eq(distributorsTable.customerType, customerType))
+      .orderBy(distributorsTable.state),
   ]);
   const total = totalRes[0]?.count ?? 0;
   res.json({
@@ -115,6 +117,14 @@ router.get("/distributor/network", async (req, res): Promise<void> => {
       customerBranding: d.customerBranding,
     })),
   });
+}
+
+router.get("/distributor/network", async (req, res): Promise<void> => {
+  await handleNetworkList(req, res, "Distributors");
+});
+
+router.get("/direct-dealer/network", async (req, res): Promise<void> => {
+  await handleNetworkList(req, res, "Direct Dealers");
 });
 
 router.get("/distributor/network/:id", async (req, res): Promise<void> => {

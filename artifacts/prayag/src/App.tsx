@@ -18,6 +18,7 @@ import RegisterPage from "@/pages/RegisterPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import DealerRegistrationPage from "@/pages/DealerRegistrationPage";
 import DistributorPage from "@/pages/DistributorPage";
+import DirectDealerPage from "@/pages/DirectDealerPage";
 import DistributorRegistrationPage from "@/pages/DistributorRegistrationPage";
 import AboutPage from "@/pages/AboutPage";
 import FaqPage from "@/pages/FaqPage";
@@ -65,7 +66,7 @@ function WithLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-const BARE_ROUTES = ["/admin", "/dealer", "/distributor"];
+const BARE_ROUTES = ["/admin", "/dealer", "/distributor", "/direct-dealer"];
 
 function Router() {
   const [location] = useLocation();
@@ -76,6 +77,7 @@ function Router() {
       <Route path="/admin" component={() => <AdminPage />} />
       <Route path="/dealer" component={() => <DealerPage />} />
       <Route path="/distributor" component={() => <DistributorPage />} />
+      <Route path="/direct-dealer" component={() => <DirectDealerPage />} />
       <Route path="/" component={HomePage} />
       <Route path="/products" component={ProductsPage} />
       <Route path="/products/:slug" component={ProductDetailPage} />

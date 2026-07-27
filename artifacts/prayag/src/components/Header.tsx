@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, Heart, ShoppingCart, User, ChevronDown, Menu, X, Phone, MapPin, Package, BookOpen, Building2, Truck, Grid3X3 } from "lucide-react";
+import { Search, Heart, ShoppingCart, User, ChevronDown, Menu, X, Phone, MapPin, Package, BookOpen, Building2, Truck, Store, Grid3X3 } from "lucide-react";
 import { useCartStore, useAuthStore } from "@/lib/store";
 import { useGetCart, useGetWishlist, useGetSearchSuggestions, getGetSearchSuggestionsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -122,6 +122,16 @@ export default function Header() {
                     <div>
                       <div className="text-xs font-semibold text-gray-800">Distributor Dashboard</div>
                       <div className="text-[10px] text-gray-400">Territory, credit & bulk supply</div>
+                    </div>
+                  </Link>
+                  <Link href="/direct-dealer" onClick={() => setShowBulkMenu(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-stone-100 transition-colors" data-testid="link-bulk-direct-dealer">
+                    <div className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center flex-shrink-0">
+                      <Store className="w-3.5 h-3.5 text-[hsl(24,10%,16%)]" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-gray-800">Direct Dealer Dashboard</div>
+                      <div className="text-[10px] text-gray-400">Direct dealer network & orders</div>
                     </div>
                   </Link>
                 </div>
