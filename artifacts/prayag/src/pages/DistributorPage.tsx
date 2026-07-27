@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Package, DollarSign, Clock, CheckCircle, FileText, Tag, BookOpen, BarChart3, MapPin, Target, CreditCard, TrendingUp, Users } from "lucide-react";
+import { Package, DollarSign, Clock, CheckCircle, FileText, Tag, BookOpen, BarChart3, MapPin, Target, CreditCard, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import NetworkDirectory from "@/components/NetworkDirectory";
 
 async function fetchDistributorDashboard() {
   const res = await fetch("/api/distributor/dashboard");
@@ -23,7 +22,6 @@ async function fetchDistributorSchemes() {
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-  { id: "network", label: "Distributors", icon: Users },
   { id: "orders", label: "My Orders", icon: Package },
   { id: "schemes", label: "Schemes", icon: Tag },
   { id: "catalogues", label: "Catalogues", icon: BookOpen },
@@ -146,16 +144,6 @@ export default function DistributorPage() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* ── DISTRIBUTOR NETWORK ── */}
-        {active === "network" && (
-          <NetworkDirectory
-            apiBase="/api/distributor/network"
-            title="Distributor Network"
-            entityLabel="distributors"
-            testPrefix="network"
-          />
         )}
 
         {/* ── ORDERS ── */}
@@ -304,7 +292,6 @@ export default function DistributorPage() {
           </div>
         )}
       </main>
-
     </div>
   );
 }

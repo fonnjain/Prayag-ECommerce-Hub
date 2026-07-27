@@ -3,11 +3,9 @@ import { Link } from "wouter";
 import { BarChart3, Users, Store, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import NetworkDirectory from "@/components/NetworkDirectory";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-  { id: "dealers", label: "Direct Dealers", icon: Users },
 ];
 
 async function fetchStats() {
@@ -76,22 +74,12 @@ export default function DirectDealerPage() {
             )}
             <div className="bg-white rounded-xl border border-gray-100 p-5">
               <h2 className="font-bold text-gray-900 mb-4">Quick Actions</h2>
-              <div className="grid sm:grid-cols-3 gap-3">
-                <button onClick={() => setActive("dealers")} className="w-full bg-[hsl(24,10%,16%)] text-white font-medium py-3 rounded-xl text-sm hover:bg-[hsl(24,9%,26%)] transition-colors" data-testid="button-dd-view-dealers">View Direct Dealers</button>
+              <div className="grid sm:grid-cols-2 gap-3">
                 <Link href="/products"><button className="w-full border border-[hsl(38,52%,40%)] text-[hsl(38,52%,40%)] font-medium py-3 rounded-xl text-sm hover:bg-amber-50 transition-colors" data-testid="button-dd-bulk-order">Bulk Order</button></Link>
                 <Link href="/dealer"><button className="w-full border border-gray-200 text-gray-700 font-medium py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors" data-testid="button-dd-dealer-portal">Dealer Portal</button></Link>
               </div>
             </div>
           </div>
-        )}
-
-        {active === "dealers" && (
-          <NetworkDirectory
-            apiBase="/api/direct-dealer/network"
-            title="Direct Dealers"
-            entityLabel="direct dealers"
-            testPrefix="dd-network"
-          />
         )}
       </main>
     </div>
