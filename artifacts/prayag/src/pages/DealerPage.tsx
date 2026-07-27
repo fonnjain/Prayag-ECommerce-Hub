@@ -56,7 +56,7 @@ export default function DealerPage() {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-6 overflow-auto min-w-0">
         {active === "dashboard" && (
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Retailers Dashboard</h1>
