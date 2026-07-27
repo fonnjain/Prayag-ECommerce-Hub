@@ -101,10 +101,32 @@ router.get("/distributor/network", async (req, res): Promise<void> => {
     totalPages: Math.max(1, Math.ceil(total / pageSize)),
     states: statesRes.map(s => s.state).filter(Boolean),
     distributors: rows.map(d => ({
-      id: d.id, businessName: d.businessName, contactName: d.contactName,
+      id: d.id, distributorCode: d.distributorCode, businessName: d.businessName, contactName: d.contactName,
       phone: d.phone, email: d.email, city: d.city, state: d.state,
       pincode: d.pincode, gstNumber: d.gstNumber, territory: d.territory, status: d.status,
     })),
+  });
+});
+
+router.get("/distributor/network/:id", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const rows = await db.select().from(distributorsTable).where(eq(distributorsTable.id, id)).limit(1);
+  if (!rows[0]) { res.status(404).json({ error: "Distributor not found" }); return; }
+  const d = rows[0];
+  res.json({
+    id: d.id, distributorCode: d.distributorCode, businessName: d.businessName,
+    contactName: d.contactName, phone: d.phone, alternateContact1: d.alternateContact1,
+    contact1Dob: d.contact1Dob, contactPerson2: d.contactPerson2, contactNumber2: d.contactNumber2,
+    alternateContact2: d.alternateContact2, contact2Dob: d.contact2Dob,
+    anniversaryDate: d.anniversaryDate, email: d.email, category: d.category,
+    address: d.address, state: d.state, district: d.territory, city: d.city,
+    pincode: d.pincode, area: d.area, gstNumber: d.gstNumber, status: d.status,
+    dateCreated: d.dateCreated, createdBy: d.createdBy, customerType: d.customerType,
+    authorisedDate: d.authorisedDate, profileImgUrl: d.profileImgUrl,
+    visitingCardUrl: d.visitingCardUrl, passbookImgUrl: d.passbookImgUrl,
+    assignedSegment: d.assignedSegment, assignedUser: d.assignedUser,
+    customerBranding: d.customerBranding,
   });
 });
 

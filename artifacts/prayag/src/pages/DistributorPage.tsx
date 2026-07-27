@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { Package, DollarSign, Clock, CheckCircle, FileText, Tag, BookOpen, BarChart3, MapPin, Target, CreditCard, TrendingUp, Users, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 
 async function fetchDistributorDashboard() {
@@ -39,6 +40,12 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-100 text-red-600",
 };
 
+async function fetchDistributorDetail(id: number) {
+  const res = await fetch(`/api/distributor/network/${id}`);
+  if (!res.ok) throw new Error("Failed");
+  return res.json();
+}
+
 async function fetchDistributorNetwork(search: string, state: string, page: number) {
   const params = new URLSearchParams();
   if (search) params.set("search", search);
@@ -55,6 +62,12 @@ export default function DistributorPage() {
   const [netSearchInput, setNetSearchInput] = useState("");
   const [netState, setNetState] = useState("");
   const [netPage, setNetPage] = useState(1);
+  const [selectedDistId, setSelectedDistId] = useState<number | null>(null);
+  const { data: distDetail, isLoading: distDetailLoading } = useQuery({
+    queryKey: ["distributor-detail", selectedDistId],
+    queryFn: () => fetchDistributorDetail(selectedDistId!),
+    enabled: selectedDistId !== null,
+  });
   const { data: network, isLoading: networkLoading } = useQuery({
     queryKey: ["distributor-network", netSearch, netState, netPage],
     queryFn: () => fetchDistributorNetwork(netSearch, netState, netPage),
@@ -217,7 +230,13 @@ export default function DistributorPage() {
                     <tbody className="divide-y divide-gray-50">
                       {network.distributors.map((d: any) => (
                         <tr key={d.id} className="hover:bg-gray-50 transition-colors" data-testid={`row-network-${d.id}`}>
-                          <td className="px-4 py-3 font-medium text-gray-900">{d.businessName}</td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => setSelectedDistId(d.id)}
+                              className="font-medium text-[hsl(38,52%,40%)] hover:underline text-left"
+                              data-testid={`button-network-detail-${d.id}`}
+                            >{d.businessName}</button>
+                          </td>
                           <td className="px-4 py-3 text-gray-600">{d.contactName}</td>
                           <td className="px-4 py-3 text-gray-500">{d.phone || "—"}</td>
                           <td className="px-4 py-3 text-gray-500">{d.city || "—"}</td>
@@ -407,6 +426,103 @@ export default function DistributorPage() {
           </div>
         )}
       </main>
+
+      {/* ── DISTRIBUTOR DETAIL DIALOG ── */}
+      <Dialog open={selectedDistId !== null} onOpenChange={(open) => { if (!open) setSelectedDistId(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto" data-testid="dialog-distributor-detail">
+          {distDetailLoading || !distDetail ? (
+            <div className="space-y-3 py-6">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-8 rounded-lg" />)}</div>
+          ) : (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-4">
+                  {distDetail.profileImgUrl ? (
+                    <img src={distDetail.profileImgUrl} alt={distDetail.businessName} className="w-14 h-14 rounded-full object-cover border border-gray-200"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-[hsl(24,10%,16%)]/10 flex items-center justify-center">
+                      <Users className="w-6 h-6 text-[hsl(38,52%,40%)]" />
+                    </div>
+                  )}
+                  <div>
+                    <DialogTitle className="text-lg font-bold text-gray-900">{distDetail.businessName}</DialogTitle>
+                    <div className="flex items-center gap-2 mt-1">
+                      {distDetail.distributorCode && <span className="text-xs text-gray-400">{distDetail.distributorCode}</span>}
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${distDetail.status === "approved" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{distDetail.status}</span>
+                    </div>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              {[
+                { section: "Contact Details", fields: [
+                  ["Contact Person 1", distDetail.contactName],
+                  ["Contact Number 1", distDetail.phone],
+                  ["Alternate Contact 1", distDetail.alternateContact1],
+                  ["Contact Person 1 DOB", distDetail.contact1Dob],
+                  ["Contact Person 2", distDetail.contactPerson2],
+                  ["Contact Number 2", distDetail.contactNumber2],
+                  ["Alternate Contact 2", distDetail.alternateContact2],
+                  ["Contact Person 2 DOB", distDetail.contact2Dob],
+                  ["Date of Anniversary", distDetail.anniversaryDate],
+                  ["Email", distDetail.email],
+                ]},
+                { section: "Location", fields: [
+                  ["Address", distDetail.address],
+                  ["State", distDetail.state],
+                  ["District", distDetail.district],
+                  ["City", distDetail.city],
+                  ["Pincode", distDetail.pincode],
+                  ["Area", distDetail.area],
+                ]},
+                { section: "Business Details", fields: [
+                  ["Customer Type", distDetail.customerType],
+                  ["Category", distDetail.category],
+                  ["GST", distDetail.gstNumber],
+                  ["Assigned Segment", distDetail.assignedSegment],
+                  ["Assign User", distDetail.assignedUser],
+                  ["Customer Branding", distDetail.customerBranding],
+                ]},
+                { section: "Record Info", fields: [
+                  ["Date Created", distDetail.dateCreated],
+                  ["Created By", distDetail.createdBy],
+                  ["Authorised Date", distDetail.authorisedDate],
+                ]},
+              ].map(({ section, fields }) => {
+                const filled = fields.filter(([, v]) => v);
+                if (filled.length === 0) return null;
+                return (
+                  <div key={section} className="mt-2">
+                    <h3 className="text-xs font-semibold text-[hsl(38,52%,40%)] uppercase tracking-wide mb-2">{section}</h3>
+                    <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 bg-gray-50 rounded-xl p-4">
+                      {filled.map(([label, value]) => (
+                        <div key={label as string} className={label === "Address" ? "sm:col-span-2" : ""}>
+                          <div className="text-[11px] text-gray-400">{label}</div>
+                          <div className="text-sm font-medium text-gray-900 break-words">{value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {(distDetail.visitingCardUrl || distDetail.passbookImgUrl) && (
+                <div className="mt-2">
+                  <h3 className="text-xs font-semibold text-[hsl(38,52%,40%)] uppercase tracking-wide mb-2">Documents</h3>
+                  <div className="flex gap-3">
+                    {distDetail.visitingCardUrl && (
+                      <a href={distDetail.visitingCardUrl} target="_blank" rel="noreferrer" className="text-sm text-[hsl(38,52%,40%)] font-medium hover:underline">Visiting Card</a>
+                    )}
+                    {distDetail.passbookImgUrl && (
+                      <a href={distDetail.passbookImgUrl} target="_blank" rel="noreferrer" className="text-sm text-[hsl(38,52%,40%)] font-medium hover:underline">Passbook Image</a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
