@@ -1,2 +1,2 @@
 - [PTMT catalog images](ptmt-catalog-images.md) — Drive→product mapping rules, placeholder pricing decision (999/1299), series suffix map.
-- [PRAYAG access control](prayag-access-control.md) — network/KYC APIs need business-role JWT; public register forced to "customer"; customers only get the safe dealer locator.
+- [PRAYAG access control](prayag-access-control.md) — network/KYC APIs need business-role JWT; public register forced to "customer"; customers may open portal pages (UI only) but network APIs stay JWT-gated.

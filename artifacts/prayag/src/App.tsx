@@ -70,13 +70,10 @@ function WithLayout({ children }: { children: React.ReactNode }) {
 
 const BARE_ROUTES = ["/admin", "/dealer", "/distributor", "/direct-dealer"];
 
-const BUSINESS_ROLES = ["dealer", "distributor", "admin"];
 
 function RequireLogin({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   if (!user) return <Redirect to="/login" />;
-  // Customers only get the public dealer locator
-  if (!BUSINESS_ROLES.includes(user.role)) return <Redirect to="/find-dealer" />;
   return <>{children}</>;
 }
 
