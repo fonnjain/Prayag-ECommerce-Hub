@@ -110,7 +110,7 @@ export default function Header() {
                       <Building2 className="w-3.5 h-3.5 text-[hsl(24,10%,16%)]" />
                     </div>
                     <div>
-                      <div className="text-xs font-semibold text-gray-800">Dealer Dashboard</div>
+                      <div className="text-xs font-semibold text-gray-800">Retailers Dashboard</div>
                       <div className="text-[10px] text-gray-400">Orders, schemes & invoices</div>
                     </div>
                   </Link>

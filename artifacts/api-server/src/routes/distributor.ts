@@ -62,7 +62,7 @@ router.get("/distributor/schemes", async (_req, res): Promise<void> => {
   })));
 });
 
-async function handleNetworkList(req: any, res: any, customerType: "Distributors" | "Direct Dealers"): Promise<void> {
+async function handleNetworkList(req: any, res: any, customerType: "Distributors" | "Direct Dealers" | "Retailer"): Promise<void> {
   const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
   const state = typeof req.query.state === "string" ? req.query.state.trim() : "";
   const page = Math.max(1, parseInt(String(req.query.page || "1"), 10) || 1);
@@ -127,6 +127,10 @@ router.get("/direct-dealer/network", async (req, res): Promise<void> => {
   await handleNetworkList(req, res, "Direct Dealers");
 });
 
+router.get("/retailer/network", async (req, res): Promise<void> => {
+  await handleNetworkList(req, res, "Retailer");
+});
+
 router.get("/distributor/network/:id", async (req, res): Promise<void> => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
@@ -146,6 +150,11 @@ router.get("/distributor/network/:id", async (req, res): Promise<void> => {
     visitingCardUrl: d.visitingCardUrl, passbookImgUrl: d.passbookImgUrl,
     assignedSegment: d.assignedSegment, assignedUser: d.assignedUser,
     customerBranding: d.customerBranding,
+    aadharNo: d.aadharNo, aadharFrontUrl: d.aadharFrontUrl, aadharBackUrl: d.aadharBackUrl,
+    panNo: d.panNo, panImageUrl: d.panImageUrl,
+    bankName: d.bankName, accountHolderName: d.accountHolderName, accountNo: d.accountNo,
+    ifscCode: d.ifscCode, bankPassbookUrl: d.bankPassbookUrl,
+    assignDistributor: d.assignDistributor, accountStatus: d.accountStatus,
   });
 });
 

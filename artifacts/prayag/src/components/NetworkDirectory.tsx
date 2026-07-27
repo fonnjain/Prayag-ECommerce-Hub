@@ -213,7 +213,17 @@ export default function NetworkDirectory({ apiBase, title, entityLabel, testPref
                   ["GST", detail.gstNumber],
                   ["Assigned Segment", detail.assignedSegment],
                   ["Assign User", detail.assignedUser],
+                  ["Assigned Distributor", detail.assignDistributor],
                   ["Customer Branding", detail.customerBranding],
+                  ["Account Status", detail.accountStatus],
+                ]},
+                { section: "KYC & Bank Details", fields: [
+                  ["Aadhar No.", detail.aadharNo],
+                  ["PAN No.", detail.panNo],
+                  ["Bank Name", detail.bankName],
+                  ["Account Holder Name", detail.accountHolderName],
+                  ["Account No.", detail.accountNo],
+                  ["IFSC Code", detail.ifscCode],
                 ]},
                 { section: "Record Info", fields: [
                   ["Date Created", detail.dateCreated],
@@ -238,7 +248,7 @@ export default function NetworkDirectory({ apiBase, title, entityLabel, testPref
                 );
               })}
 
-              {(detail.visitingCardUrl || detail.passbookImgUrl) && (
+              {(detail.visitingCardUrl || detail.passbookImgUrl || detail.aadharFrontUrl || detail.aadharBackUrl || detail.panImageUrl || detail.bankPassbookUrl) && (
                 <div className="mt-2">
                   <h3 className="text-xs font-semibold text-[hsl(38,52%,40%)] uppercase tracking-wide mb-2">Documents</h3>
                   <div className="flex gap-3">
@@ -247,6 +257,18 @@ export default function NetworkDirectory({ apiBase, title, entityLabel, testPref
                     )}
                     {detail.passbookImgUrl && (
                       <a href={detail.passbookImgUrl} target="_blank" rel="noreferrer" className="text-sm text-[hsl(38,52%,40%)] font-medium hover:underline">Passbook Image</a>
+                    )}
+                    {detail.aadharFrontUrl && (
+                      <a href={detail.aadharFrontUrl} target="_blank" rel="noreferrer" className="text-sm text-[hsl(38,52%,40%)] font-medium hover:underline">Aadhar Front</a>
+                    )}
+                    {detail.aadharBackUrl && (
+                      <a href={detail.aadharBackUrl} target="_blank" rel="noreferrer" className="text-sm text-[hsl(38,52%,40%)] font-medium hover:underline">Aadhar Back</a>
+                    )}
+                    {detail.panImageUrl && (
+                      <a href={detail.panImageUrl} target="_blank" rel="noreferrer" className="text-sm text-[hsl(38,52%,40%)] font-medium hover:underline">PAN Image</a>
+                    )}
+                    {detail.bankPassbookUrl && (
+                      <a href={detail.bankPassbookUrl} target="_blank" rel="noreferrer" className="text-sm text-[hsl(38,52%,40%)] font-medium hover:underline">Bank Passbook</a>
                     )}
                   </div>
                 </div>
