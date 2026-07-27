@@ -221,31 +221,51 @@ export default function DistributorPage() {
             ) : network && network.distributors.length > 0 ? (
               <>
                 <div className="bg-white rounded-xl border border-gray-100 overflow-x-auto">
-                  <table className="w-full text-sm min-w-[800px]">
+                  <table className="w-full text-sm min-w-[2400px]">
                     <thead className="bg-gray-50 border-b border-gray-100">
-                      <tr>{["Company", "Contact Person", "Phone", "City", "District", "State", "GST", "Status"].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">{h}</th>
+                      <tr>{["ID", "Date Created", "Created By", "Customer Type", "Company", "Contact Person 1", "Contact Number 1", "Alternate Contact 1", "DOB 1", "Contact Person 2", "Contact Number 2", "Alternate Contact 2", "DOB 2", "Anniversary", "Email", "Category", "Address", "State", "District", "City", "Pincode", "Area", "GST", "Status", "Authorised Date", "Segment", "Assign User", "Branding"].map(h => (
+                        <th key={h} className="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                       ))}</tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {network.distributors.map((d: any) => (
                         <tr key={d.id} className="hover:bg-gray-50 transition-colors" data-testid={`row-network-${d.id}`}>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-3 text-gray-500 text-xs whitespace-nowrap">{d.distributorCode || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.dateCreated || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.createdBy || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.customerType || "—"}</td>
+                          <td className="px-3 py-3 whitespace-nowrap">
                             <button
                               onClick={() => setSelectedDistId(d.id)}
                               className="font-medium text-[hsl(38,52%,40%)] hover:underline text-left"
                               data-testid={`button-network-detail-${d.id}`}
                             >{d.businessName}</button>
                           </td>
-                          <td className="px-4 py-3 text-gray-600">{d.contactName}</td>
-                          <td className="px-4 py-3 text-gray-500">{d.phone || "—"}</td>
-                          <td className="px-4 py-3 text-gray-500">{d.city || "—"}</td>
-                          <td className="px-4 py-3 text-gray-500">{d.territory || "—"}</td>
-                          <td className="px-4 py-3 text-gray-500">{d.state || "—"}</td>
-                          <td className="px-4 py-3 text-gray-400 text-xs">{d.gstNumber || "—"}</td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{d.contactName || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.phone || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.alternateContact1 || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.contact1Dob || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.contactPerson2 || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.contactNumber2 || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.alternateContact2 || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.contact2Dob || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.anniversaryDate || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.email || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.category || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 max-w-[260px] truncate" title={d.address || ""}>{d.address || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.state || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.district || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.city || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.pincode || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 max-w-[180px] truncate" title={d.area || ""}>{d.area || "—"}</td>
+                          <td className="px-3 py-3 text-gray-400 text-xs whitespace-nowrap">{d.gstNumber || "—"}</td>
+                          <td className="px-3 py-3">
                             <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${d.status === "approved" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{d.status}</span>
                           </td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.authorisedDate || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 max-w-[200px] truncate" title={d.assignedSegment || ""}>{d.assignedSegment || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 max-w-[180px] truncate" title={d.assignedUser || ""}>{d.assignedUser || "—"}</td>
+                          <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{d.customerBranding || "—"}</td>
                         </tr>
                       ))}
                     </tbody>

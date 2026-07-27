@@ -102,8 +102,16 @@ router.get("/distributor/network", async (req, res): Promise<void> => {
     states: statesRes.map(s => s.state).filter(Boolean),
     distributors: rows.map(d => ({
       id: d.id, distributorCode: d.distributorCode, businessName: d.businessName, contactName: d.contactName,
-      phone: d.phone, email: d.email, city: d.city, state: d.state,
-      pincode: d.pincode, gstNumber: d.gstNumber, territory: d.territory, status: d.status,
+      phone: d.phone, alternateContact1: d.alternateContact1, contact1Dob: d.contact1Dob,
+      contactPerson2: d.contactPerson2, contactNumber2: d.contactNumber2,
+      alternateContact2: d.alternateContact2, contact2Dob: d.contact2Dob,
+      anniversaryDate: d.anniversaryDate, email: d.email, category: d.category,
+      address: d.address, city: d.city, state: d.state, district: d.territory,
+      pincode: d.pincode, area: d.area, gstNumber: d.gstNumber, territory: d.territory,
+      status: d.status, dateCreated: d.dateCreated, createdBy: d.createdBy,
+      customerType: d.customerType, authorisedDate: d.authorisedDate,
+      assignedSegment: d.assignedSegment, assignedUser: d.assignedUser,
+      customerBranding: d.customerBranding,
     })),
   });
 });
