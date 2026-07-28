@@ -63,9 +63,23 @@ function SmoothMap({ src }: { src: string }) {
   );
 }
 
+// Full query (name + address) — used for the "Open in Google Maps" link
 function mapQuery(d: Dealer) {
   return encodeURIComponent(
     [d.businessName, d.address, d.area, d.city, d.district, d.state, d.pincode, "India"].filter(Boolean).join(", "),
+  );
+}
+
+// Simplified, reliably-geocodable query — used for the embedded map so a red
+// marker always appears (long shop addresses often fail to geocode and leave
+// the map without any pin)
+function pinQuery(d: Dealer) {
+  const area = (d.area || "").replace(/\s*[BS]\.?O\.?$/i, "").trim();
+  return encodeURIComponent(
+    [area, d.city, d.district, d.state, d.pincode, "India"]
+      .filter(Boolean)
+      .filter((v, i, arr) => arr.indexOf(v) === i)
+      .join(", "),
   );
 }
 
@@ -273,7 +287,7 @@ export default function FindDealerPage() {
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
               {selected ? (
                 <>
-                  <SmoothMap src={`https://maps.google.com/maps?q=${mapQuery(selected)}&z=15&output=embed`} />
+                  <SmoothMap src={`https://maps.google.com/maps?q=${pinQuery(selected)}&z=15&output=embed`} />
                   <div className="p-4 flex items-center justify-between gap-3">
                     <div>
                       <div className="font-semibold text-sm text-gray-900">{selected.businessName}</div>
