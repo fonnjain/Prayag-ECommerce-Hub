@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { db, distributorsTable } from "@workspace/db";
+import { db, distributorsTable, normalizeState } from "@workspace/db";
 
 const FILE = "/home/runner/workspace/attached_assets/Retailer_Upload_Sample_file_1785138628606.csv";
 
@@ -91,7 +91,7 @@ async function main() {
       email: clean(r[col.email]) ?? "",
       phone: clean(r[col.phone]),
       city: clean(r[col.city]),
-      state: clean(r[col.state]),
+      state: normalizeState(clean(r[col.state])),
       pincode: clean(r[col.pincode]),
       gstNumber: clean(r[col.gst]),
       territory: clean(r[col.district]),

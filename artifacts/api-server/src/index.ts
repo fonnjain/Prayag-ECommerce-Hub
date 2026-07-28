@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { normalizeDealerStates } from "./lib/normalize-dealer-states";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +23,8 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  normalizeDealerStates().catch((err) => {
+    logger.error({ err }, "Failed to normalize dealer state names");
+  });
 });
