@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { db, distributorsTable, normalizeState } from "@workspace/db";
+import { db, distributorsTable, normalizeState, normalizeLocality } from "@workspace/db";
 
 const FILE = "/home/runner/workspace/attached_assets/Retailer_Upload_Sample_file_1785138628606.csv";
 
@@ -90,11 +90,11 @@ async function main() {
       contactName: clean(r[col.contact]) ?? businessName,
       email: clean(r[col.email]) ?? "",
       phone: clean(r[col.phone]),
-      city: clean(r[col.city]),
+      city: normalizeLocality(clean(r[col.city])),
       state: normalizeState(clean(r[col.state])),
       pincode: clean(r[col.pincode]),
       gstNumber: clean(r[col.gst]),
-      territory: clean(r[col.district]),
+      territory: normalizeLocality(clean(r[col.district])),
       status: (clean(r[col.leadStatus]) || "pending").toLowerCase() === "approved" ? "approved" : "pending",
       accountStatus: clean(r[col.accountStatus]),
       distributorCode: clean(r[col.id]),
