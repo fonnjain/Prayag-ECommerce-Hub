@@ -187,6 +187,8 @@ router.get("/dealers/locator", async (req, res): Promise<void> => {
       state: distributorsTable.state,
       pincode: distributorsTable.pincode,
       customerType: distributorsTable.customerType,
+      latitude: distributorsTable.latitude,
+      longitude: distributorsTable.longitude,
     }).from(distributorsTable).where(where)
       .orderBy(distributorsTable.businessName)
       .limit(pageSize)
@@ -209,7 +211,12 @@ router.get("/dealers/locator", async (req, res): Promise<void> => {
     states: statesRes.map(r => r.v).filter(Boolean),
     districts: districtsRes.map(r => r.v).filter(Boolean),
     cities: citiesRes.map(r => r.v).filter(Boolean),
-    dealers: rows,
+    dealers: rows.map(d => {
+      const lat = d.latitude ? parseFloat(d.latitude as string) : null;
+      const lon = d.longitude ? parseFloat(d.longitude as string) : null;
+      const hasCoords = lat !== null && lon !== null && !(lat === 0 && lon === 0);
+      return { ...d, latitude: hasCoords ? lat : null, longitude: hasCoords ? lon : null };
+    }),
   });
 });
 
@@ -217,6 +224,17 @@ router.get("/dealers/locator", async (req, res): Promise<void> => {
 const geocodeCache = new Map<string, { lat: number; lon: number } | null>();
 router.get("/dealers/geocode", async (req, res): Promise<void> => {
   const q = typeof req.query.q === "string" ? req.query.q.trim().slice(0, 200) : "";
+  // Prefer precise stored coordinates when a dealer id is provided
+  const id = parseInt(String(req.query.id || ""), 10);
+  if (Number.isFinite(id)) {
+    const rows = await db.select({ lat: distributorsTable.latitude, lon: distributorsTable.longitude })
+      .from(distributorsTable).where(eq(distributorsTable.id, id)).limit(1);
+    if (rows[0]?.lat && rows[0]?.lon) {
+      const lat = parseFloat(rows[0].lat as string);
+      const lon = parseFloat(rows[0].lon as string);
+      if (!(lat === 0 && lon === 0)) { res.json({ result: { lat, lon }, source: "stored" }); return; }
+    }
+  }
   if (!q) { res.status(400).json({ error: "q required" }); return; }
   if (geocodeCache.has(q)) { res.json({ result: geocodeCache.get(q) }); return; }
   try {

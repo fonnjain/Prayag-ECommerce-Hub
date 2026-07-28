@@ -50,6 +50,8 @@ export const distributorsTable = pgTable("distributors", {
   accountStatus: text("account_status"),
   annualTarget: numeric("annual_target", { precision: 15, scale: 2 }),
   creditLimit: numeric("credit_limit", { precision: 15, scale: 2 }),
+  latitude: numeric("latitude", { precision: 10, scale: 7 }),
+  longitude: numeric("longitude", { precision: 10, scale: 7 }),
   status: text("status").notNull().default("pending"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

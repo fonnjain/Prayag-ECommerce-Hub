@@ -13,6 +13,8 @@ interface Dealer {
   state: string | null;
   pincode: string | null;
   customerType: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -82,8 +84,10 @@ function pinLocation(d: Dealer) {
 
 // Geocode via our API (Nominatim-backed) so the embedded pin can carry the
 // dealer's name as a label: q=lat,lon(Business Name)
-async function fetchGeocode(loc: string): Promise<{ lat: number; lon: number } | null> {
-  const res = await fetch(`/api/dealers/geocode?q=${encodeURIComponent(loc)}`);
+async function fetchGeocode(d: Dealer): Promise<{ lat: number; lon: number } | null> {
+  // Prefer precise stored coordinates when available
+  if (d.latitude != null && d.longitude != null) return { lat: d.latitude, lon: d.longitude };
+  const res = await fetch(`/api/dealers/geocode?id=${d.id}&q=${encodeURIComponent(pinLocation(d))}`);
   if (!res.ok) return null;
   const data = await res.json();
   return data.result ?? null;
@@ -125,8 +129,8 @@ export default function FindDealerPage() {
   });
 
   const { data: coords } = useQuery({
-    queryKey: ["dealer-geocode", selected ? pinLocation(selected) : ""],
-    queryFn: () => fetchGeocode(pinLocation(selected!)),
+    queryKey: ["dealer-geocode", selected?.id ?? null],
+    queryFn: () => fetchGeocode(selected!),
     enabled: !!selected,
     staleTime: Infinity,
   });
