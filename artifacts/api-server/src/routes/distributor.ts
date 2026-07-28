@@ -213,6 +213,26 @@ router.get("/dealers/locator", async (req, res): Promise<void> => {
   });
 });
 
+// Geocode a location string to lat/lon (OpenStreetMap Nominatim, cached in memory)
+const geocodeCache = new Map<string, { lat: number; lon: number } | null>();
+router.get("/dealers/geocode", async (req, res): Promise<void> => {
+  const q = typeof req.query.q === "string" ? req.query.q.trim().slice(0, 200) : "";
+  if (!q) { res.status(400).json({ error: "q required" }); return; }
+  if (geocodeCache.has(q)) { res.json({ result: geocodeCache.get(q) }); return; }
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in&q=${encodeURIComponent(q)}`;
+    const r = await fetch(url, { headers: { "User-Agent": "PrayagDealerLocator/1.0" } });
+    if (!r.ok) throw new Error(`nominatim ${r.status}`);
+    const data = (await r.json()) as { lat: string; lon: string }[];
+    const result = data[0] ? { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) } : null;
+    geocodeCache.set(q, result);
+    if (geocodeCache.size > 5000) geocodeCache.delete(geocodeCache.keys().next().value as string);
+    res.json({ result });
+  } catch {
+    res.status(502).json({ error: "Geocoding failed" });
+  }
+});
+
 router.get("/distributor/network/:id", async (req, res): Promise<void> => {
   if (!isBusinessUser(req)) { res.status(401).json({ error: "Login required" }); return; }
   const id = parseInt(req.params.id, 10);

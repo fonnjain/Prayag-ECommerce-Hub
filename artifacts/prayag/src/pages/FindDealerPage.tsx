@@ -70,17 +70,30 @@ function mapQuery(d: Dealer) {
   );
 }
 
-// Simplified, reliably-geocodable query — used for the embedded map so a red
-// marker always appears (long shop addresses often fail to geocode and leave
-// the map without any pin)
-function pinQuery(d: Dealer) {
+// Simplified, reliably-geocodable location string (long shop addresses often
+// fail to geocode and leave the map without any pin)
+function pinLocation(d: Dealer) {
   const area = (d.area || "").replace(/\s*[BS]\.?O\.?$/i, "").trim();
-  return encodeURIComponent(
-    [area, d.city, d.district, d.state, d.pincode, "India"]
-      .filter(Boolean)
-      .filter((v, i, arr) => arr.indexOf(v) === i)
-      .join(", "),
-  );
+  return [area, d.city, d.district, d.state, d.pincode, "India"]
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.indexOf(v) === i)
+    .join(", ");
+}
+
+// Geocode via our API (Nominatim-backed) so the embedded pin can carry the
+// dealer's name as a label: q=lat,lon(Business Name)
+async function fetchGeocode(loc: string): Promise<{ lat: number; lon: number } | null> {
+  const res = await fetch(`/api/dealers/geocode?q=${encodeURIComponent(loc)}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.result ?? null;
+}
+
+function mapEmbedSrc(d: Dealer, coords: { lat: number; lon: number } | null | undefined) {
+  if (coords) {
+    return `https://maps.google.com/maps?q=${coords.lat},${coords.lon}(${encodeURIComponent(d.businessName || "Dealer")})&z=15&output=embed`;
+  }
+  return `https://maps.google.com/maps?q=${encodeURIComponent(pinLocation(d))}&z=15&output=embed`;
 }
 
 async function fetchLocator(state: string, district: string, city: string, pincode: string, type: string, page: number) {
@@ -109,6 +122,13 @@ export default function FindDealerPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["dealer-locator", state, district, city, pincode, type, page],
     queryFn: () => fetchLocator(state, district, city, pincode, type, page),
+  });
+
+  const { data: coords } = useQuery({
+    queryKey: ["dealer-geocode", selected ? pinLocation(selected) : ""],
+    queryFn: () => fetchGeocode(pinLocation(selected!)),
+    enabled: !!selected,
+    staleTime: Infinity,
   });
 
   const hasFilter = !!(state || district || city || pincode);
@@ -287,7 +307,7 @@ export default function FindDealerPage() {
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
               {selected ? (
                 <>
-                  <SmoothMap src={`https://maps.google.com/maps?q=${pinQuery(selected)}&z=15&output=embed`} />
+                  <SmoothMap src={mapEmbedSrc(selected, coords)} />
                   <div className="p-4 flex items-center justify-between gap-3">
                     <div>
                       <div className="font-semibold text-sm text-gray-900">{selected.businessName}</div>
