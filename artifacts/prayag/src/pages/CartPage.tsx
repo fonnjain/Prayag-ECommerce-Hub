@@ -64,24 +64,36 @@ export default function CartPage() {
     </div>
   );
 
+  const hasUnavailable = cart.items.some(item => item.inStock === false);
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Shopping Cart ({cart.itemCount} items)</h1>
+      {hasUnavailable && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 text-sm text-red-700" data-testid="banner-unavailable">
+          Some items in your cart are no longer available. Please remove them to proceed to checkout.
+        </div>
+      )}
       <div className="grid md:grid-cols-3 gap-6">
         {/* Items */}
         <div className="md:col-span-2 space-y-3">
           {cart.items.map(item => (
-            <div key={item.id} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4" data-testid={`row-cart-${item.id}`}>
+            <div key={item.id} className={`bg-white rounded-xl border p-4 flex gap-4 ${item.inStock === false ? "border-red-200 bg-red-50/50" : "border-gray-100"}`} data-testid={`row-cart-${item.id}`}>
               <div className="w-20 h-20 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0">
-                <img src={item.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=100&h=100&fit=crop"} alt={item.productName} className="w-full h-full object-cover" />
+                <img src={item.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=100&h=100&fit=crop"} alt={item.productName} className={`w-full h-full object-cover ${item.inStock === false ? "grayscale opacity-60" : ""}`} />
               </div>
               <div className="flex-1 min-w-0">
                 <Link href={`/products/${item.productSlug}`}>
                   <p className="font-medium text-gray-900 text-sm hover:text-[hsl(38,52%,40%)] line-clamp-2">{item.productName}</p>
                 </Link>
+                {item.inStock === false && (
+                  <span className="inline-block mt-1 text-xs font-semibold text-red-600 bg-red-100 rounded-full px-2 py-0.5" data-testid={`badge-unavailable-${item.id}`}>
+                    No longer available
+                  </span>
+                )}
                 <p className="text-[hsl(38,52%,40%)] font-bold mt-1">₹{item.price.toLocaleString("en-IN")}</p>
                 <div className="flex items-center gap-3 mt-2">
-                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                  <div className={`flex items-center border border-gray-200 rounded-lg overflow-hidden ${item.inStock === false ? "opacity-40 pointer-events-none" : ""}`}>
                     <button onClick={() => handleQtyChange(item.id, item.quantity - 1)} className="px-2.5 py-1 hover:bg-gray-50" data-testid={`button-dec-${item.id}`}><Minus className="w-3 h-3" /></button>
                     <span className="px-3 py-1 text-sm border-x border-gray-200" data-testid={`text-qty-${item.id}`}>{item.quantity}</span>
                     <button onClick={() => handleQtyChange(item.id, item.quantity + 1)} className="px-2.5 py-1 hover:bg-gray-50" data-testid={`button-inc-${item.id}`}><Plus className="w-3 h-3" /></button>
@@ -139,11 +151,17 @@ export default function CartPage() {
             <p className="text-xs text-gray-400 mt-1.5">Try: PRAYAG10 for 10% off</p>
           </div>
 
-          <Link href="/checkout">
-            <button className="w-full bg-[hsl(24,10%,16%)] text-white font-bold py-3.5 rounded-xl hover:bg-[hsl(24,9%,26%)] transition-colors flex items-center justify-center gap-2" data-testid="button-checkout">
+          {hasUnavailable ? (
+            <button disabled className="w-full bg-gray-300 text-white font-bold py-3.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-2" data-testid="button-checkout">
               Proceed to Checkout <ArrowRight className="w-4 h-4" />
             </button>
-          </Link>
+          ) : (
+            <Link href="/checkout">
+              <button className="w-full bg-[hsl(24,10%,16%)] text-white font-bold py-3.5 rounded-xl hover:bg-[hsl(24,9%,26%)] transition-colors flex items-center justify-center gap-2" data-testid="button-checkout">
+                Proceed to Checkout <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
+          )}
           <Link href="/products">
             <button className="w-full text-center text-sm text-gray-500 hover:text-[hsl(38,52%,40%)] transition-colors py-2">Continue Shopping</button>
           </Link>

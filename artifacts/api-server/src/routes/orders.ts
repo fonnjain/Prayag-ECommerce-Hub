@@ -92,6 +92,19 @@ router.post("/orders", async (req, res): Promise<void> => {
 
   if (!cartItems.length) { res.status(400).json({ error: "Cart is empty" }); return; }
 
+  const unavailable = cartItems.filter(({ p }) => !p.inStock);
+  if (unavailable.length) {
+    // Remove discontinued items from the cart so the user can retry cleanly
+    for (const { ci } of unavailable) {
+      await db.delete(cartItemsTable).where(eq(cartItemsTable.id, ci.id));
+    }
+    const names = unavailable.map(({ p }) => p.name).join(", ");
+    res.status(409).json({
+      error: `Some items are no longer available and were removed from your cart: ${names}. Please review your cart and try again.`,
+    });
+    return;
+  }
+
   const subtotal = cartItems.reduce((s, { ci, p }) => s + parseFloat(p.price as string) * ci.quantity, 0);
   const gst = Math.round(subtotal * 0.18 * 100) / 100;
   const shipping = subtotal > 5000 ? 0 : 150;

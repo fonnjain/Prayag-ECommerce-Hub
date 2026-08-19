@@ -1559,7 +1559,7 @@ components:
 
     CartItem:
       type: object
-      required: [id, productId, productName, productSlug, imageUrl, price, quantity, subtotal]
+      required: [id, productId, productName, productSlug, imageUrl, price, quantity, subtotal, inStock]
       properties:
         id:
           type: integer
@@ -1577,6 +1577,8 @@ components:
           type: integer
         subtotal:
           type: number
+        inStock:
+          type: boolean
 
     Cart:
       type: object

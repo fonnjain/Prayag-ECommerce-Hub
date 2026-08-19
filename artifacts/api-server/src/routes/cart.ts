@@ -34,6 +34,7 @@ async function buildCartResponse(cartId: number, couponCode?: string | null) {
       price,
       quantity: ci.quantity,
       subtotal: price * ci.quantity,
+      inStock: p.inStock,
     };
   });
 
@@ -63,6 +64,9 @@ router.get("/cart", async (req, res): Promise<void> => {
 router.post("/cart/items", async (req, res): Promise<void> => {
   const { productId, quantity } = req.body;
   if (!productId || !quantity) { res.status(400).json({ error: "productId and quantity required" }); return; }
+  const [product] = await db.select().from(productsTable).where(eq(productsTable.id, productId));
+  if (!product) { res.status(404).json({ error: "Product not found" }); return; }
+  if (!product.inStock) { res.status(400).json({ error: "This product is no longer available" }); return; }
   const sessionId = getSessionId(req);
   const cart = await getOrCreateCart(sessionId);
   const [existing] = await db.select().from(cartItemsTable).where(and(eq(cartItemsTable.cartId, cart.id), eq(cartItemsTable.productId, productId)));

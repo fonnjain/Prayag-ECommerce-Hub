@@ -55,7 +55,16 @@ export default function CheckoutPage() {
             toast({ title: "Order placed!", description: `Order #${order.orderNumber} confirmed` });
             setLocation(`/account/orders/${order.id}`);
           },
+          onError: (err: any) => {
+            const message = err?.data?.error || "Could not place your order. Please try again.";
+            toast({ title: "Order failed", description: message, variant: "destructive" });
+            // Cart may have changed on the server (e.g. unavailable items removed)
+            qc.invalidateQueries({ queryKey: getGetCartQueryKey() });
+          },
         });
+      },
+      onError: () => {
+        toast({ title: "Could not save address", description: "Please check your details and try again.", variant: "destructive" });
       },
     });
   }

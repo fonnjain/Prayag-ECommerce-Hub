@@ -244,6 +244,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   subtotal: number;
+  inStock: boolean;
 }
 
 export interface Cart {

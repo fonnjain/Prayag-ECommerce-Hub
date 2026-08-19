@@ -284,7 +284,8 @@ export const GetCartResponse = zod.object({
   "imageUrl": zod.string().nullable(),
   "price": zod.number(),
   "quantity": zod.number(),
-  "subtotal": zod.number()
+  "subtotal": zod.number(),
+  "inStock": zod.boolean()
 })),
   "subtotal": zod.number(),
   "gst": zod.number(),
@@ -313,7 +314,8 @@ export const AddToCartResponse = zod.object({
   "imageUrl": zod.string().nullable(),
   "price": zod.number(),
   "quantity": zod.number(),
-  "subtotal": zod.number()
+  "subtotal": zod.number(),
+  "inStock": zod.boolean()
 })),
   "subtotal": zod.number(),
   "gst": zod.number(),
@@ -345,7 +347,8 @@ export const UpdateCartItemResponse = zod.object({
   "imageUrl": zod.string().nullable(),
   "price": zod.number(),
   "quantity": zod.number(),
-  "subtotal": zod.number()
+  "subtotal": zod.number(),
+  "inStock": zod.boolean()
 })),
   "subtotal": zod.number(),
   "gst": zod.number(),
@@ -373,7 +376,8 @@ export const RemoveCartItemResponse = zod.object({
   "imageUrl": zod.string().nullable(),
   "price": zod.number(),
   "quantity": zod.number(),
-  "subtotal": zod.number()
+  "subtotal": zod.number(),
+  "inStock": zod.boolean()
 })),
   "subtotal": zod.number(),
   "gst": zod.number(),
@@ -401,7 +405,8 @@ export const ApplyCouponResponse = zod.object({
   "imageUrl": zod.string().nullable(),
   "price": zod.number(),
   "quantity": zod.number(),
-  "subtotal": zod.number()
+  "subtotal": zod.number(),
+  "inStock": zod.boolean()
 })),
   "subtotal": zod.number(),
   "gst": zod.number(),
