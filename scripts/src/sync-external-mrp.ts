@@ -1,33 +1,35 @@
 /**
- * Daily MRP auto-sync from the external Prayag product database API
- * (prayag-competition-analysis app).
+ * Safe PRAYAG catalogue and MRP synchronisation.
  *
- * Unlike import-external-products.ts (destructive full re-import), this script
- * is a safe incremental sync, matching store `sku` = external `itemCode`:
- *   - updates products.mrp / products.price when the external MRP changed
- *   - upserts (inserts) new external items that aren't in the store yet
- *   - marks store products out of stock when missing/inactive externally
+ * Uses only the stable Prayag /api/v1/products feed and its currentMrp field.
+ * It never calls the competitor comparison API and never uses currentNet.
  *
- * Run once: pnpm --filter @workspace/scripts run sync-external-mrp
- * Scheduled: the "Daily MRP Sync" console workflow runs it every 24h.
- * Requires: PRAYAG_COMP_KEY env secret, DATABASE_URL
+ * Before 01 Sep 2026, the approved 01 Sep MRP is intentionally applied early.
+ * On and after that date, the sync follows the MRP effective for the current
+ * India date. Set PRAYAG_MRP_AS_OF=YYYY-MM-DD only for a deliberate override.
  */
 import { db, pool, productsTable, categoriesTable } from "@workspace/db";
 
 const API_BASE = "https://prayag-competition-analysis.replit.app/api/v1";
 const KEY = process.env.PRAYAG_COMP_KEY;
-if (!KEY) { console.error("PRAYAG_COMP_KEY not set"); process.exit(1); }
+const APPROVED_ROLLOUT_DATE = "2026-09-01";
+const PAGE_SIZE = 200;
 
-interface ExtProduct {
-  id: number;
+if (!KEY) throw new Error("PRAYAG_COMP_KEY is required");
+
+interface PrayagProduct {
   itemCode: string;
   productName: string | null;
   division: string | null;
   category: string | null;
+  seriesRange: string | null;
   size: string | null;
   uom: string | null;
   isActive: boolean;
+  hasPrice: boolean;
   currentMrp: number | null;
+  currentBasis: string | null;
+  effectiveDate: string | null;
 }
 
 const DIVISION_TO_CATEGORY_SLUG: Record<string, string> = {
@@ -38,136 +40,226 @@ const DIVISION_TO_CATEGORY_SLUG: Record<string, string> = {
   "Hardware": "bathroom-accessories",
 };
 
-function slugify(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+function indiaDate(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const value = (kind: string) => parts.find((part) => part.type === kind)?.value;
+  return `${value("year")}-${value("month")}-${value("day")}`;
 }
 
-async function fetchAll(): Promise<ExtProduct[]> {
-  const rows: ExtProduct[] = [];
-  let page = 1;
-  for (;;) {
-    const res = await fetch(`${API_BASE}/products?page=${page}&limit=50`, {
-      headers: { "X-API-Key": KEY! },
-    });
-    if (!res.ok) throw new Error(`API ${res.status} on page ${page}`);
-    const data = (await res.json()) as { rows: ExtProduct[]; total: number; pageSize: number };
-    rows.push(...data.rows);
-    if (rows.length >= data.total || data.rows.length === 0) break;
-    page++;
+function selectedAsOf(): string {
+  const override = process.env.PRAYAG_MRP_AS_OF;
+  if (override && !/^\d{4}-\d{2}-\d{2}$/.test(override)) {
+    throw new Error("PRAYAG_MRP_AS_OF must use YYYY-MM-DD");
   }
+  return override ?? (indiaDate() < APPROVED_ROLLOUT_DATE ? APPROVED_ROLLOUT_DATE : indiaDate());
+}
+
+function slugify(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+}
+
+function buildName(row: PrayagProduct): string | null {
+  const base = row.productName?.trim();
+  if (!base) return null; // caller decides the fallback
+  const parts = [base];
+  if (row.category) parts.push(`- ${row.category}`);
+  if (row.size && !base.includes(row.size)) parts.push(`(${row.size})`);
+  return parts.join(" ");
+}
+
+function fallbackName(row: PrayagProduct): string {
+  const division = row.division?.split("|")[0]?.trim();
+  return `PRAYAG ${division || "Product"} ${row.itemCode}`;
+}
+
+function specifications(row: PrayagProduct): string {
+  return [
+    row.division ? `Division: ${row.division}` : null,
+    row.category ? `Category: ${row.category}` : null,
+    row.seriesRange ? `Series: ${row.seriesRange}` : null,
+    row.size ? `Size: ${row.size}` : null,
+    row.uom ? `UOM: ${row.uom}` : null,
+    `Item Code: ${row.itemCode}`,
+  ].filter(Boolean).join("\n");
+}
+
+async function fetchCompleteFeed(asOf: string): Promise<PrayagProduct[]> {
+  const rows: PrayagProduct[] = [];
+  let expectedTotal: number | undefined;
+
+  for (let page = 1; ; page++) {
+    const url = new URL(`${API_BASE}/products`);
+    url.searchParams.set("page", String(page));
+    url.searchParams.set("pageSize", String(PAGE_SIZE));
+    url.searchParams.set("asOf", asOf);
+    const response = await fetch(url, { headers: { "X-API-Key": KEY! } });
+    if (!response.ok) throw new Error(`Prayag products API returned ${response.status} on page ${page}`);
+    const data = await response.json() as { rows?: PrayagProduct[]; total?: number; pageSize?: number };
+    if (!Array.isArray(data.rows) || typeof data.total !== "number" || !Number.isInteger(data.total) || data.total < 1) {
+      throw new Error(`Prayag products API returned an invalid page ${page}`);
+    }
+    if (expectedTotal !== undefined && expectedTotal !== data.total) {
+      throw new Error(`Prayag products API total changed mid-sync (${expectedTotal} → ${data.total})`);
+    }
+    expectedTotal = data.total;
+    rows.push(...data.rows);
+    if (rows.length >= data.total) break;
+    if (data.rows.length === 0) throw new Error(`Prayag products API ended early at ${rows.length}/${data.total}`);
+  }
+
+  if (rows.length !== expectedTotal) throw new Error(`Prayag products API is incomplete (${rows.length}/${expectedTotal})`);
   return rows;
 }
 
-function buildName(r: ExtProduct): string {
-  const nameParts = [r.productName!.trim()];
-  if (r.category) nameParts.push(`- ${r.category}`);
-  if (r.size && !r.productName!.includes(r.size)) nameParts.push(`(${r.size})`);
-  return nameParts.join(" ");
+function validateFeed(rows: PrayagProduct[], asOf: string): PrayagProduct[] {
+  const invalid: string[] = [];
+  const seen = new Set<string>();
+  const active: PrayagProduct[] = [];
+
+  for (const row of rows) {
+    const code = row.itemCode?.trim();
+    if (!code || seen.has(code)) {
+      invalid.push(`duplicate/missing item code: ${code || "(blank)"}`);
+      continue;
+    }
+    seen.add(code);
+    if (!row.isActive) continue;
+    if (!row.hasPrice || row.currentBasis !== "MRP" || row.currentMrp == null || row.currentMrp <= 0) {
+      invalid.push(`${code}: expected active Prayag MRP`);
+      continue;
+    }
+    active.push({ ...row, itemCode: code });
+  }
+
+  if (invalid.length > 0) throw new Error(`Prayag MRP feed failed validation for ${invalid.length} rows (${invalid.slice(0, 5).join("; ")})`);
+  if (active.length === 0) throw new Error("Prayag MRP feed has no active products");
+  console.log(`Validated ${active.length}/${rows.length} active Prayag MRP products as of ${asOf}`);
+  return active;
 }
 
 async function main() {
-  const startedAt = new Date().toISOString();
-  console.log(`[${startedAt}] Fetching external catalogue...`);
-  const ext = await fetchAll();
-  console.log(`Fetched ${ext.length} external products`);
+  const asOf = selectedAsOf();
+  console.log(`[${new Date().toISOString()}] Fetching Prayag MRP feed as of ${asOf}...`);
+  const feed = validateFeed(await fetchCompleteFeed(asOf), asOf);
 
-  // usable external rows: real MRP + itemCode + name; de-dup itemCodes defensively
-  const seen = new Set<string>();
-  const usable = ext.filter((r) =>
-    r.currentMrp != null && r.currentMrp > 0 && r.itemCode && r.productName &&
-    (seen.has(r.itemCode) ? false : (seen.add(r.itemCode), true))
+  const categories = await db.select().from(categoriesTable);
+  const categoryBySlug = new Map(categories.map((category) => [category.slug, category.id]));
+  const fallbackCategory = categoryBySlug.get("bathroom-accessories") ?? categories[0]?.id;
+  if (!fallbackCategory) throw new Error("No product category exists for Prayag catalogue sync");
+
+  const { rows: local } = await pool.query<{ id: number; sku: string; slug: string; in_stock: boolean }>(
+    "SELECT id, sku, slug, in_stock FROM products"
   );
-  console.log(`${usable.length} external products have a real MRP`);
+  const localBySku = new Map(local.map((row) => [row.sku, row]));
+  const activeCodes = new Set(feed.map((row) => row.itemCode));
+  const missingIds = local.filter((row) => row.in_stock && !activeCodes.has(row.sku)).map((row) => row.id);
 
-  const { rows: local } = await pool.query(
-    "SELECT id, sku, mrp::text AS mrp, price::text AS price, in_stock FROM products"
-  );
-  const localBySku = new Map<string, { id: number; mrp: string; price: string; in_stock: boolean }>(
-    local.map((r: any) => [r.sku, r])
-  );
-
-  const cats = await db.select().from(categoriesTable);
-  const catBySlug = new Map(cats.map((c) => [c.slug, c.id]));
-  const fallbackCat = catBySlug.get("bathroom-accessories") ?? cats[0].id;
-
-  let priceUpdates = 0, restocked = 0, inserted = 0, outOfStock = 0;
-
-  // 1) update MRP/price + stock status for existing products; collect new items
-  const toInsert: ExtProduct[] = [];
-  for (const r of usable) {
-    const existing = localBySku.get(r.itemCode);
-    if (!existing) { toInsert.push(r); continue; }
-    const newMrp = r.currentMrp!.toFixed(2);
-    const mrpChanged = Number(existing.mrp) !== Number(newMrp);
-    const stockChanged = existing.in_stock !== r.isActive;
-    if (mrpChanged || stockChanged) {
-      // price follows MRP (store sells at MRP; keep both in sync)
-      await pool.query(
-        "UPDATE products SET mrp = $1, price = $1, in_stock = $2, updated_at = now() WHERE id = $3",
-        [newMrp, r.isActive, existing.id]
-      );
-      if (mrpChanged) priceUpdates++;
-      if (stockChanged && r.isActive) restocked++;
-    }
+  // Refuse a feed that would unexpectedly remove most of the visible catalogue.
+  if (missingIds.length > local.length / 2 && feed.length < local.length / 2) {
+    throw new Error(`Refusing unsafe feed: ${feed.length} active rows versus ${local.length} local rows`);
   }
 
-  // 2) insert new external items
-  if (toInsert.length > 0) {
-    const BATCH = 500;
-    for (let i = 0; i < toInsert.length; i += BATCH) {
-      const batch = toInsert.slice(i, i + BATCH).map((r) => {
-        const name = buildName(r);
-        const mrp = r.currentMrp!.toFixed(2);
-        const specs = [
-          r.division ? `Division: ${r.division}` : null,
-          r.category ? `Series: ${r.category}` : null,
-          r.size ? `Size: ${r.size}` : null,
-          `Item Code: ${r.itemCode}`,
-        ].filter(Boolean).join("\n");
-        return {
-          name,
-          slug: `${slugify(name)}-${slugify(r.itemCode)}`,
-          sku: r.itemCode,
-          description: `${name} — genuine PRAYAG product.`,
-          specifications: specs,
-          price: mrp,
-          mrp,
-          categoryId: catBySlug.get(DIVISION_TO_CATEGORY_SLUG[r.division ?? ""] ?? "") ?? fallbackCat,
-          imageUrl: null as string | null,
-          inStock: r.isActive,
-        };
-      });
-      // onConflictDoNothing on slug/sku collisions keeps the sync resilient
-      await db.insert(productsTable).values(batch).onConflictDoNothing();
-      inserted += batch.length;
-    }
+  // Assign every slug up front in JS so unique-constraint collisions cannot
+  // happen mid-transaction. Slugs of rows we are NOT renaming stay reserved;
+  // renamed/inserted rows pick the first free "-2", "-3", ... suffix.
+  const renamedIds = new Set<number>();
+  for (const row of feed) {
+    const existing = localBySku.get(row.itemCode);
+    if (existing && buildName(row)) renamedIds.add(existing.id);
   }
-
-  // 3) mark products missing from the external feed as out of stock
-  const extSkus = new Set(usable.map((r) => r.itemCode));
-  const missingIds = local
-    .filter((r: any) => r.in_stock && !extSkus.has(r.sku))
-    .map((r: any) => r.id);
-  if (missingIds.length > 0) {
-    // guardrail: if the external feed looks broken (would deactivate >50% of
-    // catalogue), skip step 3 instead of gutting the store
-    if (missingIds.length > local.length / 2 && usable.length < local.length / 2) {
-      console.warn(`SKIPPING out-of-stock step: external feed returned too few items (${usable.length}) vs local (${local.length}) — feed likely broken`);
-    } else {
-      const BATCH = 1000;
-      for (let i = 0; i < missingIds.length; i += BATCH) {
-        const slice = missingIds.slice(i, i + BATCH);
-        await pool.query(
-          "UPDATE products SET in_stock = false, updated_at = now() WHERE id = ANY($1::int[])",
-          [slice]
-        );
+  const reserved = new Set<string>();
+  for (const row of local) {
+    if (!renamedIds.has(row.id)) reserved.add(row.slug);
+  }
+  const claimSlug = (base: string): string => {
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const candidate = attempt === 0 ? base : `${base}-${attempt + 1}`;
+      if (!reserved.has(candidate)) {
+        reserved.add(candidate);
+        return candidate;
       }
-      outOfStock = missingIds.length;
     }
-  }
+    throw new Error(`Slug space exhausted for ${base}`);
+  };
 
-  console.log(`Sync done: ${priceUpdates} MRP updates, ${inserted} new products, ${restocked} back in stock, ${outOfStock} marked out of stock.`);
-  process.exit(0);
+  let updated = 0;
+  let inserted = 0;
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    for (const row of feed) {
+      const apiName = buildName(row);
+      const name = apiName ?? fallbackName(row);
+      const mrp = row.currentMrp!.toFixed(2);
+      const categoryId = categoryBySlug.get(DIVISION_TO_CATEGORY_SLUG[row.division ?? ""] ?? "") ?? fallbackCategory;
+      const existing = localBySku.get(row.itemCode);
+
+      if (existing) {
+        if (apiName) {
+          const slug = claimSlug(`${slugify(name)}-${slugify(row.itemCode)}`);
+          await client.query(
+            `UPDATE products
+             SET name = $1, slug = $2, description = $3, specifications = $4,
+                 price = $5, mrp = $5, category_id = $6, in_stock = true, updated_at = now()
+             WHERE id = $7`,
+            [name, slug, `${name} — genuine PRAYAG product.`, specifications(row), mrp, categoryId, existing.id]
+          );
+        } else {
+          // Feed has no name for this code — refresh price/category but keep
+          // the existing display name/slug instead of a placeholder.
+          reserved.add(existing.slug);
+          await client.query(
+            `UPDATE products
+             SET specifications = $1, price = $2, mrp = $2, category_id = $3, in_stock = true, updated_at = now()
+             WHERE id = $4`,
+            [specifications(row), mrp, categoryId, existing.id]
+          );
+        }
+        updated++;
+      } else {
+        const slug = claimSlug(`${slugify(name)}-${slugify(row.itemCode)}`);
+        await client.query(
+          `INSERT INTO products (name, slug, sku, description, specifications, price, mrp, category_id, image_url, in_stock)
+           VALUES ($1, $2, $3, $4, $5, $6, $6, $7, NULL, true)`,
+          [name, slug, row.itemCode, `${name} — genuine PRAYAG product.`, specifications(row), mrp, categoryId]
+        );
+        inserted++;
+      }
+    }
+
+    if (missingIds.length > 0) {
+      await client.query(
+        "UPDATE products SET in_stock = false, is_featured = false, is_new = false, updated_at = now() WHERE id = ANY($1::int[])",
+        [missingIds]
+      );
+    }
+    await client.query("UPDATE products SET is_featured = false, is_new = false WHERE in_stock = true");
+    await client.query("UPDATE products SET is_featured = true WHERE id IN (SELECT id FROM products WHERE in_stock = true ORDER BY mrp::numeric DESC LIMIT 12)");
+    await client.query("UPDATE products SET is_new = true WHERE id IN (SELECT id FROM products WHERE in_stock = true ORDER BY updated_at DESC, id DESC LIMIT 12)");
+
+    const { rows: [summary] } = await client.query<{ total: string; active: string }>(
+      "SELECT count(*)::text AS total, count(*) FILTER (WHERE in_stock)::text AS active FROM products"
+    );
+    if (Number(summary.active) !== feed.length) {
+      throw new Error(`Post-sync verification failed: expected ${feed.length} active products, got ${summary.active}`);
+    }
+    await client.query("COMMIT");
+    console.log(`Sync complete: ${updated} updated, ${inserted} inserted, ${missingIds.length} hidden; ${summary.active} active Prayag products (${summary.total} stored including order-safe history).`);
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
-main().catch((e) => { console.error("Sync failed:", e); process.exit(1); });
+main().catch((error) => {
+  console.error("Prayag MRP sync failed:", error);
+  process.exit(1);
+});

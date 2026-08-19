@@ -30,7 +30,7 @@ function buildProductRow(p: typeof productsTable.$inferSelect, catName?: string 
 }
 
 router.get("/products", async (req, res): Promise<void> => {
-  const { category, minPrice, maxPrice, rating, inStock, sortBy, search, page = "1", limit = "20" } = req.query as Record<string, string>;
+  const { category, minPrice, maxPrice, sortBy, search, page = "1", limit = "20" } = req.query as Record<string, string>;
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
   const pageLimit = Math.min(100, parseInt(limit, 10) || 20);
 
@@ -42,7 +42,9 @@ router.get("/products", async (req, res): Promise<void> => {
   if (search) conditions.push(ilike(productsTable.name, `%${search}%`));
   if (minPrice) conditions.push(gte(productsTable.price, minPrice));
   if (maxPrice) conditions.push(lte(productsTable.price, maxPrice));
-  if (inStock === "true") conditions.push(eq(productsTable.inStock, true));
+  // The public catalogue never shows retired products; admin tooling uses the
+  // authenticated /admin/products endpoints for the full inventory.
+  conditions.push(eq(productsTable.inStock, true));
 
   let orderBy = desc(productsTable.createdAt);
   if (sortBy === "price_asc") orderBy = asc(productsTable.price as any);
@@ -74,7 +76,7 @@ router.get("/products/featured", async (_req, res): Promise<void> => {
     .select({ p: productsTable, catName: categoriesTable.name })
     .from(productsTable)
     .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
-    .where(eq(productsTable.isFeatured, true))
+    .where(and(eq(productsTable.isFeatured, true), eq(productsTable.inStock, true)))
     .limit(12);
   res.json(rows.map(r => buildProductRow(r.p, r.catName)));
 });
@@ -84,7 +86,7 @@ router.get("/products/new-arrivals", async (_req, res): Promise<void> => {
     .select({ p: productsTable, catName: categoriesTable.name })
     .from(productsTable)
     .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
-    .where(eq(productsTable.isNew, true))
+    .where(and(eq(productsTable.isNew, true), eq(productsTable.inStock, true)))
     .limit(12);
   res.json(rows.map(r => buildProductRow(r.p, r.catName)));
 });
@@ -95,7 +97,7 @@ router.get("/products/search-suggestions", async (req, res): Promise<void> => {
   const rows = await db
     .select({ name: productsTable.name })
     .from(productsTable)
-    .where(ilike(productsTable.name, `%${q}%`))
+    .where(and(ilike(productsTable.name, `%${q}%`), eq(productsTable.inStock, true)))
     .limit(8);
   res.json(rows.map(r => r.name));
 });
@@ -106,7 +108,7 @@ router.get("/products/:slug", async (req, res): Promise<void> => {
     .select({ p: productsTable, catName: categoriesTable.name })
     .from(productsTable)
     .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
-    .where(eq(productsTable.slug, rawSlug));
+    .where(and(eq(productsTable.slug, rawSlug), eq(productsTable.inStock, true)));
   if (!row) { res.status(404).json({ error: "Product not found" }); return; }
   const imgs = await db.select().from(productImagesTable).where(eq(productImagesTable.productId, row.p.id)).orderBy(productImagesTable.sortOrder);
   res.json(buildProductRow(row.p, row.catName, imgs.map(i => i.imageUrl)));
@@ -114,13 +116,13 @@ router.get("/products/:slug", async (req, res): Promise<void> => {
 
 router.get("/products/:slug/related", async (req, res): Promise<void> => {
   const rawSlug = Array.isArray(req.params.slug) ? req.params.slug[0] : req.params.slug;
-  const [product] = await db.select().from(productsTable).where(eq(productsTable.slug, rawSlug));
+  const [product] = await db.select().from(productsTable).where(and(eq(productsTable.slug, rawSlug), eq(productsTable.inStock, true)));
   if (!product) { res.json([]); return; }
   const rows = await db
     .select({ p: productsTable, catName: categoriesTable.name })
     .from(productsTable)
     .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
-    .where(and(eq(productsTable.categoryId, product.categoryId), sql`${productsTable.id} != ${product.id}`))
+    .where(and(eq(productsTable.categoryId, product.categoryId), eq(productsTable.inStock, true), sql`${productsTable.id} != ${product.id}`))
     .orderBy(sql`ABS(${productsTable.price}::numeric - ${product.price}::numeric) ASC, RANDOM()`)
     .limit(8);
   res.json(rows.map(r => buildProductRow(r.p, r.catName)));
