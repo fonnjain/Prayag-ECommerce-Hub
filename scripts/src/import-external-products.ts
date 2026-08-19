@@ -1,0 +1,121 @@
+/**
+ * Replace the store catalogue with real products (and real MRP) from the
+ * external Prayag product database API (prayag-competition-analysis app).
+ *
+ * Run: pnpm --filter @workspace/scripts run import-external-products
+ * Requires: PRAYAG_COMP_KEY env secret, DATABASE_URL
+ */
+import { db, pool, productsTable, productImagesTable, categoriesTable } from "@workspace/db";
+
+const API_BASE = "https://prayag-competition-analysis.replit.app/api/v1";
+const KEY = process.env.PRAYAG_COMP_KEY;
+if (!KEY) { console.error("PRAYAG_COMP_KEY not set"); process.exit(1); }
+
+interface ExtProduct {
+  id: number;
+  itemCode: string;
+  productName: string | null;
+  division: string | null;
+  category: string | null;
+  size: string | null;
+  uom: string | null;
+  isActive: boolean;
+  currentMrp: number | null;
+}
+
+const DIVISION_TO_CATEGORY_SLUG: Record<string, string> = {
+  "PTMT & Plastic Fittings": "ptmt-faucets",
+  "CP Fittings / Faucets": "cp-faucets",
+  "Ceramic Sanitaryware": "sanitaryware",
+  "Pipes & Fittings": "pipes-fittings",
+  "Hardware": "bathroom-accessories",
+};
+
+function slugify(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+}
+
+async function fetchAll(): Promise<ExtProduct[]> {
+  const rows: ExtProduct[] = [];
+  let page = 1;
+  for (;;) {
+    const res = await fetch(`${API_BASE}/products?page=${page}&limit=50`, {
+      headers: { "X-API-Key": KEY! },
+    });
+    if (!res.ok) throw new Error(`API ${res.status} on page ${page}`);
+    const data = (await res.json()) as { rows: ExtProduct[]; total: number; pageSize: number };
+    rows.push(...data.rows);
+    if (rows.length >= data.total || data.rows.length === 0) break;
+    page++;
+    if (page % 20 === 0) console.log(`fetched ${rows.length}/${data.total}...`);
+  }
+  return rows;
+}
+
+async function main() {
+  console.log("Fetching external catalogue...");
+  const ext = await fetchAll();
+  console.log(`Fetched ${ext.length} products`);
+
+  const withMrp = ext.filter((r) => r.currentMrp != null && r.currentMrp > 0 && r.itemCode && r.productName);
+  console.log(`${withMrp.length} products have a real MRP — importing those`);
+
+  const cats = await db.select().from(categoriesTable);
+  const catBySlug = new Map(cats.map((c) => [c.slug, c.id]));
+  const fallbackCat = catBySlug.get("bathroom-accessories") ?? cats[0].id;
+
+  // de-dup itemCodes defensively
+  const seen = new Set<string>();
+  const items = withMrp.filter((r) => (seen.has(r.itemCode) ? false : (seen.add(r.itemCode), true)));
+
+  console.log("Clearing old catalogue (cart, wishlist, order items, images, products)...");
+  await pool.query("DELETE FROM cart_items");
+  await pool.query("DELETE FROM wishlist");
+  await pool.query("DELETE FROM order_items");
+  await db.delete(productImagesTable);
+  await db.delete(productsTable);
+
+  console.log(`Inserting ${items.length} products...`);
+  const BATCH = 500;
+  let inserted = 0;
+  for (let i = 0; i < items.length; i += BATCH) {
+    const batch = items.slice(i, i + BATCH).map((r) => {
+      const nameParts = [r.productName!.trim()];
+      if (r.category) nameParts.push(`- ${r.category}`);
+      if (r.size && !r.productName!.includes(r.size)) nameParts.push(`(${r.size})`);
+      const name = nameParts.join(" ");
+      const mrp = r.currentMrp!.toFixed(2);
+      const specs = [
+        r.division ? `Division: ${r.division}` : null,
+        r.category ? `Series: ${r.category}` : null,
+        r.size ? `Size: ${r.size}` : null,
+        `Item Code: ${r.itemCode}`,
+      ].filter(Boolean).join("\n");
+      return {
+        name,
+        slug: `${slugify(name)}-${slugify(r.itemCode)}`,
+        sku: r.itemCode,
+        description: `${name} — genuine PRAYAG product.`,
+        specifications: specs,
+        price: mrp,
+        mrp,
+        categoryId: catBySlug.get(DIVISION_TO_CATEGORY_SLUG[r.division ?? ""] ?? "") ?? fallbackCat,
+        imageUrl: null as string | null,
+        inStock: r.isActive,
+      };
+    });
+    await db.insert(productsTable).values(batch);
+    inserted += batch.length;
+    if (inserted % 2000 < BATCH) console.log(`inserted ${inserted}/${items.length}`);
+  }
+
+  // mark a few as featured/new so homepage sections aren't empty
+  await pool.query("UPDATE products SET is_featured = true WHERE id IN (SELECT id FROM products ORDER BY mrp DESC LIMIT 12)");
+  await pool.query("UPDATE products SET is_new = true WHERE id IN (SELECT id FROM products ORDER BY id DESC LIMIT 12)");
+
+  const { rows: [{ count }] } = await pool.query("SELECT count(*)::int AS count FROM products");
+  console.log(`Done. products table now has ${count} rows.`);
+  process.exit(0);
+}
+
+main().catch((e) => { console.error(e); process.exit(1); });

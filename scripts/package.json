@@ -9,6 +9,7 @@
     "import-distributors": "tsx ./src/import-distributors.ts",
     "import-retailers": "tsx ./src/import-retailers.ts",
     "sync-prod-products": "tsx ./src/sync-prod-products.ts",
+    "import-external-products": "tsx ./src/import-external-products.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
