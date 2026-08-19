@@ -2,3 +2,4 @@
 - [PTMT catalog images](ptmt-catalog-images.md) — Drive→product mapping rules, placeholder pricing decision (999/1299), series suffix map.
 - [Long-running background jobs](background-jobs.md) — shell-launched nohup jobs die with the session; use a console workflow for multi-hour resumable batches.
 - [PRAYAG access control](prayag-access-control.md) — network/KYC APIs need business-role JWT; public register forced to "customer"; customers may open portal pages (UI only) but network APIs stay JWT-gated.
+- [Catalogue sync and order history](catalogue-sync-order-history.md) — production catalogue replacement must preserve products still referenced by historical order items.
