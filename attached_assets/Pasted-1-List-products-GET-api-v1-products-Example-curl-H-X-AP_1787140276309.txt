@@ -1,0 +1,210 @@
+1. List products
+GET /api/v1/products
+
+Example:
+
+curl \
+  -H "X-API-Key: $PRAYAG_API_KEY" \
+  "https://prayag-competition-analysis.replit.app/api/v1/products?page=1&pageSize=50&search=pipe"
+
+Supported query parameters:
+
+Parameter	Description
+search	Search item code or product name
+division	Filter by division
+category	Filter by category
+page	Page number, starting at 1
+pageSize	Number of rows, maximum 200
+asOf	Resolve data as of YYYY-MM-DD
+Response shape:
+
+{
+  "rows": [
+    {
+      "id": 123,
+      "itemCode": "PR-001",
+      "productName": "Example Product",
+      "division": "Pipes",
+      "category": "PVC",
+      "seriesRange": null,
+      "size": "1 inch",
+      "uom": "PCS",
+      "isActive": true,
+      "dataFlag": null,
+      "discontinuedFrom": null,
+      "hasPrice": true,
+      "currentMrp": 1250,
+      "currentNet": null,
+      "currentBasis": "MRP",
+      "effectiveDate": "2026-08-19"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 50
+}
+
+2. Get one product and its MRP history
+GET /api/v1/products/{itemCode}
+
+Example:
+
+curl \
+  -H "X-API-Key: $PRAYAG_API_KEY" \
+  "https://prayag-competition-analysis.replit.app/api/v1/products/PR-001"
+
+Optional:
+
+?asOf=2026-08-19
+
+Response:
+
+{
+  "product": {
+    "id": 123,
+    "itemCode": "PR-001",
+    "productName": "Example Product",
+    "division": "Pipes",
+    "category": "PVC",
+    "seriesRange": null,
+    "size": "1 inch",
+    "uom": "PCS",
+    "kgCost": null,
+    "isActive": true,
+    "sourceFiles": "catalog.xlsx",
+    "dataFlag": null,
+    "discontinuedFrom": null
+  },
+  "history": [
+    {
+      "id": 456,
+      "itemCode": "PR-001",
+      "mrp": 1250,
+      "netPrice": null,
+      "discountPct": null,
+      "priceBasis": "MRP",
+      "effectiveDate": "2026-08-19",
+      "loadDate": "2026-08-19",
+      "sourceFile": "approved-catalog.xlsx",
+      "isCurrent": true,
+      "notes": null,
+      "reviewStatus": "approved",
+      "reviewReasons": null,
+      "importBatchId": null,
+      "reviewedAt": null
+    }
+  ]
+}
+
+3. Get competitor comparison rows
+GET /api/v1/comparison
+
+Example:
+
+curl \
+  -H "X-API-Key: $PRAYAG_API_KEY" \
+  "https://prayag-competition-analysis.replit.app/api/v1/comparison?competitor=Sparsh%20Pearl&page=1&pageSize=50"
+
+Supported query parameters:
+
+Parameter	Description
+competitor	Competitor brand
+category	Product category
+page	Page number
+pageSize	Number of rows
+Important comparison fields include:
+
+{
+  "rows": [
+    {
+      "id": 789,
+      "competitor": "Sparsh Pearl",
+      "competitorPrice": 1400,
+      "effectiveDate": "2026-08-19",
+      "competitorPriceIsCurrent": true,
+      "matchedPrayagCode": "PR-001",
+      "matchStatus": "matched",
+      "matchConfidence": "High",
+      "prayagProductName": "Example Product",
+      "prayagMrp": 1250,
+      "diffPct": 12,
+      "prayagCheaper": true,
+      "effectiveDiffPct": 12,
+      "effectivePrayagCheaper": true
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 50
+}
+
+diffPct is positive when Prayag is cheaper than the competitor.
+
+4. Get analysis overview KPIs
+GET /api/v1/analysis/overview
+
+Example:
+
+curl \
+  -H "X-API-Key: $PRAYAG_API_KEY" \
+  "https://prayag-competition-analysis.replit.app/api/v1/analysis/overview"
+
+Response includes:
+
+{
+  "totalSkus": 6859,
+  "matchedSkus": 150,
+  "unmatchedSkus": 6709,
+  "coveragePct": 2.19,
+  "comparableSkus": 150,
+  "prayagCheaperCount": 95,
+  "prayagCostlierCount": 55,
+  "prayagCheaperPct": 63.33,
+  "avgPriceDiffPct": 8.4,
+  "medianPriceDiffPct": 5.2,
+  "competitorCount": 1,
+  "matchQuality": {
+    "high": 150,
+    "medium": 0,
+    "low": 0
+  },
+  "prayagMrpDate": "2026-08-19",
+  "competitorPeriodDate": "2026-08-19",
+  "pendingRevisionCount": 0
+}
+
+JavaScript server-side example
+const API_BASE =
+  "https://prayag-competition-analysis.replit.app/api/v1";
+async function getProducts(search) {
+  const url = new URL(`${API_BASE}/products`);
+  url.searchParams.set("search", search);
+  url.searchParams.set("page", "1");
+  url.searchParams.set("pageSize", "50");
+  const response = await fetch(url, {
+    headers: {
+      "X-API-Key": process.env.PRAYAG_API_KEY
+    }
+  });
+  if (!response.ok) {
+    throw new Error(`Prayag API failed: ${response.status}`);
+  }
+  return response.json();
+}
+
+Error responses
+Missing or invalid keys return:
+
+401 Unauthorized
+
+{
+  "error": "Missing API key. Pass it in the X-API-Key header."
+}
+
+The internal Price Finder endpoints are different:
+
+/api/price-finder/search
+/api/price-finder/browse
+/api/price-finder/product/{itemCode}
+
+Those currently require a logged-in browser session and are intended for the first-party Price Finder app. For another application, use the stable /api/v1 endpoints above.
