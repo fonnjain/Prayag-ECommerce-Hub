@@ -88,7 +88,7 @@ function specifications(row: PrayagProduct): string {
   ].filter(Boolean).join("\n");
 }
 
-async function fetchCompleteFeed(asOf: string): Promise<PrayagProduct[]> {
+async function fetchCompleteFeed(asOf: string | null): Promise<PrayagProduct[]> {
   const rows: PrayagProduct[] = [];
   let expectedTotal: number | undefined;
 
@@ -96,7 +96,7 @@ async function fetchCompleteFeed(asOf: string): Promise<PrayagProduct[]> {
     const url = new URL(`${API_BASE}/products`);
     url.searchParams.set("page", String(page));
     url.searchParams.set("pageSize", String(PAGE_SIZE));
-    url.searchParams.set("asOf", asOf);
+    if (asOf) url.searchParams.set("asOf", asOf);
     const response = await fetch(url, { headers: { "X-API-Key": KEY! } });
     if (!response.ok) throw new Error(`Prayag products API returned ${response.status} on page ${page}`);
     const data = await response.json() as { rows?: PrayagProduct[]; total?: number; pageSize?: number };
@@ -145,7 +145,24 @@ function validateFeed(rows: PrayagProduct[], asOf: string): PrayagProduct[] {
 async function main() {
   const asOf = selectedAsOf();
   console.log(`[${new Date().toISOString()}] Fetching Prayag MRP feed as of ${asOf}...`);
-  const feed = validateFeed(await fetchCompleteFeed(asOf), asOf);
+  const asOfRows = await fetchCompleteFeed(asOf);
+  // Quirk in the source API: some newly added item codes (e.g. the -D/-DM sink
+  // variants added Mar 2026) are returned by the default (no-asOf) query but are
+  // absent from an explicit future-dated asOf query, even though their effective
+  // date is in the past. Merge in any code the dated snapshot misses, taking its
+  // current price from the default snapshot.
+  const defaultRows = await fetchCompleteFeed(null);
+  const seenCodes = new Set(asOfRows.map((r) => r.itemCode?.trim()));
+  const merged = [...asOfRows];
+  for (const row of defaultRows) {
+    const code = row.itemCode?.trim();
+    if (code && !seenCodes.has(code)) {
+      seenCodes.add(code);
+      merged.push(row);
+      console.log(`merged code missing from asOf snapshot: ${code} (MRP ${row.currentMrp}, effective ${row.effectiveDate})`);
+    }
+  }
+  const feed = validateFeed(merged, asOf);
 
   const categories = await db.select().from(categoriesTable);
   const categoryBySlug = new Map(categories.map((category) => [category.slug, category.id]));
