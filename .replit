@@ -20,6 +20,10 @@ author = "agent"
 task = "workflow.run"
 args = "Geocode Dealers"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Daily MRP Sync"
+
 [[workflows.workflow]]
 name = "Geocode Dealers"
 author = "agent"
@@ -30,6 +34,14 @@ args = "cd artifacts/api-server && node scripts/geocode-dealers.mjs"
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow]]
+name = "Daily MRP Sync"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "while true; do pnpm --filter @workspace/scripts run sync-external-mrp; echo 'Next sync in 24h...'; sleep 86400; done"
 
 [agent]
 stack = "PNPM_WORKSPACE"
