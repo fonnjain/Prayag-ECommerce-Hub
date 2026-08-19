@@ -3,3 +3,4 @@
 - [Long-running background jobs](background-jobs.md) — shell-launched nohup jobs die with the session; use a console workflow for multi-hour resumable batches.
 - [PRAYAG access control](prayag-access-control.md) — network/KYC APIs need business-role JWT; public register forced to "customer"; customers may open portal pages (UI only) but network APIs stay JWT-gated.
 - [Catalogue sync and order history](catalogue-sync-order-history.md) — production catalogue replacement must preserve products still referenced by historical order items.
+- [Production sync authentication](prod-sync-auth.md) — prod sync logs in via service-login with SESSION_SECRET bearer, not ADMIN_PASSWORD (which drifted from live).

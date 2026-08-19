@@ -124,6 +124,24 @@ router.post("/auth/reset-password", async (req, res): Promise<void> => {
   res.json({ success: true, message: "Password reset successfully. Please sign in with your new password." });
 });
 
+// Service-to-service login: used by internal sync scripts.
+// Authenticated via the SESSION_SECRET itself (not a user password).
+// Returns a short-lived admin JWT so callers can use the normal admin endpoints.
+router.post("/auth/service-login", async (req, res): Promise<void> => {
+  if (!JWT_SECRET) { res.status(500).json({ error: "Server misconfigured" }); return; }
+  const authHeader = req.headers.authorization || "";
+  const provided = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  if (!provided || provided !== JWT_SECRET) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  // Find the admin user to embed the real ID in the token
+  const [admin] = await db.select().from(usersTable).where(eq(usersTable.role, "admin")).limit(1);
+  if (!admin) { res.status(500).json({ error: "No admin user found" }); return; }
+  const token = jwt.sign({ id: admin.id, role: "admin" }, JWT_SECRET, { expiresIn: "1h" });
+  res.json({ token });
+});
+
 router.get("/auth/me", async (req, res): Promise<void> => {
   const authHeader = req.headers.authorization;
   if (!authHeader) { res.status(401).json({ error: "Unauthorized" }); return; }
