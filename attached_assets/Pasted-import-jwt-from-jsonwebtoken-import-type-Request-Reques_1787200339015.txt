@@ -1,0 +1,121 @@
+import jwt from "jsonwebtoken";
+import type { Request, RequestHandler } from "express";
+
+/**
+ * Shared authentication middleware.
+ *
+ * This is the ONLY place in the server that verifies a JWT. Route files must
+ * not call `jwt.verify` directly — doing so is how `req.userId` came to be read
+ * on routes where nothing ever set it.
+ */
+
+const JWT_SECRET = process.env.SESSION_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("SESSION_SECRET environment variable is required");
+}
+
+export interface AuthUser {
+  id: number;
+  role: string;
+}
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      /** Populated by requireAuth / requireRole / optionalAuth. Never trust this unless one of them ran. */
+      auth?: AuthUser;
+    }
+  }
+}
+
+/** Business roles — customers must not see network/KYC or dealer-facing data. */
+export const BUSINESS_ROLES = ["dealer", "distributor", "admin"];
+
+function readBearerToken(req: Request): string | null {
+  const header = req.headers.authorization;
+  if (!header?.startsWith("Bearer ")) return null;
+  const token = header.slice(7).trim();
+  return token.length > 0 ? token : null;
+}
+
+/**
+ * Verify the request's bearer token. Returns null for missing, malformed,
+ * expired, or badly-shaped tokens — never throws.
+ */
+export function verifyToken(req: Request): AuthUser | null {
+  const token = readBearerToken(req);
+  if (!token) return null;
+  try {
+    const payload = jwt.verify(token, JWT_SECRET!) as { id?: unknown; role?: unknown };
+    // A token whose `id` isn't a real number must not resolve to *any* user.
+    if (typeof payload.id !== "number" || !Number.isInteger(payload.id) || payload.id <= 0) {
+      return null;
+    }
+    return {
+      id: payload.id,
+      role: typeof payload.role === "string" ? payload.role : "customer",
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Attaches req.auth when a valid token is present; never rejects. For mixed guest/user routes. */
+export const optionalAuth: RequestHandler = (req, _res, next) => {
+  const auth = verifyToken(req);
+  if (auth) req.auth = auth;
+  next();
+};
+
+/** Rejects with 401 unless a valid token is present. */
+export const requireAuth: RequestHandler = (req, res, next) => {
+  const auth = verifyToken(req);
+  if (!auth) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  req.auth = auth;
+  next();
+};
+
+/** Rejects with 401 when unauthenticated, 403 when authenticated but wrong role. */
+export function requireRole(...roles: string[]): RequestHandler {
+  return (req, res, next) => {
+    const auth = verifyToken(req);
+    if (!auth) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    if (!roles.includes(auth.role)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    req.auth = auth;
+    next();
+  };
+}
+
+export const requireAdmin: RequestHandler = requireRole("admin");
+export const requireBusiness: RequestHandler = requireRole(...BUSINESS_ROLES);
+
+/**
+ * The authenticated user's id, for routes that scope data by owner.
+ *
+ * Throws rather than falling back to a default. If a route is ever mounted
+ * without requireAuth, this fails closed with a 500 instead of silently
+ * serving another account's data — which is exactly what `|| 1` used to do.
+ */
+export function currentUserId(req: Request): number {
+  if (!req.auth) {
+    throw new Error(
+      "currentUserId() called on a route that is not protected by requireAuth",
+    );
+  }
+  return req.auth.id;
+}
+
+/** True when the caller may read/modify a resource owned by `ownerId`. */
+export function canAccessResource(auth: AuthUser, ownerId: number | null): boolean {
+  return auth.role === "admin" || (ownerId !== null && ownerId === auth.id);
+}

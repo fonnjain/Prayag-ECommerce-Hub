@@ -1,0 +1,478 @@
+diff --git a/artifacts/api-server/src/middleware/auth.ts b/artifacts/api-server/src/middleware/auth.ts
+new file mode 100644
+index 0000000..a44b720
+--- /dev/null
++++ b/artifacts/api-server/src/middleware/auth.ts
+@@ -0,0 +1,121 @@
++import jwt from "jsonwebtoken";
++import type { Request, RequestHandler } from "express";
++
++/**
++ * Shared authentication middleware.
++ *
++ * This is the ONLY place in the server that verifies a JWT. Route files must
++ * not call `jwt.verify` directly — doing so is how `req.userId` came to be read
++ * on routes where nothing ever set it.
++ */
++
++const JWT_SECRET = process.env.SESSION_SECRET;
++if (!JWT_SECRET) {
++  throw new Error("SESSION_SECRET environment variable is required");
++}
++
++export interface AuthUser {
++  id: number;
++  role: string;
++}
++
++declare global {
++  // eslint-disable-next-line @typescript-eslint/no-namespace
++  namespace Express {
++    interface Request {
++      /** Populated by requireAuth / requireRole / optionalAuth. Never trust this unless one of them ran. */
++      auth?: AuthUser;
++    }
++  }
++}
++
++/** Business roles — customers must not see network/KYC or dealer-facing data. */
++export const BUSINESS_ROLES = ["dealer", "distributor", "admin"];
++
++function readBearerToken(req: Request): string | null {
++  const header = req.headers.authorization;
++  if (!header?.startsWith("Bearer ")) return null;
++  const token = header.slice(7).trim();
++  return token.length > 0 ? token : null;
++}
++
++/**
++ * Verify the request's bearer token. Returns null for missing, malformed,
++ * expired, or badly-shaped tokens — never throws.
++ */
++export function verifyToken(req: Request): AuthUser | null {
++  const token = readBearerToken(req);
++  if (!token) return null;
++  try {
++    const payload = jwt.verify(token, JWT_SECRET!) as { id?: unknown; role?: unknown };
++    // A token whose `id` isn't a real number must not resolve to *any* user.
++    if (typeof payload.id !== "number" || !Number.isInteger(payload.id) || payload.id <= 0) {
++      return null;
++    }
++    return {
++      id: payload.id,
++      role: typeof payload.role === "string" ? payload.role : "customer",
++    };
++  } catch {
++    return null;
++  }
++}
++
++/** Attaches req.auth when a valid token is present; never rejects. For mixed guest/user routes. */
++export const optionalAuth: RequestHandler = (req, _res, next) => {
++  const auth = verifyToken(req);
++  if (auth) req.auth = auth;
++  next();
++};
++
++/** Rejects with 401 unless a valid token is present. */
++export const requireAuth: RequestHandler = (req, res, next) => {
++  const auth = verifyToken(req);
++  if (!auth) {
++    res.status(401).json({ error: "Unauthorized" });
++    return;
++  }
++  req.auth = auth;
++  next();
++};
++
++/** Rejects with 401 when unauthenticated, 403 when authenticated but wrong role. */
++export function requireRole(...roles: string[]): RequestHandler {
++  return (req, res, next) => {
++    const auth = verifyToken(req);
++    if (!auth) {
++      res.status(401).json({ error: "Unauthorized" });
++      return;
++    }
++    if (!roles.includes(auth.role)) {
++      res.status(403).json({ error: "Forbidden" });
++      return;
++    }
++    req.auth = auth;
++    next();
++  };
++}
++
++export const requireAdmin: RequestHandler = requireRole("admin");
++export const requireBusiness: RequestHandler = requireRole(...BUSINESS_ROLES);
++
++/**
++ * The authenticated user's id, for routes that scope data by owner.
++ *
++ * Throws rather than falling back to a default. If a route is ever mounted
++ * without requireAuth, this fails closed with a 500 instead of silently
++ * serving another account's data — which is exactly what `|| 1` used to do.
++ */
++export function currentUserId(req: Request): number {
++  if (!req.auth) {
++    throw new Error(
++      "currentUserId() called on a route that is not protected by requireAuth",
++    );
++  }
++  return req.auth.id;
++}
++
++/** True when the caller may read/modify a resource owned by `ownerId`. */
++export function canAccessResource(auth: AuthUser, ownerId: number | null): boolean {
++  return auth.role === "admin" || (ownerId !== null && ownerId === auth.id);
++}
+diff --git a/artifacts/api-server/src/routes/addresses.ts b/artifacts/api-server/src/routes/addresses.ts
+index 52b18e4..96bad72 100644
+--- a/artifacts/api-server/src/routes/addresses.ts
++++ b/artifacts/api-server/src/routes/addresses.ts
+@@ -1,22 +1,40 @@
+ import { Router, type IRouter } from "express";
+ import { db, addressesTable } from "@workspace/db";
+-import { eq } from "drizzle-orm";
++import { eq, and } from "drizzle-orm";
++import { requireAuth, currentUserId } from "../middleware/auth";
+ 
+ const router: IRouter = Router();
+ 
+-router.get("/addresses", async (req, res): Promise<void> => {
+-  const userId = (req as any).userId || 1;
++router.get("/addresses", requireAuth, async (req, res): Promise<void> => {
++  const userId = currentUserId(req);
+   const rows = await db.select().from(addressesTable).where(eq(addressesTable.userId, userId));
+   res.json(rows.map(a => ({ id: a.id, name: a.name, phone: a.phone, street: a.street, city: a.city, state: a.state, pincode: a.pincode, country: a.country, isDefault: a.isDefault === "true" })));
+ });
+ 
+-router.post("/addresses", async (req, res): Promise<void> => {
++router.post("/addresses", requireAuth, async (req, res): Promise<void> => {
+   const { name, phone, street, city, state, pincode, country, isDefault } = req.body;
+-  const userId = (req as any).userId || 1;
++  const userId = currentUserId(req);
++  if (!name || !phone || !street || !city || !state) {
++    res.status(400).json({ error: "name, phone, street, city and state are required" });
++    return;
++  }
+   const [addr] = await db.insert(addressesTable).values({
+     userId, name, phone, street, city, state, pincode: pincode || "", country: country || "India", isDefault: isDefault ? "true" : "false",
+   }).returning();
+   res.status(201).json({ id: addr.id, name: addr.name, phone: addr.phone, street: addr.street, city: addr.city, state: addr.state, pincode: addr.pincode, country: addr.country, isDefault: addr.isDefault === "true" });
+ });
+ 
++router.delete("/addresses/:id", requireAuth, async (req, res): Promise<void> => {
++  const userId = currentUserId(req);
++  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
++  const id = parseInt(rawId, 10);
++  if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
++  // Scoped by userId so one account can never delete another's address.
++  const deleted = await db.delete(addressesTable)
++    .where(and(eq(addressesTable.id, id), eq(addressesTable.userId, userId)))
++    .returning();
++  if (deleted.length === 0) { res.status(404).json({ error: "Address not found" }); return; }
++  res.json({ success: true, message: "Address removed" });
++});
++
+ export default router;
+diff --git a/artifacts/api-server/src/routes/admin.ts b/artifacts/api-server/src/routes/admin.ts
+index dad99bf..87efe5f 100644
+--- a/artifacts/api-server/src/routes/admin.ts
++++ b/artifacts/api-server/src/routes/admin.ts
+@@ -1,25 +1,12 @@
+ import { Router, type IRouter } from "express";
+-import jwt from "jsonwebtoken";
+ import { db, ordersTable, productsTable, usersTable, dealersTable, categoriesTable, productImagesTable, orderRequestsTable, siteContentTable } from "@workspace/db";
+ import { eq, ilike, sql, and, desc } from "drizzle-orm";
+ import { z } from "zod";
+-
+-const JWT_SECRET = process.env.SESSION_SECRET;
++import { requireAdmin } from "../middleware/auth";
+ 
+ const router: IRouter = Router();
+ 
+-router.use("/admin", (req, res, next) => {
+-  if (!JWT_SECRET) { res.status(500).json({ error: "Server misconfigured" }); return; }
+-  const authHeader = req.headers.authorization;
+-  if (!authHeader?.startsWith("Bearer ")) { res.status(401).json({ error: "Unauthorized" }); return; }
+-  try {
+-    const payload = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { id: number; role?: string };
+-    if (payload.role !== "admin") { res.status(403).json({ error: "Forbidden" }); return; }
+-    next();
+-  } catch {
+-    res.status(401).json({ error: "Unauthorized" });
+-  }
+-});
++router.use("/admin", requireAdmin);
+ 
+ router.get("/admin/dashboard", async (_req, res): Promise<void> => {
+   const [{ revenue }] = await db.select({ revenue: sql<number>`coalesce(sum(total::numeric), 0)::float` }).from(ordersTable);
+diff --git a/artifacts/api-server/src/routes/auth.ts b/artifacts/api-server/src/routes/auth.ts
+index 98c6256..5a4f95c 100644
+--- a/artifacts/api-server/src/routes/auth.ts
++++ b/artifacts/api-server/src/routes/auth.ts
+@@ -6,6 +6,7 @@ import { db, usersTable, passwordResetsTable } from "@workspace/db";
+ import { eq, and, isNull, gt, desc } from "drizzle-orm";
+ import { logger } from "../lib/logger";
+ import { sendPasswordResetEmail } from "../lib/email";
++import { verifyToken } from "../middleware/auth";
+ 
+ const router: IRouter = Router();
+ const JWT_SECRET = process.env.SESSION_SECRET;
+@@ -143,18 +144,11 @@ router.post("/auth/service-login", async (req, res): Promise<void> => {
+ });
+ 
+ router.get("/auth/me", async (req, res): Promise<void> => {
+-  const authHeader = req.headers.authorization;
+-  if (!authHeader) { res.status(401).json({ error: "Unauthorized" }); return; }
+-  try {
+-    const token = authHeader.replace("Bearer ", "");
+-    const payload = jwt.verify(token, JWT_SECRET) as { id: number };
+-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, payload.id));
+-    if (!user) { res.status(404).json({ error: "User not found" }); return; }
+-    res.json({ id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone, createdAt: user.createdAt?.toISOString() });
+-  } catch (e) {
+-    logger.warn({ err: e }, "JWT verify failed");
+-    res.status(401).json({ error: "Invalid token" });
+-  }
++  const auth = verifyToken(req);
++  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
++  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, auth.id));
++  if (!user) { res.status(404).json({ error: "User not found" }); return; }
++  res.json({ id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone, createdAt: user.createdAt?.toISOString() });
+ });
+ 
+ export default router;
+diff --git a/artifacts/api-server/src/routes/dealer.ts b/artifacts/api-server/src/routes/dealer.ts
+index c839dd0..9461b5e 100644
+--- a/artifacts/api-server/src/routes/dealer.ts
++++ b/artifacts/api-server/src/routes/dealer.ts
+@@ -1,11 +1,12 @@
+ import { Router, type IRouter } from "express";
+ import { db, dealersTable, dealerSchemesTable, ordersTable } from "@workspace/db";
+ import { eq, sql } from "drizzle-orm";
++import { requireAuth, requireBusiness, currentUserId } from "../middleware/auth";
+ 
+ const router: IRouter = Router();
+ 
+-router.get("/dealer/dashboard", async (req, res): Promise<void> => {
+-  const userId = (req as any).userId || 1;
++router.get("/dealer/dashboard", requireBusiness, async (req, res): Promise<void> => {
++  const userId = currentUserId(req);
+   const orders = await db.select().from(ordersTable).where(eq(ordersTable.userId, userId));
+   const now = new Date();
+   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+@@ -18,8 +19,8 @@ router.get("/dealer/dashboard", async (req, res): Promise<void> => {
+   res.json({ monthlyOrders, outstandingAmount, pendingOrders, deliveredOrders, totalOrders: orders.length });
+ });
+ 
+-router.get("/dealer/orders", async (req, res): Promise<void> => {
+-  const userId = (req as any).userId || 1;
++router.get("/dealer/orders", requireBusiness, async (req, res): Promise<void> => {
++  const userId = currentUserId(req);
+   const rows = await db.select().from(ordersTable).where(eq(ordersTable.userId, userId));
+   res.json(rows.map(o => ({
+     id: o.id, orderNumber: o.orderNumber, status: o.status, items: [],
+@@ -30,11 +31,11 @@ router.get("/dealer/orders", async (req, res): Promise<void> => {
+   })));
+ });
+ 
+-router.post("/dealer/orders", async (req, res): Promise<void> => {
++router.post("/dealer/orders", requireBusiness, async (req, res): Promise<void> => {
+   res.status(201).json({ id: 999, orderNumber: `PRY${Date.now()}`, status: "pending", items: [], subtotal: 0, gst: 0, shipping: 0, discount: 0, total: 0, paymentMethod: "net_banking", paymentStatus: "pending", shippingAddress: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+ });
+ 
+-router.get("/dealer/schemes", async (_req, res): Promise<void> => {
++router.get("/dealer/schemes", requireBusiness, async (_req, res): Promise<void> => {
+   const schemes = await db.select().from(dealerSchemesTable).where(eq(dealerSchemesTable.isActive, "true"));
+   res.json(schemes.map(s => ({ id: s.id, title: s.title, description: s.description, discount: parseFloat(s.discount as string), validUntil: s.validUntil })));
+ });
+diff --git a/artifacts/api-server/src/routes/distributor.ts b/artifacts/api-server/src/routes/distributor.ts
+index b43e035..1adeac0 100644
+--- a/artifacts/api-server/src/routes/distributor.ts
++++ b/artifacts/api-server/src/routes/distributor.ts
+@@ -1,40 +1,22 @@
+ import { Router, type IRouter } from "express";
+-import jwt from "jsonwebtoken";
+ import { db, distributorsTable, distributorSchemesTable, ordersTable } from "@workspace/db";
+ import { eq, ilike, or, and, sql, type SQL } from "drizzle-orm";
+-
+-const JWT_SECRET = process.env.SESSION_SECRET;
++import { requireBusiness, currentUserId, verifyToken, BUSINESS_ROLES } from "../middleware/auth";
+ 
+ function isAdmin(req: any): boolean {
+-  if (!JWT_SECRET) return false;
+-  const authHeader = req.headers.authorization;
+-  if (!authHeader?.startsWith("Bearer ")) return false;
+-  try {
+-    const payload = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { role?: string };
+-    return payload.role === "admin";
+-  } catch {
+-    return false;
+-  }
++  return verifyToken(req)?.role === "admin";
+ }
+ 
+ // Business roles only — customers must not see network/KYC data
+-const BUSINESS_ROLES = ["dealer", "distributor", "admin"];
+ function isBusinessUser(req: any): boolean {
+-  if (!JWT_SECRET) return false;
+-  const authHeader = req.headers.authorization;
+-  if (!authHeader?.startsWith("Bearer ")) return false;
+-  try {
+-    const payload = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { role?: string };
+-    return !!payload.role && BUSINESS_ROLES.includes(payload.role);
+-  } catch {
+-    return false;
+-  }
++  const role = verifyToken(req)?.role;
++  return !!role && BUSINESS_ROLES.includes(role);
+ }
+ 
+ const router: IRouter = Router();
+ 
+-router.get("/distributor/dashboard", async (req, res): Promise<void> => {
+-  const userId = (req as any).userId || 1;
++router.get("/distributor/dashboard", requireBusiness, async (req, res): Promise<void> => {
++  const userId = currentUserId(req);
+   const orders = await db.select().from(ordersTable).where(eq(ordersTable.userId, userId));
+   const now = new Date();
+   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+@@ -54,8 +36,8 @@ router.get("/distributor/dashboard", async (req, res): Promise<void> => {
+   res.json({ monthlyOrders, outstandingAmount, pendingOrders, deliveredOrders, totalOrders: orders.length, totalRevenue, creditLimit, annualTarget, territory });
+ });
+ 
+-router.get("/distributor/orders", async (req, res): Promise<void> => {
+-  const userId = (req as any).userId || 1;
++router.get("/distributor/orders", requireBusiness, async (req, res): Promise<void> => {
++  const userId = currentUserId(req);
+   const rows = await db.select().from(ordersTable).where(eq(ordersTable.userId, userId));
+   res.json(rows.map(o => ({
+     id: o.id, orderNumber: o.orderNumber, status: o.status, items: [],
+@@ -66,7 +48,7 @@ router.get("/distributor/orders", async (req, res): Promise<void> => {
+   })));
+ });
+ 
+-router.get("/distributor/schemes", async (_req, res): Promise<void> => {
++router.get("/distributor/schemes", requireBusiness, async (_req, res): Promise<void> => {
+   const schemes = await db.select().from(distributorSchemesTable).where(eq(distributorSchemesTable.isActive, "true"));
+   res.json(schemes.map(s => ({
+     id: s.id, title: s.title, description: s.description,
+diff --git a/artifacts/api-server/src/routes/orders.ts b/artifacts/api-server/src/routes/orders.ts
+index 456fbdd..6bca7ee 100644
+--- a/artifacts/api-server/src/routes/orders.ts
++++ b/artifacts/api-server/src/routes/orders.ts
+@@ -1,32 +1,23 @@
+ import { Router, type IRouter } from "express";
+-import jwt from "jsonwebtoken";
+ import { db, ordersTable, orderItemsTable, cartItemsTable, cartSessionsTable, productsTable, addressesTable, usersTable, orderRequestsTable } from "@workspace/db";
+ import { eq, desc } from "drizzle-orm";
+ import { generateInvoicePdf } from "../lib/invoice";
+ import { sendInvoiceEmail } from "../lib/email";
+ import { logger } from "../lib/logger";
++import { verifyToken, canAccessResource, type AuthUser } from "../middleware/auth";
+ 
+ const router: IRouter = Router();
+-const JWT_SECRET = process.env.SESSION_SECRET;
+ 
+ function getSessionId(req: any): string {
+   return req.headers["x-session-id"] as string || req.ip || "default";
+ }
+ 
+-function getAuthUser(req: any): { id: number; role?: string } | null {
+-  const authHeader = req.headers.authorization;
+-  if (authHeader && JWT_SECRET) {
+-    try {
+-      return jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { id: number; role?: string };
+-    } catch {
+-      return null;
+-    }
+-  }
+-  return null;
++function getAuthUser(req: any): AuthUser | null {
++  return verifyToken(req);
+ }
+ 
+-function canAccessOrder(auth: { id: number; role?: string }, order: { userId: number | null }): boolean {
+-  return auth.role === "admin" || order.userId === auth.id;
++function canAccessOrder(auth: AuthUser, order: { userId: number | null }): boolean {
++  return canAccessResource(auth, order.userId);
+ }
+ 
+ const STATUSES = ["pending", "confirmed", "packed", "dispatched", "delivered", "cancelled"];
+diff --git a/artifacts/api-server/src/routes/storage.ts b/artifacts/api-server/src/routes/storage.ts
+index 5139898..36bb84e 100644
+--- a/artifacts/api-server/src/routes/storage.ts
++++ b/artifacts/api-server/src/routes/storage.ts
+@@ -1,27 +1,12 @@
+-import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
++import { Router, type IRouter, type Request, type Response } from "express";
+ import { Readable } from "stream";
+-import jwt from "jsonwebtoken";
+ import {
+   RequestUploadUrlBody,
+   RequestUploadUrlResponse,
+ } from "@workspace/api-zod";
+ import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
+ import { ObjectPermission } from "../lib/objectAcl";
+-
+-const JWT_SECRET = process.env.SESSION_SECRET;
+-
+-function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+-  if (!JWT_SECRET) { res.status(500).json({ error: "Server misconfigured" }); return; }
+-  const authHeader = req.headers.authorization;
+-  if (!authHeader?.startsWith("Bearer ")) { res.status(401).json({ error: "Unauthorized" }); return; }
+-  try {
+-    const payload = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { id: number; role?: string };
+-    if (payload.role !== "admin") { res.status(403).json({ error: "Forbidden" }); return; }
+-    next();
+-  } catch {
+-    res.status(401).json({ error: "Unauthorized" });
+-  }
+-}
++import { requireAdmin } from "../middleware/auth";
+ 
+ const router: IRouter = Router();
+ const objectStorageService = new ObjectStorageService();
+diff --git a/artifacts/api-server/src/routes/wishlist.ts b/artifacts/api-server/src/routes/wishlist.ts
+index f7a9a8e..60a00b0 100644
+--- a/artifacts/api-server/src/routes/wishlist.ts
++++ b/artifacts/api-server/src/routes/wishlist.ts
+@@ -1,11 +1,12 @@
+ import { Router, type IRouter } from "express";
+ import { db, wishlistTable, productsTable, categoriesTable } from "@workspace/db";
+ import { eq, and } from "drizzle-orm";
++import { requireAuth, currentUserId } from "../middleware/auth";
+ 
+ const router: IRouter = Router();
+ 
+-router.get("/wishlist", async (req, res): Promise<void> => {
+-  const userId = (req as any).userId || 1;
++router.get("/wishlist", requireAuth, async (req, res): Promise<void> => {
++  const userId = currentUserId(req);
+   const rows = await db
+     .select({ p: productsTable, catName: categoriesTable.name })
+     .from(wishlistTable)
+@@ -24,18 +25,18 @@ router.get("/wishlist", async (req, res): Promise<void> => {
+   })));
+ });
+ 
+-router.post("/wishlist", async (req, res): Promise<void> => {
++router.post("/wishlist", requireAuth, async (req, res): Promise<void> => {
+   const { productId } = req.body;
+-  const userId = (req as any).userId || 1;
++  const userId = currentUserId(req);
+   const [existing] = await db.select().from(wishlistTable).where(and(eq(wishlistTable.userId, userId), eq(wishlistTable.productId, productId)));
+   if (!existing) await db.insert(wishlistTable).values({ userId, productId });
+   res.json({ success: true, message: "Added to wishlist" });
+ });
+ 
+-router.delete("/wishlist/:productId", async (req, res): Promise<void> => {
++router.delete("/wishlist/:productId", requireAuth, async (req, res): Promise<void> => {
+   const rawId = Array.isArray(req.params.productId) ? req.params.productId[0] : req.params.productId;
+   const productId = parseInt(rawId, 10);
+-  const userId = (req as any).userId || 1;
++  const userId = currentUserId(req);
+   await db.delete(wishlistTable).where(and(eq(wishlistTable.userId, userId), eq(wishlistTable.productId, productId)));
+   res.json({ success: true, message: "Removed from wishlist" });
+ });
