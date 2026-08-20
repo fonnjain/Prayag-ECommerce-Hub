@@ -11,6 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { authenticatedFetch } from "@/lib/authenticated-fetch";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -55,7 +56,7 @@ export default function AdminPage() {
   const { data: productsData } = useListAdminProducts({});
   const { data: customers } = useListAdminCustomers({});
   const { data: dealers } = useListAdminDealers({});
-  const { data: distributorsData } = useQuery({ queryKey: ["admin-distributors"], queryFn: async () => { const token = useAuthStore.getState().token; const r = await fetch("/api/admin/distributors", { headers: token ? { Authorization: `Bearer ${token}` } : {} }); if (!r.ok) throw new Error(`Failed to load distributors (${r.status})`); return r.json(); } });
+  const { data: distributorsData } = useQuery({ queryKey: ["admin-distributors"], enabled: !!user, queryFn: async () => { const r = await authenticatedFetch("/api/admin/distributors"); if (!r.ok) throw new Error(`Failed to load distributors (${r.status})`); return r.json(); } });
   const distributors = Array.isArray(distributorsData) ? distributorsData : [];
   const updateStatus = useUpdateOrderStatus();
   const { data: orderRequests } = useListAdminOrderRequests();

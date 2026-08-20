@@ -6,6 +6,7 @@ import { db, usersTable, passwordResetsTable } from "@workspace/db";
 import { eq, and, isNull, gt, desc } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { sendPasswordResetEmail } from "../lib/email";
+import { currentUserId, requireAuth } from "../middleware/auth";
 
 const router: IRouter = Router();
 const JWT_SECRET = process.env.SESSION_SECRET;
@@ -40,6 +41,10 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   }
   const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (!user) {
+    res.status(401).json({ error: "Invalid credentials" });
+    return;
+  }
+  if (!user.isActive) {
     res.status(401).json({ error: "Invalid credentials" });
     return;
   }
@@ -142,19 +147,10 @@ router.post("/auth/service-login", async (req, res): Promise<void> => {
   res.json({ token });
 });
 
-router.get("/auth/me", async (req, res): Promise<void> => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) { res.status(401).json({ error: "Unauthorized" }); return; }
-  try {
-    const token = authHeader.replace("Bearer ", "");
-    const payload = jwt.verify(token, JWT_SECRET) as { id: number };
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, payload.id));
-    if (!user) { res.status(404).json({ error: "User not found" }); return; }
-    res.json({ id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone, createdAt: user.createdAt?.toISOString() });
-  } catch (e) {
-    logger.warn({ err: e }, "JWT verify failed");
-    res.status(401).json({ error: "Invalid token" });
-  }
+router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, currentUserId(req)));
+  if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+  res.json({ id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone, createdAt: user.createdAt?.toISOString() });
 });
 
 export default router;

@@ -1,25 +1,12 @@
 import { Router, type IRouter } from "express";
-import jwt from "jsonwebtoken";
 import { db, ordersTable, productsTable, usersTable, dealersTable, categoriesTable, productImagesTable, orderRequestsTable, siteContentTable } from "@workspace/db";
 import { eq, ilike, sql, and, desc } from "drizzle-orm";
 import { z } from "zod";
-
-const JWT_SECRET = process.env.SESSION_SECRET;
+import { requireAdmin } from "../middleware/auth";
 
 const router: IRouter = Router();
 
-router.use("/admin", (req, res, next) => {
-  if (!JWT_SECRET) { res.status(500).json({ error: "Server misconfigured" }); return; }
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) { res.status(401).json({ error: "Unauthorized" }); return; }
-  try {
-    const payload = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { id: number; role?: string };
-    if (payload.role !== "admin") { res.status(403).json({ error: "Forbidden" }); return; }
-    next();
-  } catch {
-    res.status(401).json({ error: "Unauthorized" });
-  }
-});
+router.use("/admin", requireAdmin);
 
 router.get("/admin/dashboard", async (_req, res): Promise<void> => {
   const [{ revenue }] = await db.select({ revenue: sql<number>`coalesce(sum(total::numeric), 0)::float` }).from(ordersTable);

@@ -3,13 +3,14 @@ import { Link } from "wouter";
 import { BarChart3, Users, Store, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import { authenticatedFetch } from "@/lib/authenticated-fetch";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
 ];
 
 async function fetchStats() {
-  const res = await fetch("/api/direct-dealer/network?page=1");
+  const res = await authenticatedFetch("/api/direct-dealer/network?page=1");
   if (!res.ok) throw new Error("Failed");
   return res.json();
 }

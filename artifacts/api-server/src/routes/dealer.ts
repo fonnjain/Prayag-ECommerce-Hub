@@ -1,11 +1,12 @@
 import { Router, type IRouter } from "express";
 import { db, dealersTable, dealerSchemesTable, ordersTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
+import { currentUserId, requireDealer } from "../middleware/auth";
 
 const router: IRouter = Router();
 
-router.get("/dealer/dashboard", async (req, res): Promise<void> => {
-  const userId = (req as any).userId || 1;
+router.get("/dealer/dashboard", requireDealer, async (req, res): Promise<void> => {
+  const userId = currentUserId(req);
   const orders = await db.select().from(ordersTable).where(eq(ordersTable.userId, userId));
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -18,8 +19,8 @@ router.get("/dealer/dashboard", async (req, res): Promise<void> => {
   res.json({ monthlyOrders, outstandingAmount, pendingOrders, deliveredOrders, totalOrders: orders.length });
 });
 
-router.get("/dealer/orders", async (req, res): Promise<void> => {
-  const userId = (req as any).userId || 1;
+router.get("/dealer/orders", requireDealer, async (req, res): Promise<void> => {
+  const userId = currentUserId(req);
   const rows = await db.select().from(ordersTable).where(eq(ordersTable.userId, userId));
   res.json(rows.map(o => ({
     id: o.id, orderNumber: o.orderNumber, status: o.status, items: [],
@@ -30,11 +31,11 @@ router.get("/dealer/orders", async (req, res): Promise<void> => {
   })));
 });
 
-router.post("/dealer/orders", async (req, res): Promise<void> => {
+router.post("/dealer/orders", requireDealer, async (req, res): Promise<void> => {
   res.status(201).json({ id: 999, orderNumber: `PRY${Date.now()}`, status: "pending", items: [], subtotal: 0, gst: 0, shipping: 0, discount: 0, total: 0, paymentMethod: "net_banking", paymentStatus: "pending", shippingAddress: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
 });
 
-router.get("/dealer/schemes", async (_req, res): Promise<void> => {
+router.get("/dealer/schemes", requireDealer, async (_req, res): Promise<void> => {
   const schemes = await db.select().from(dealerSchemesTable).where(eq(dealerSchemesTable.isActive, "true"));
   res.json(schemes.map(s => ({ id: s.id, title: s.title, description: s.description, discount: parseFloat(s.discount as string), validUntil: s.validUntil })));
 });

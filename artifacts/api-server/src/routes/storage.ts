@@ -1,27 +1,12 @@
-import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { Readable } from "stream";
-import jwt from "jsonwebtoken";
 import {
   RequestUploadUrlBody,
   RequestUploadUrlResponse,
 } from "@workspace/api-zod";
 import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
 import { ObjectPermission } from "../lib/objectAcl";
-
-const JWT_SECRET = process.env.SESSION_SECRET;
-
-function requireAdmin(req: Request, res: Response, next: NextFunction): void {
-  if (!JWT_SECRET) { res.status(500).json({ error: "Server misconfigured" }); return; }
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) { res.status(401).json({ error: "Unauthorized" }); return; }
-  try {
-    const payload = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { id: number; role?: string };
-    if (payload.role !== "admin") { res.status(403).json({ error: "Forbidden" }); return; }
-    next();
-  } catch {
-    res.status(401).json({ error: "Unauthorized" });
-  }
-}
+import { requireAdmin } from "../middleware/auth";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();

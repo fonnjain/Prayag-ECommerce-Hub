@@ -3,19 +3,20 @@ import { Link } from "wouter";
 import { Package, DollarSign, Clock, CheckCircle, FileText, Tag, BookOpen, BarChart3, MapPin, Target, CreditCard, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
+import { authenticatedFetch } from "@/lib/authenticated-fetch";
 
 async function fetchDistributorDashboard() {
-  const res = await fetch("/api/distributor/dashboard");
+  const res = await authenticatedFetch("/api/distributor/dashboard");
   if (!res.ok) throw new Error("Failed");
   return res.json();
 }
 async function fetchDistributorOrders() {
-  const res = await fetch("/api/distributor/orders");
+  const res = await authenticatedFetch("/api/distributor/orders");
   if (!res.ok) throw new Error("Failed");
   return res.json();
 }
 async function fetchDistributorSchemes() {
-  const res = await fetch("/api/distributor/schemes");
+  const res = await authenticatedFetch("/api/distributor/schemes");
   if (!res.ok) throw new Error("Failed");
   return res.json();
 }

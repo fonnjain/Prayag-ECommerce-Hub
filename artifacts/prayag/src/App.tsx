@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation, useSearch, Redirect } from "wouter";
 import { useAuthStore } from "@/lib/store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -78,16 +78,37 @@ function RequireLogin({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function RequireRole({ roles, children }: { roles: string[]; children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user);
+  if (!user) return <Redirect to="/login" />;
+  if (!roles.includes(user.role)) return <Redirect to="/account" />;
+  return <>{children}</>;
+}
+
+function AuthSessionBoundary({ children }: { children: React.ReactNode }) {
+  const sessionKey = useAuthStore((state) => state.token ? `${state.user?.id ?? ""}:${state.token}` : null);
+  const priorSessionKey = useRef(sessionKey);
+
+  useEffect(() => {
+    if (priorSessionKey.current !== sessionKey) {
+      queryClient.clear();
+      priorSessionKey.current = sessionKey;
+    }
+  }, [sessionKey]);
+
+  return <>{children}</>;
+}
+
 function Router() {
   const [location] = useLocation();
   const isBare = BARE_ROUTES.includes(location);
 
   const content = (
     <Switch>
-      <Route path="/admin" component={() => <AdminPage />} />
-      <Route path="/dealer" component={() => <RequireLogin><DealerPage /></RequireLogin>} />
-      <Route path="/distributor" component={() => <RequireLogin><DistributorPage /></RequireLogin>} />
-      <Route path="/direct-dealer" component={() => <RequireLogin><DirectDealerPage /></RequireLogin>} />
+      <Route path="/admin" component={() => <RequireRole roles={["admin"]}><AdminPage /></RequireRole>} />
+      <Route path="/dealer" component={() => <RequireRole roles={["dealer", "admin"]}><DealerPage /></RequireRole>} />
+      <Route path="/distributor" component={() => <RequireRole roles={["distributor", "admin"]}><DistributorPage /></RequireRole>} />
+      <Route path="/direct-dealer" component={() => <RequireRole roles={["admin"]}><DirectDealerPage /></RequireRole>} />
       <Route path="/find-dealer" component={FindDealerPage} />
       <Route path="/catalogues" component={CataloguesPage} />
       <Route path="/" component={HomePage} />
@@ -122,10 +143,12 @@ function Router() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <WouterRouter base={BASE}>
-        <ScrollToTop />
-        <Router />
-      </WouterRouter>
+      <AuthSessionBoundary>
+        <WouterRouter base={BASE}>
+          <ScrollToTop />
+          <Router />
+        </WouterRouter>
+      </AuthSessionBoundary>
       <Toaster />
     </QueryClientProvider>
   );

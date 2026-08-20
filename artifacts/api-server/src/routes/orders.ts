@@ -1,32 +1,16 @@
 import { Router, type IRouter } from "express";
-import jwt from "jsonwebtoken";
 import { db, ordersTable, orderItemsTable, cartItemsTable, cartSessionsTable, productsTable, addressesTable, usersTable, orderRequestsTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import { generateInvoicePdf } from "../lib/invoice";
 import { sendInvoiceEmail } from "../lib/email";
 import { logger } from "../lib/logger";
+import { canAccessResource, currentUserId, requireAuth, type AuthUser } from "../middleware/auth";
+import { getCartSessionId } from "../middleware/cart-session";
 
 const router: IRouter = Router();
-const JWT_SECRET = process.env.SESSION_SECRET;
 
-function getSessionId(req: any): string {
-  return req.headers["x-session-id"] as string || req.ip || "default";
-}
-
-function getAuthUser(req: any): { id: number; role?: string } | null {
-  const authHeader = req.headers.authorization;
-  if (authHeader && JWT_SECRET) {
-    try {
-      return jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { id: number; role?: string };
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-
-function canAccessOrder(auth: { id: number; role?: string }, order: { userId: number | null }): boolean {
-  return auth.role === "admin" || order.userId === auth.id;
+function canAccessOrder(auth: AuthUser, order: { userId: number | null }): boolean {
+  return canAccessResource(auth, order.userId);
 }
 
 const STATUSES = ["pending", "confirmed", "packed", "dispatched", "delivered", "cancelled"];
@@ -35,7 +19,10 @@ async function buildOrder(order: typeof ordersTable.$inferSelect) {
   const items = await db.select({ oi: orderItemsTable })
     .from(orderItemsTable).where(eq(orderItemsTable.orderId, order.id));
   const addr = order.shippingAddressId
-    ? (await db.select().from(addressesTable).where(eq(addressesTable.id, order.shippingAddressId)))[0]
+    ? (await db.select().from(addressesTable).where(and(
+        eq(addressesTable.id, order.shippingAddressId),
+        eq(addressesTable.userId, order.userId),
+      )))[0]
     : null;
   return {
     id: order.id,
@@ -67,20 +54,33 @@ async function buildOrder(order: typeof ordersTable.$inferSelect) {
   };
 }
 
+router.use("/orders", requireAuth);
+
 router.get("/orders", async (req, res): Promise<void> => {
-  const auth = getAuthUser(req);
-  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const rows = await db.select().from(ordersTable).where(eq(ordersTable.userId, auth.id));
+  const rows = await db.select().from(ordersTable).where(eq(ordersTable.userId, currentUserId(req)));
   const built = await Promise.all(rows.map(buildOrder));
   res.json(built);
 });
 
 router.post("/orders", async (req, res): Promise<void> => {
   const { addressId, paymentMethod, couponCode, notes } = req.body;
-  const auth = getAuthUser(req);
-  if (!auth) { res.status(401).json({ error: "Please sign in to place an order" }); return; }
-  const userId = auth.id;
-  const sessionId = getSessionId(req);
+  const userId = currentUserId(req);
+  const sessionId = getCartSessionId(req, res);
+
+  if (addressId !== undefined && addressId !== null) {
+    if (typeof addressId !== "number" || !Number.isSafeInteger(addressId) || addressId <= 0) {
+      res.status(400).json({ error: "Invalid addressId" });
+      return;
+    }
+    const [address] = await db.select({ id: addressesTable.id }).from(addressesTable).where(and(
+      eq(addressesTable.id, addressId),
+      eq(addressesTable.userId, userId),
+    )).limit(1);
+    if (!address) {
+      res.status(400).json({ error: "Shipping address not found" });
+      return;
+    }
+  }
 
   const [cart] = await db.select().from(cartSessionsTable).where(eq(cartSessionsTable.sessionId, sessionId));
   const cartItems = cart
@@ -157,8 +157,7 @@ router.post("/orders", async (req, res): Promise<void> => {
 });
 
 router.get("/orders/:id/invoice", async (req, res): Promise<void> => {
-  const auth = getAuthUser(req);
-  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const auth = req.auth!;
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
@@ -172,8 +171,7 @@ router.get("/orders/:id/invoice", async (req, res): Promise<void> => {
 });
 
 router.get("/orders/:id", async (req, res): Promise<void> => {
-  const auth = getAuthUser(req);
-  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const auth = req.auth!;
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
@@ -182,8 +180,7 @@ router.get("/orders/:id", async (req, res): Promise<void> => {
 });
 
 router.get("/orders/:id/tracking", async (req, res): Promise<void> => {
-  const auth = getAuthUser(req);
-  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const auth = req.auth!;
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
@@ -213,8 +210,7 @@ const CANCELLABLE = ["pending", "confirmed", "packed"];
 const POST_DELIVERY_TYPES = ["return", "replace", "refund"];
 
 router.post("/orders/:id/cancel", async (req, res): Promise<void> => {
-  const auth = getAuthUser(req);
-  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const auth = req.auth!;
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
@@ -233,8 +229,7 @@ router.post("/orders/:id/cancel", async (req, res): Promise<void> => {
 });
 
 router.get("/orders/:id/requests", async (req, res): Promise<void> => {
-  const auth = getAuthUser(req);
-  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const auth = req.auth!;
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
@@ -244,8 +239,7 @@ router.get("/orders/:id/requests", async (req, res): Promise<void> => {
 });
 
 router.post("/orders/:id/requests", async (req, res): Promise<void> => {
-  const auth = getAuthUser(req);
-  if (!auth) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const auth = req.auth!;
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));

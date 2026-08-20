@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { User, MapPin, Package, Heart, RotateCcw, HeadphonesIcon, ChevronRight, Star, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useListOrders, useGetWishlist, useListAddresses, useRemoveFromWishlist, getGetWishlistQueryKey } from "@workspace/api-client-react";
+import { useListOrders, useGetWishlist, useListAddresses, useRemoveFromWishlist, getGetWishlistQueryKey, getListAddressesQueryKey, getListOrdersQueryKey } from "@workspace/api-client-react";
 import { useAuthStore } from "@/lib/store";
 import { downloadInvoice } from "@/lib/invoice";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,9 +33,9 @@ export default function AccountPage() {
     setActiveSection(sectionFromUrl);
   }, [sectionFromUrl]);
   const { user } = useAuthStore();
-  const { data: orders, isLoading: ordersLoading } = useListOrders();
-  const { data: wishlist, isLoading: wishlistLoading } = useGetWishlist();
-  const { data: addresses } = useListAddresses();
+  const { data: orders, isLoading: ordersLoading } = useListOrders({ query: { enabled: !!user, queryKey: getListOrdersQueryKey() } });
+  const { data: wishlist, isLoading: wishlistLoading } = useGetWishlist({ query: { enabled: !!user, queryKey: getGetWishlistQueryKey() } });
+  const { data: addresses } = useListAddresses({ query: { enabled: !!user, queryKey: getListAddressesQueryKey() } });
   const queryClient = useQueryClient();
   const removeFromWishlist = useRemoveFromWishlist({
     mutation: {

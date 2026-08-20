@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Search, Heart, ShoppingCart, User, ChevronDown, Menu, X, Phone, MapPin, Package, BookOpen, Building2, Truck, Store, Grid3X3 } from "lucide-react";
 import { useCartStore, useAuthStore } from "@/lib/store";
-import { useGetCart, useGetWishlist, useGetSearchSuggestions, getGetSearchSuggestionsQueryKey } from "@workspace/api-client-react";
+import { useGetCart, useGetWishlist, useGetSearchSuggestions, getGetSearchSuggestionsQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import logoDark from "@assets/logo_1783664087489.png";
 import { useSiteContent } from "@/lib/siteContent";
@@ -50,7 +50,7 @@ export default function Header() {
   const userRef = useRef<HTMLDivElement>(null);
 
   const { data: cart } = useGetCart();
-  const { data: wishlist } = useGetWishlist();
+  const { data: wishlist } = useGetWishlist({ query: { enabled: !!user, queryKey: getGetWishlistQueryKey() } });
   const wishlistCount = wishlist?.length ?? 0;
   const { data: suggestions } = useGetSearchSuggestions(
     { q: searchQ },

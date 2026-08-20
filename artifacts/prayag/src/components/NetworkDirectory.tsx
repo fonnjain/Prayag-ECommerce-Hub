@@ -3,25 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import { Users, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useAuthStore } from "@/lib/store";
-
-function authHeaders(): Record<string, string> {
-  const token = useAuthStore.getState().token;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+import { authenticatedFetch } from "@/lib/authenticated-fetch";
 
 async function fetchNetwork(apiBase: string, search: string, state: string, page: number) {
   const params = new URLSearchParams();
   if (search) params.set("search", search);
   if (state) params.set("state", state);
   params.set("page", String(page));
-  const res = await fetch(`${apiBase}?${params.toString()}`, { headers: authHeaders() });
+  const res = await authenticatedFetch(`${apiBase}?${params.toString()}`);
   if (!res.ok) throw new Error("Failed");
   return res.json();
 }
 
 async function fetchDetail(id: number) {
-  const res = await fetch(`/api/distributor/network/${id}`, { headers: authHeaders() });
+  const res = await authenticatedFetch(`/api/distributor/network/${id}`);
   if (!res.ok) throw new Error("Failed");
   return res.json();
 }

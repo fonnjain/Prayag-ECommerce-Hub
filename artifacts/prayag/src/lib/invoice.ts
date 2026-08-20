@@ -1,10 +1,7 @@
-import { useAuthStore } from "./store";
+import { authenticatedFetch } from "./authenticated-fetch";
 
 export async function downloadInvoice(orderId: number, orderNumber: string): Promise<void> {
-  const token = useAuthStore.getState().token;
-  const res = await fetch(`/api/orders/${orderId}/invoice`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
+  const res = await authenticatedFetch(`/api/orders/${orderId}/invoice`);
   if (!res.ok) {
     alert("Could not download invoice. Please make sure you are signed in.");
     return;

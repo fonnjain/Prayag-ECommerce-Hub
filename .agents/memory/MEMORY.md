@@ -1,6 +1,7 @@
 - [External product/MRP API](external-product-api.md) — store catalogue now imported from competition-analysis app API; sku=itemCode, price=mrp; old placeholder catalog never matches it.
 - [PTMT catalog images](ptmt-catalog-images.md) — Drive→product mapping rules, placeholder pricing decision (999/1299), series suffix map.
 - [Long-running background jobs](background-jobs.md) — shell-launched nohup jobs die with the session; use a console workflow for multi-hour resumable batches.
-- [PRAYAG access control](prayag-access-control.md) — network/KYC APIs need business-role JWT; public register forced to "customer"; customers may open portal pages (UI only) but network APIs stay JWT-gated.
+- [PRAYAG access control](prayag-access-control.md) — network/KYC APIs are admin-only; portal APIs use exact roles; public registration is forced to "customer".
+- [Guest cart privacy](guest-cart-privacy.md) — cart identity is an opaque HttpOnly cookie, never an IP or caller-supplied session header; item updates must be cart-scoped.
 - [Catalogue sync and order history](catalogue-sync-order-history.md) — production catalogue replacement must preserve products still referenced by historical order items.
 - [Production sync authentication](prod-sync-auth.md) — prod sync logs in via service-login with SESSION_SECRET bearer, not ADMIN_PASSWORD (which drifted from live).

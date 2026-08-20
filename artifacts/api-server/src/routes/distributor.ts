@@ -1,40 +1,12 @@
 import { Router, type IRouter } from "express";
-import jwt from "jsonwebtoken";
 import { db, distributorsTable, distributorSchemesTable, ordersTable } from "@workspace/db";
 import { eq, ilike, or, and, sql, type SQL } from "drizzle-orm";
-
-const JWT_SECRET = process.env.SESSION_SECRET;
-
-function isAdmin(req: any): boolean {
-  if (!JWT_SECRET) return false;
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) return false;
-  try {
-    const payload = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { role?: string };
-    return payload.role === "admin";
-  } catch {
-    return false;
-  }
-}
-
-// Business roles only — customers must not see network/KYC data
-const BUSINESS_ROLES = ["dealer", "distributor", "admin"];
-function isBusinessUser(req: any): boolean {
-  if (!JWT_SECRET) return false;
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) return false;
-  try {
-    const payload = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET) as { role?: string };
-    return !!payload.role && BUSINESS_ROLES.includes(payload.role);
-  } catch {
-    return false;
-  }
-}
+import { currentUserId, requireAdmin, requireDistributor } from "../middleware/auth";
 
 const router: IRouter = Router();
 
-router.get("/distributor/dashboard", async (req, res): Promise<void> => {
-  const userId = (req as any).userId || 1;
+router.get("/distributor/dashboard", requireDistributor, async (req, res): Promise<void> => {
+  const userId = currentUserId(req);
   const orders = await db.select().from(ordersTable).where(eq(ordersTable.userId, userId));
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -54,8 +26,8 @@ router.get("/distributor/dashboard", async (req, res): Promise<void> => {
   res.json({ monthlyOrders, outstandingAmount, pendingOrders, deliveredOrders, totalOrders: orders.length, totalRevenue, creditLimit, annualTarget, territory });
 });
 
-router.get("/distributor/orders", async (req, res): Promise<void> => {
-  const userId = (req as any).userId || 1;
+router.get("/distributor/orders", requireDistributor, async (req, res): Promise<void> => {
+  const userId = currentUserId(req);
   const rows = await db.select().from(ordersTable).where(eq(ordersTable.userId, userId));
   res.json(rows.map(o => ({
     id: o.id, orderNumber: o.orderNumber, status: o.status, items: [],
@@ -66,7 +38,7 @@ router.get("/distributor/orders", async (req, res): Promise<void> => {
   })));
 });
 
-router.get("/distributor/schemes", async (_req, res): Promise<void> => {
+router.get("/distributor/schemes", requireDistributor, async (_req, res): Promise<void> => {
   const schemes = await db.select().from(distributorSchemesTable).where(eq(distributorSchemesTable.isActive, "true"));
   res.json(schemes.map(s => ({
     id: s.id, title: s.title, description: s.description,
@@ -77,7 +49,6 @@ router.get("/distributor/schemes", async (_req, res): Promise<void> => {
 });
 
 async function handleNetworkList(req: any, res: any, customerType: "Distributors" | "Direct Dealers" | "Retailer"): Promise<void> {
-  if (!isBusinessUser(req)) { res.status(401).json({ error: "Login required" }); return; }
   const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
   const state = typeof req.query.state === "string" ? req.query.state.trim() : "";
   const page = Math.max(1, parseInt(String(req.query.page || "1"), 10) || 1);
@@ -134,15 +105,15 @@ async function handleNetworkList(req: any, res: any, customerType: "Distributors
   });
 }
 
-router.get("/distributor/network", async (req, res): Promise<void> => {
+router.get("/distributor/network", requireAdmin, async (req, res): Promise<void> => {
   await handleNetworkList(req, res, "Distributors");
 });
 
-router.get("/direct-dealer/network", async (req, res): Promise<void> => {
+router.get("/direct-dealer/network", requireAdmin, async (req, res): Promise<void> => {
   await handleNetworkList(req, res, "Direct Dealers");
 });
 
-router.get("/retailer/network", async (req, res): Promise<void> => {
+router.get("/retailer/network", requireAdmin, async (req, res): Promise<void> => {
   await handleNetworkList(req, res, "Retailer");
 });
 
@@ -251,10 +222,10 @@ router.get("/dealers/geocode", async (req, res): Promise<void> => {
   }
 });
 
-router.get("/distributor/network/:id", async (req, res): Promise<void> => {
-  if (!isBusinessUser(req)) { res.status(401).json({ error: "Login required" }); return; }
-  const id = parseInt(req.params.id, 10);
-  if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+router.get("/distributor/network/:id", requireAdmin, async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = Number(rawId);
+  if (!Number.isSafeInteger(id) || id <= 0) { res.status(400).json({ error: "Invalid id" }); return; }
   const rows = await db.select().from(distributorsTable).where(eq(distributorsTable.id, id)).limit(1);
   if (!rows[0]) { res.status(404).json({ error: "Distributor not found" }); return; }
   const d = rows[0];
@@ -286,8 +257,7 @@ router.post("/distributor/register", async (req, res): Promise<void> => {
   res.status(201).json({ success: true, message: "Distributor registration submitted successfully" });
 });
 
-router.get("/admin/distributors", async (req, res): Promise<void> => {
-  if (!isAdmin(req)) { res.status(401).json({ error: "Unauthorized" }); return; }
+router.get("/admin/distributors", requireAdmin, async (_req, res): Promise<void> => {
   const rows = await db.select().from(distributorsTable);
   res.json(rows.map(d => ({
     id: d.id, businessName: d.businessName, contactName: d.contactName, email: d.email,

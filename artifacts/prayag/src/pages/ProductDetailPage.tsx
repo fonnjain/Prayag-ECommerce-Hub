@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, Minus, Plus, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useGetProduct, useGetRelatedProducts, useListCategories, useAddToCart, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCartStore } from "@/lib/store";
+import { useAuthStore, useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +13,8 @@ export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { toast } = useToast();
   const { setItemCount } = useCartStore();
+  const user = useAuthStore((state) => state.user);
+  const [, setLocation] = useLocation();
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
@@ -72,6 +74,11 @@ export default function ProductDetailPage() {
   }
 
   function handleWishlist() {
+    if (!user) {
+      toast({ title: "Sign in to save favorites", description: "Please sign in before adding items to your wishlist." });
+      setLocation("/login");
+      return;
+    }
     addToWishlist.mutate({ data: { productId: product!.id } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
