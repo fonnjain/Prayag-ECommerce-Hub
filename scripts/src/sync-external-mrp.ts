@@ -7,6 +7,12 @@
  * Before 01 Sep 2026, the approved 01 Sep MRP is intentionally applied early.
  * On and after that date, the sync follows the MRP effective for the current
  * India date. Set PRAYAG_MRP_AS_OF=YYYY-MM-DD only for a deliberate override.
+ *
+ * Sanitaryware variant note: the variant price sheet contains separate Ivory,
+ * White-with-Jet, and Pink/Green/Blue prices, but the source app currently
+ * stores one MRP per item code (the White price). Those colour prices cannot be
+ * imported into the website until the source app exposes variant pricing or
+ * creates variant item codes, as it does for sink variants such as -D/-DM.
  */
 import { db, pool, productsTable, categoriesTable } from "@workspace/db";
 
