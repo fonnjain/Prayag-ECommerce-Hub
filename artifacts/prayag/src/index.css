@@ -368,3 +368,30 @@
 .related-marquee-wrap:hover .related-marquee {
   animation-play-state: paused;
 }
+
+@media (max-width: 767px) {
+  .related-marquee {
+    animation: none;
+    transform: none !important;
+    width: 100% !important;
+    display: block;
+  }
+
+  .related-marquee > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .related-marquee > div:nth-child(2) {
+    display: none;
+  }
+
+  .related-marquee a {
+    min-width: 0;
+  }
+
+  .related-marquee a > div {
+    width: 100% !important;
+  }
+}

@@ -165,12 +165,12 @@ export default function Header() {
       </div>
 
       {/* ── MAIN HEADER ── */}
-      <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center gap-3">
+      <div className="mx-auto flex min-w-0 max-w-7xl items-center gap-2 px-4 py-2.5 sm:gap-3">
         {/* Logo */}
-        <Link href="/" className="flex-shrink-0 mr-1">
+        <Link href="/" className="mr-0 flex-shrink-0 sm:mr-1">
           <div className="flex flex-col leading-none">
-            <img src={logoDark} alt="Prayag" className="h-8 w-auto object-contain" />
-            <span className="text-[7px] font-semibold text-[hsl(38,52%,45%)] tracking-[0.28em] uppercase mt-1">Strong · Beautiful · Prayag</span>
+            <img src={logoDark} alt="Prayag" className="h-7 w-auto object-contain sm:h-8" />
+            <span className="mt-1 hidden text-[7px] font-semibold uppercase tracking-[0.28em] text-[hsl(38,52%,45%)] sm:block">Strong · Beautiful · Prayag</span>
           </div>
         </Link>
 
@@ -197,17 +197,17 @@ export default function Header() {
         </div>
 
         {/* Search */}
-        <div ref={searchRef} className="flex-1 relative" data-testid="search-bar">
+        <div ref={searchRef} className="relative min-w-0 flex-1" data-testid="search-bar">
           <form onSubmit={handleSearch} className="flex">
             <input
               type="search" value={searchQ}
               onChange={e => { setSearchQ(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
               onFocus={() => searchQ.length >= 2 && setShowSuggestions(true)}
               placeholder="Search for products, categories, sku..."
-              className="w-full border border-gray-200 rounded-l-md px-4 py-2 text-sm outline-none focus:border-[hsl(24,10%,16%)] transition-colors"
+              className="w-full border border-gray-200 rounded-l-md px-2 py-2 text-xs outline-none transition-colors focus:border-[hsl(24,10%,16%)] sm:px-4 sm:text-sm"
               data-testid="input-search"
             />
-            <button type="submit" className="bg-[hsl(24,10%,16%)] text-white px-5 rounded-r-md hover:bg-[hsl(24,10%,12%)] transition-colors flex items-center gap-1.5 text-sm font-medium">
+            <button type="submit" className="flex items-center gap-1.5 rounded-r-md bg-[hsl(24,10%,16%)] px-3 text-sm font-medium text-white transition-colors hover:bg-[hsl(24,10%,12%)] sm:px-5">
               <Search className="w-4 h-4" />
             </button>
           </form>
@@ -224,8 +224,8 @@ export default function Header() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-4">
-          <Link href="/account/wishlist" className="flex flex-col items-center text-gray-600 hover:text-[hsl(24,10%,16%)] transition-colors" data-testid="link-wishlist">
+        <div className="flex flex-shrink-0 items-center gap-2 sm:gap-4">
+          <Link href="/account/wishlist" className="hidden flex-col items-center text-gray-600 transition-colors hover:text-[hsl(24,10%,16%)] sm:flex" data-testid="link-wishlist">
             <div className="relative">
               <Heart className="w-5 h-5" />
               {wishlistCount > 0 && (
@@ -239,9 +239,9 @@ export default function Header() {
 
           <div ref={userRef} className="relative">
             <button onClick={() => setShowUserMenu(p => !p)}
-              className="flex flex-col items-center text-gray-600 hover:text-[hsl(24,10%,16%)] transition-colors" data-testid="button-user-menu">
+              className="flex flex-col items-center text-gray-600 transition-colors hover:text-[hsl(24,10%,16%)]" data-testid="button-user-menu">
               <User className="w-5 h-5" />
-              <span className="text-[10px] mt-0.5 flex items-center gap-0.5">{user ? user.name.split(" ")[0] : "Account"} <ChevronDown className="w-2.5 h-2.5" /></span>
+              <span className="mt-0.5 hidden items-center gap-0.5 text-[10px] sm:flex">{user ? user.name.split(" ")[0] : "Account"} <ChevronDown className="h-2.5 w-2.5" /></span>
             </button>
             {showUserMenu && (
               <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
@@ -268,7 +268,7 @@ export default function Header() {
             )}
           </div>
 
-          <Link href="/cart" className="flex flex-col items-center relative text-gray-600 hover:text-[hsl(24,10%,16%)] transition-colors" data-testid="link-cart">
+          <Link href="/cart" className="relative flex flex-col items-center text-gray-600 transition-colors hover:text-[hsl(24,10%,16%)]" data-testid="link-cart">
             <div className="relative">
               <ShoppingCart className="w-5 h-5" />
               {itemCount > 0 && (
@@ -277,11 +277,11 @@ export default function Header() {
                 </span>
               )}
             </div>
-            <span className="text-[10px] mt-0.5">Cart</span>
+            <span className="mt-0.5 hidden text-[10px] sm:block">Cart</span>
           </Link>
         </div>
 
-        <button className="md:hidden ml-1" onClick={() => setMobileMenuOpen(p => !p)} data-testid="button-mobile-menu">
+        <button className="ml-0 flex-shrink-0 md:hidden" onClick={() => setMobileMenuOpen(p => !p)} data-testid="button-mobile-menu">
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>

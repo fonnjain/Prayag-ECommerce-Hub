@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore, useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/ProductCard";
+import SkuBadge from "@/components/SkuBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -88,7 +89,7 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="bg-[#FAF9F7] min-h-screen pt-4 pb-20">
+    <div className="min-h-screen overflow-x-hidden bg-[#FAF9F7] pt-4 pb-20">
       <div className="max-w-[1400px] mx-auto px-6">
         
         {/* Elegant Breadcrumb */}
@@ -154,7 +155,7 @@ export default function ProductDetailPage() {
 
           {/* Product Info Console */}
           <div className="xl:col-span-5 flex flex-col py-4 lg:py-8">
-            <div className="text-[11px] font-mono tracking-[0.2em] text-gray-400 uppercase mb-4" data-testid="text-sku">SKU: {product.sku}</div>
+            <SkuBadge sku={product.sku} className="mb-4" data-testid="text-sku" />
             
             <h1 className="text-3xl lg:text-[48px] font-bold tracking-tight text-gray-900 mb-6 leading-[1.15]" data-testid="text-product-name">
               {product.name}
@@ -226,20 +227,22 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Premium Guarantees */}
-            <div className="grid grid-cols-3 gap-6 pt-6 border-t border-gray-200">
+            <div className="relative mt-2 grid grid-cols-1 overflow-hidden rounded-2xl bg-[hsl(24,10%,16%)] shadow-[0_18px_45px_-24px_rgba(42,28,18,0.85)] sm:grid-cols-3">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(202,164,104,0.18),transparent_32%),linear-gradient(115deg,rgba(255,255,255,0.04),transparent_42%,rgba(202,164,104,0.07))]" />
               {[
                 { icon: Shield, title: "Authentic", desc: "100% Genuine" },
                 { icon: Truck, title: "Delivery", desc: "Free over ₹5000" },
                 { icon: RotateCcw, title: "Returns", desc: "7-day policy" },
               ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="flex flex-col items-start gap-2">
-                  <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center mb-1">
-                    <Icon className="w-4 h-4 text-[hsl(42,62%,68%)]" />
+                <div key={title} className="group relative flex items-center gap-3 border-b border-white/10 px-4 py-4 transition-colors duration-300 last:border-b-0 hover:bg-white/[0.045] sm:border-b-0 sm:border-r sm:px-5 sm:py-5 sm:last:border-r-0">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-[hsl(42,62%,68%)]/35 bg-[hsl(42,62%,68%)]/10 transition-all duration-300 group-hover:border-[hsl(42,62%,68%)]/75 group-hover:bg-[hsl(42,62%,68%)]/20 group-hover:shadow-[0_0_22px_rgba(202,164,104,0.2)]">
+                    <Icon className="h-4 w-4 text-[hsl(42,62%,68%)]" />
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">{title}</h4>
-                    <p className="text-[11px] text-gray-500 mt-0.5">{desc}</p>
+                  <div className="min-w-0">
+                    <h4 className="text-[11px] font-bold uppercase tracking-[0.16em] text-white">{title}</h4>
+                    <p className="mt-1 text-[11px] text-white/55">{desc}</p>
                   </div>
+                  <span className="ml-auto hidden text-[10px] font-mono tracking-widest text-[hsl(42,62%,68%)]/55 sm:block">0{title === "Authentic" ? 1 : title === "Delivery" ? 2 : 3}</span>
                 </div>
               ))}
             </div>
@@ -249,7 +252,7 @@ export default function ProductDetailPage() {
         {/* Detailed Information Tabs */}
         <div className="mb-20 grid lg:grid-cols-[280px_1fr] border border-gray-200 shadow-sm overflow-hidden">
           {/* Dark tab rail */}
-          <div className="bg-[hsl(24,10%,16%)] flex lg:flex-col">
+          <div className="flex min-w-0 bg-[hsl(24,10%,16%)] lg:flex-col">
             <div className="hidden lg:block px-8 pt-10 pb-6">
               <p className="text-[hsl(42,62%,68%)] text-[11px] font-bold uppercase tracking-[0.25em] mb-2">Know Your Piece</p>
               <div className="w-10 h-0.5 bg-[hsl(42,62%,68%)]" />
@@ -260,13 +263,13 @@ export default function ProductDetailPage() {
               { id: "warranty", label: "Warranty", icon: Shield },
             ].map(({ id, label, icon: Icon }) => (
               <button key={id} onClick={() => setActiveTab(id)}
-                className={`flex-1 lg:flex-none flex items-center gap-3 px-4 lg:px-8 py-4 lg:py-5 text-xs font-bold uppercase tracking-widest transition-all text-left relative ${activeTab === id ? "text-white bg-white/[0.06]" : "text-white/40 hover:text-white/80"}`}
+                className={`relative flex min-w-0 flex-1 items-center justify-center gap-1.5 px-2 py-4 text-left text-xs font-bold uppercase tracking-widest transition-all sm:gap-3 sm:px-4 lg:flex-none lg:justify-start lg:px-8 lg:py-5 ${activeTab === id ? "bg-white/[0.06] text-white" : "text-white/40 hover:text-white/80"}`}
                 data-testid={`button-tab-${id}`}>
                 {activeTab === id && (
                   <motion.div layoutId="activeTab" className="absolute left-0 top-0 bottom-0 w-1 lg:w-1 bg-[hsl(42,62%,68%)]" />
                 )}
                 <Icon className={`w-4 h-4 flex-shrink-0 ${activeTab === id ? "text-[hsl(42,62%,68%)]" : ""}`} />
-                <span className="text-[10px] sm:text-xs">{label}</span>
+                <span className="truncate text-[9px] sm:text-xs">{label}</span>
               </button>
             ))}
             <div className="hidden lg:block mt-auto px-8 py-8 border-t border-white/10">
@@ -356,7 +359,7 @@ export default function ProductDetailPage() {
 
         {/* Related Collection */}
         {related && related.length > 0 && (
-          <div className="relative -mx-6 px-6 py-16 md:py-20 bg-[hsl(24,10%,16%)] overflow-hidden">
+          <div className="relative overflow-hidden bg-[hsl(24,10%,16%)] py-16 md:py-20">
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.14),transparent_65%)]" />
               <div className="absolute -bottom-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.08),transparent_65%)]" />
@@ -374,7 +377,7 @@ export default function ProductDetailPage() {
                   </span>
                 </Link>
               </div>
-              <div className="related-marquee-wrap relative overflow-hidden -mx-6 px-6" style={{ maskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)", WebkitMaskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)" }}>
+              <div className="related-marquee-wrap relative overflow-hidden" style={{ contain: "layout paint", maskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)", WebkitMaskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)" }}>
                 <div className="related-marquee flex gap-4 md:gap-6 w-max">
                   {[0, 1].map(dup => (
                     <div key={dup} className="flex gap-4 md:gap-6" aria-hidden={dup === 1}>
@@ -390,7 +393,7 @@ export default function ProductDetailPage() {
                               )}
                             </div>
                             <div className="p-4 md:p-5 flex flex-col flex-1">
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{p.sku}</p>
+                              <SkuBadge sku={p.sku} className="mb-1.5" />
                               <h3 className="text-sm md:text-base text-white font-medium leading-snug mb-3 line-clamp-2 group-hover:text-[hsl(42,62%,68%)] transition-colors">{p.name}</h3>
                               <div className="mt-auto flex items-center justify-between">
                                 <div className="flex items-baseline gap-2">

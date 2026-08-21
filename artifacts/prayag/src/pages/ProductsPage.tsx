@@ -187,7 +187,7 @@ export default function ProductsPage() {
           {/* Main Grid Area */}
           <div className="flex-1 min-w-0">
             {/* Minimal Toolbar */}
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+            <div className="mb-8 flex flex-wrap items-center justify-between gap-y-3 border-b border-gray-200 pb-4">
               <button className="lg:hidden flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-gray-900" onClick={() => setShowFilters(p => !p)} data-testid="button-filters">
                 <SlidersHorizontal className="w-4 h-4" /> Filters {showFilters && <X className="w-4 h-4 ml-2" />}
               </button>
@@ -197,10 +197,10 @@ export default function ProductsPage() {
                 <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Exquisite Selection</span>
               </div>
 
-              <div className="flex items-center gap-4 ml-auto">
+              <div className="ml-auto flex max-w-full items-center gap-2 sm:gap-4">
                 <div className="relative">
                   <select value={filters.sortBy} onChange={e => updateFilter("sortBy", e.target.value)}
-                    className="appearance-none bg-transparent pr-8 py-1 text-sm font-medium text-gray-900 outline-none cursor-pointer border-b border-transparent focus:border-[hsl(24,10%,16%)] transition-colors" data-testid="select-sort">
+                    className="max-w-[168px] cursor-pointer appearance-none truncate border-b border-transparent bg-transparent py-1 pr-7 text-xs font-medium text-gray-900 outline-none transition-colors focus:border-[hsl(24,10%,16%)] sm:max-w-none sm:pr-8 sm:text-sm" data-testid="select-sort">
                     <option value="photo_ready">Products with Photos</option>
                     <option value="newest">Latest Arrivals</option>
                     <option value="price_asc">Price: Ascending</option>
@@ -210,7 +210,7 @@ export default function ProductsPage() {
                   <ChevronDown className="w-4 h-4 text-gray-500 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
                 
-                <div className="flex gap-1 ml-2 border-l border-gray-200 pl-4">
+                <div className="ml-0 flex gap-1 border-l border-gray-200 pl-2 sm:ml-2 sm:pl-4">
                   <button onClick={() => setView("grid")} className={`p-1.5 transition-colors ${view === "grid" ? "text-[hsl(24,10%,16%)]" : "text-gray-300 hover:text-gray-600"}`} data-testid="button-grid-view">
                     <Grid3X3 className="w-5 h-5" />
                   </button>

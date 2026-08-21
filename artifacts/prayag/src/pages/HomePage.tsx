@@ -8,6 +8,7 @@ import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import SkuBadge from "@/components/SkuBadge";
 import { useSiteContent } from "@/lib/siteContent";
 import heroFaucet from "@assets/generated_images/prayag_hero_luxury.png";
 
@@ -255,7 +256,7 @@ export default function HomePage() {
                 (featured || []).slice(0, 10).map((p, idx) => (
                   <motion.div key={p.id} initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} className="flex-shrink-0 w-44">
                     <Link href={`/products/${p.slug}`}>
-                      <motion.div whileHover={{ y: -8 }} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(28,22,16,0.25)] hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-deal-${p.id}`}>
+                      <motion.div whileHover={{ y: -8 }} className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(28,22,16,0.25)] hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-deal-${p.id}`}>
                         <div className="relative overflow-hidden">
                           {p.discount && p.discount > 0 && (
                             <span className="absolute top-2 left-2 bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,24%)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">-{p.discount}%</span>
@@ -263,7 +264,7 @@ export default function HomePage() {
                           <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=160&fit=crop"} alt={p.name} className="w-full aspect-square object-contain bg-white hover:scale-110 transition-transform duration-500" />
                         </div>
                         <div className="p-3">
-                          <div className="text-[9px] text-gray-400 font-mono mb-1">{p.sku}</div>
+                          <SkuBadge sku={p.sku} className="mb-1" />
                           <div className="text-xs font-semibold text-gray-800 leading-snug mb-1.5 line-clamp-2">{p.name}</div>
                           <div className="flex items-baseline gap-1.5">
                             <span className="font-black text-sm text-gray-900">₹{Number(p.price).toLocaleString("en-IN")}</span>
@@ -350,13 +351,13 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-3">
                 {(featured || []).slice(0, 4).map(p => (
                   <Link key={p.id} href={`/products/${p.slug}`}>
-                    <motion.div whileHover={{ y: -6 }} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-bestseller-${p.id}`}>
+                    <motion.div whileHover={{ y: -6 }} className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-bestseller-${p.id}`}>
                       <div className="relative overflow-hidden">
                         <span className="absolute top-2 left-2 bg-gold-gradient text-[hsl(24,14%,8%)] text-[9px] font-bold px-2 py-0.5 rounded-full z-10">Bestseller</span>
                         <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=160&fit=crop"} alt={p.name} className="w-full aspect-square object-contain bg-white hover:scale-110 transition-transform duration-500" />
                       </div>
                       <div className="p-3">
-                        <div className="text-[9px] text-gray-400 font-mono">{p.sku}</div>
+                        <SkuBadge sku={p.sku} />
                         <div className="text-xs font-semibold text-gray-800 leading-tight mt-0.5 mb-1 line-clamp-1">{p.name}</div>
                         <div className="flex items-center gap-1 mb-1.5">{[...Array(4)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-[hsl(38,52%,52%)] text-[hsl(38,52%,52%)]" />)}<span className="text-[9px] text-gray-400">({Math.floor(Math.random() * 200 + 50)})</span></div>
                         <div className="flex items-baseline gap-1 mb-2"><span className="font-black text-sm text-[hsl(24,10%,16%)]">₹{Number(p.price).toLocaleString("en-IN")}</span>{p.mrp && <span className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</span>}</div>
@@ -382,7 +383,7 @@ export default function HomePage() {
                       <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl p-2.5 hover:border-[hsl(24,10%,16%)]/40 hover:shadow-md transition-all group" data-testid={`card-new-arrival-${p.id}`}>
                         <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=80&h=80&fit=crop"} alt={p.name} className="w-16 h-16 object-contain bg-white rounded-xl flex-shrink-0 group-hover:scale-105 transition-transform" />
                         <div className="flex-1 min-w-0">
-                          <div className="text-[9px] text-gray-400 font-mono">{p.sku}</div>
+                          <SkuBadge sku={p.sku} />
                           <div className="text-sm font-semibold text-gray-800 line-clamp-1 group-hover:text-[hsl(24,10%,16%)] transition-colors">{p.name}</div>
                           <div className="flex items-center gap-1 mt-0.5">{[...Array(4)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-[hsl(38,52%,52%)] text-[hsl(38,52%,52%)]" />)}</div>
                         </div>

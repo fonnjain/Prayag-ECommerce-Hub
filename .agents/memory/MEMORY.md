@@ -4,8 +4,10 @@
 - [PRAYAG access control](prayag-access-control.md) — network/KYC APIs are admin-only; portal APIs use exact roles; public registration is forced to "customer".
 - [Guest cart privacy](guest-cart-privacy.md) — cart identity is an opaque HttpOnly cookie, never an IP or caller-supplied session header; item updates must be cart-scoped.
 - [Catalogue sync and order history](catalogue-sync-order-history.md) — production catalogue replacement must preserve products still referenced by historical order items.
+- [Catalogue mobile toolbar](catalogue-mobile-toolbar.md) — filter, sort, and view controls must wrap on narrow screens to avoid page-level overflow.
 - [Production sync authentication](prod-sync-auth.md) — prod sync logs in via service-login with SESSION_SECRET bearer, not ADMIN_PASSWORD (which drifted from live).
 - [Workspace typecheck references](workspace-typecheck-references.md) — artifact checks that reference workspace TypeScript projects must build references, not only typecheck their own config.
 - [Manifest photo matching](manifest-photo-matching.md) — map a Drive photo only when its filename normalizes uniquely to one SKU; duplicate codes need reviewed mapping.
 - [Image-first catalogue browsing](image-first-catalogue-browsing.md) — when coverage is partial, show verified product photos first but retain the complete catalogue and a Latest Arrivals sort.
 - [Water tank category override](water-tank-category-override.md) — the external feed labels water tanks as Pipes & Fittings; classify WT/water-tank products under Storage Tanks.
+- [Mobile product page overflow](mobile-product-page-overflow.md) — header action widths and tab labels can expand mobile layouts; verify document width at 390px.
