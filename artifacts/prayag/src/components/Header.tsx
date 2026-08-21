@@ -83,9 +83,14 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-8">
           <span className="hidden sm:block font-medium">Welcome to Prayag India</span>
           <div className="flex items-center gap-5">
-            <Link href="/find-dealer" className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors">
+            <span
+              className="flex items-center gap-1 text-white/50 cursor-not-allowed select-none"
+              aria-disabled="true"
+              title="Find a Dealer is temporarily unavailable"
+              data-testid="topbar-find-dealer-disabled"
+            >
               <MapPin className="w-3 h-3" /> Find a Dealer
-            </Link>
+            </span>
             <Link href="/account/orders" className="flex items-center gap-1 hover:text-[hsl(42,62%,68%)] transition-colors">
               <Package className="w-3 h-3" /> Track Order
             </Link>
