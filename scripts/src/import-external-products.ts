@@ -6,6 +6,7 @@
  * Requires: PRAYAG_COMP_KEY env secret, DATABASE_URL
  */
 import { db, pool, productsTable, productImagesTable, categoriesTable } from "@workspace/db";
+import { buildShortProductName } from "./product-name.js";
 
 const API_BASE = "https://prayag-competition-analysis.replit.app/api/v1";
 const KEY = process.env.PRAYAG_COMP_KEY;
@@ -88,10 +89,8 @@ async function main() {
   let inserted = 0;
   for (let i = 0; i < items.length; i += BATCH) {
     const batch = items.slice(i, i + BATCH).map((r) => {
-      const nameParts = [r.productName!.trim()];
-      if (r.category) nameParts.push(`- ${r.category}`);
-      if (r.size && !r.productName!.includes(r.size)) nameParts.push(`(${r.size})`);
-      const name = nameParts.join(" ");
+      const name = buildShortProductName(r);
+      if (!name) throw new Error(`Missing product name for ${r.itemCode}`);
       const mrp = r.currentMrp!.toFixed(2);
       const specs = [
         r.division ? `Division: ${r.division}` : null,

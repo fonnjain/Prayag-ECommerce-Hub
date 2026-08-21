@@ -11,6 +11,7 @@
     "sync-prod-products": "tsx ./src/sync-prod-products.ts",
     "import-external-products": "tsx ./src/import-external-products.ts",
     "sync-external-mrp": "tsx ./src/sync-external-mrp.ts",
+    "shorten-product-names": "tsx ./src/shorten-product-names.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

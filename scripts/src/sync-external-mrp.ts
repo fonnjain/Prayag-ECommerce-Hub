@@ -18,6 +18,7 @@ import { db, pool, productsTable, categoriesTable } from "@workspace/db";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildShortProductName } from "./product-name.js";
 
 const API_BASE = "https://prayag-competition-analysis.replit.app/api/v1";
 const KEY = process.env.PRAYAG_COMP_KEY;
@@ -125,12 +126,7 @@ function productImageUrls(itemCode: string): string[] {
 }
 
 function buildName(row: PrayagProduct): string | null {
-  const base = row.productName?.trim();
-  if (!base) return null; // caller decides the fallback
-  const parts = [base];
-  if (row.category) parts.push(`- ${row.category}`);
-  if (row.size && !base.includes(row.size)) parts.push(`(${row.size})`);
-  return parts.join(" ");
+  return buildShortProductName(row);
 }
 
 function fallbackName(row: PrayagProduct): string {
