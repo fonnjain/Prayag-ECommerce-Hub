@@ -31,6 +31,14 @@ const DIVISION_TO_CATEGORY_SLUG: Record<string, string> = {
   "Hardware": "bathroom-accessories",
 };
 
+function categorySlugForProduct(product: ExtProduct): string | undefined {
+  const productText = [product.productName, product.category].filter(Boolean).join(" ");
+  if (/^WT-/i.test(product.itemCode.trim()) || /\bwater\s+tanks?\b/i.test(productText)) {
+    return "storage-tanks";
+  }
+  return DIVISION_TO_CATEGORY_SLUG[product.division ?? ""];
+}
+
 function slugify(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }
@@ -99,7 +107,7 @@ async function main() {
         specifications: specs,
         price: mrp,
         mrp,
-        categoryId: catBySlug.get(DIVISION_TO_CATEGORY_SLUG[r.division ?? ""] ?? "") ?? fallbackCat,
+        categoryId: catBySlug.get(categorySlugForProduct(r) ?? "") ?? fallbackCat,
         imageUrl: null as string | null,
         inStock: r.isActive,
       };

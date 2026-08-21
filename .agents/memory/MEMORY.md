@@ -8,3 +8,4 @@
 - [Workspace typecheck references](workspace-typecheck-references.md) — artifact checks that reference workspace TypeScript projects must build references, not only typecheck their own config.
 - [Manifest photo matching](manifest-photo-matching.md) — map a Drive photo only when its filename normalizes uniquely to one SKU; duplicate codes need reviewed mapping.
 - [Image-first catalogue browsing](image-first-catalogue-browsing.md) — when coverage is partial, show verified product photos first but retain the complete catalogue and a Latest Arrivals sort.
+- [Water tank category override](water-tank-category-override.md) — the external feed labels water tanks as Pipes & Fittings; classify WT/water-tank products under Storage Tanks.

@@ -53,6 +53,14 @@ const DIVISION_TO_CATEGORY_SLUG: Record<string, string> = {
   "Hardware": "bathroom-accessories",
 };
 
+function categorySlugForProduct(product: PrayagProduct): string | undefined {
+  const productText = [product.productName, product.category, product.seriesRange].filter(Boolean).join(" ");
+  if (/^WT-/i.test(product.itemCode.trim()) || /\bwater\s+tanks?\b/i.test(productText)) {
+    return "storage-tanks";
+  }
+  return DIVISION_TO_CATEGORY_SLUG[product.division ?? ""];
+}
+
 function indiaDate(): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kolkata",
@@ -267,7 +275,7 @@ async function main() {
       const apiName = buildName(row);
       const name = apiName ?? fallbackName(row);
       const mrp = row.currentMrp!.toFixed(2);
-      const categoryId = categoryBySlug.get(DIVISION_TO_CATEGORY_SLUG[row.division ?? ""] ?? "") ?? fallbackCategory;
+      const categoryId = categoryBySlug.get(categorySlugForProduct(row) ?? "") ?? fallbackCategory;
       const existing = localBySku.get(row.itemCode);
 
       if (existing) {
