@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, Heart, ShoppingCart, User, ChevronDown, Menu, X, Phone, MapPin, Package, BookOpen, Building2, Truck, Store, Grid3X3 } from "lucide-react";
+import { Search, Heart, ShoppingCart, User, ChevronDown, Menu, X, Phone, MapPin, Package, BookOpen, Building2, Truck, Store, Grid3X3, ImageIcon, Video } from "lucide-react";
 import { useCartStore, useAuthStore } from "@/lib/store";
 import { useGetCart, useGetWishlist, useGetSearchSuggestions, getGetSearchSuggestionsQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -43,9 +43,12 @@ export default function Header() {
   const [showBulkMenu, setShowBulkMenu] = useState(false);
   const [showCatMenu, setShowCatMenu] = useState(false);
   const [showNavCatMenu, setShowNavCatMenu] = useState(false);
+  const [showGalleryMenu, setShowGalleryMenu] = useState(false);
   const bulkRef = useRef<HTMLDivElement>(null);
   const catRef = useRef<HTMLDivElement>(null);
   const navCatRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const galleryButtonRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
 
@@ -65,11 +68,23 @@ export default function Header() {
       if (bulkRef.current && !bulkRef.current.contains(e.target as Node)) setShowBulkMenu(false);
       if (catRef.current && !catRef.current.contains(e.target as Node)) setShowCatMenu(false);
       if (navCatRef.current && !navCatRef.current.contains(e.target as Node)) setShowNavCatMenu(false);
+      if (galleryRef.current && !galleryRef.current.contains(e.target as Node)) setShowGalleryMenu(false);
       if (userRef.current && !userRef.current.contains(e.target as Node)) setShowUserMenu(false);
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  useEffect(() => {
+    function handleGalleryEscape(event: KeyboardEvent) {
+      if (event.key === "Escape" && showGalleryMenu) {
+        setShowGalleryMenu(false);
+        galleryButtonRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleGalleryEscape);
+    return () => document.removeEventListener("keydown", handleGalleryEscape);
+  }, [showGalleryMenu]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -276,7 +291,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 flex items-center">
           <div ref={navCatRef} className="relative flex-shrink-0">
             <button onClick={() => setShowNavCatMenu(p => !p)}
-              className="flex items-center gap-1.5 text-white text-sm font-semibold px-4 py-2.5 bg-[hsl(24,10%,12%)] hover:bg-[hsl(24,10%,9%)] transition-colors border-r border-[hsl(24,10%,12%)]"
+              className="flex items-center gap-1 text-white text-xs xl:text-sm font-semibold px-2 xl:px-4 py-2.5 bg-[hsl(24,10%,12%)] hover:bg-[hsl(24,10%,9%)] transition-colors border-r border-[hsl(24,10%,12%)]"
               data-testid="button-nav-all-categories">
               <Grid3X3 className="w-3.5 h-3.5" /> All Categories <ChevronDown className={`w-3 h-3 transition-transform ${showNavCatMenu ? "rotate-180" : ""}`} />
             </button>
@@ -295,16 +310,48 @@ export default function Header() {
           </div>
           {navItems.map(item => (
             <Link key={item.slug} href={`/products?category=${item.slug}`}
-              className="text-white text-sm font-medium px-3.5 py-2.5 hover:bg-[hsl(24,10%,12%)] transition-colors whitespace-nowrap"
+              className="text-white text-[10px] lg:text-[11px] xl:text-sm font-medium px-1.5 lg:px-2 xl:px-3.5 py-2.5 hover:bg-[hsl(24,10%,12%)] transition-colors whitespace-nowrap"
               data-testid={`nav-${item.slug}`}>
               {item.label}
             </Link>
           ))}
-          <Link href="/products"
-            className="text-white text-sm font-medium px-3.5 py-2.5 hover:bg-[hsl(24,10%,12%)] transition-colors whitespace-nowrap flex items-center gap-1 ml-auto"
-            data-testid="nav-more">
-            More <ChevronDown className="w-3 h-3" />
-          </Link>
+          <div ref={galleryRef} className="relative ml-auto">
+            <button
+              ref={galleryButtonRef}
+              type="button"
+              onClick={() => setShowGalleryMenu((open) => !open)}
+              className="text-white text-[10px] lg:text-[11px] xl:text-sm font-medium px-1.5 lg:px-2 xl:px-3.5 py-2.5 hover:bg-[hsl(24,10%,12%)] transition-colors whitespace-nowrap flex items-center gap-1"
+              aria-expanded={showGalleryMenu}
+              aria-controls="gallery-navigation"
+              data-testid="button-nav-gallery"
+            >
+              Gallery <ChevronDown className={`w-3 h-3 transition-transform ${showGalleryMenu ? "rotate-180" : ""}`} />
+            </button>
+            {showGalleryMenu && (
+              <nav
+                id="gallery-navigation"
+                aria-label="Gallery"
+                className="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-xl border border-gray-100 z-50 py-1 overflow-hidden"
+              >
+                <Link
+                  href="/gallery/photos"
+                  onClick={() => setShowGalleryMenu(false)}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-700 hover:bg-stone-100 hover:text-[hsl(24,10%,16%)] transition-colors"
+                  data-testid="link-gallery-photos"
+                >
+                  <ImageIcon className="w-4 h-4 text-[hsl(38,52%,40%)]" /> Photos
+                </Link>
+                <Link
+                  href="/gallery/videos"
+                  onClick={() => setShowGalleryMenu(false)}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-700 hover:bg-stone-100 hover:text-[hsl(24,10%,16%)] transition-colors"
+                  data-testid="link-gallery-videos"
+                >
+                  <Video className="w-4 h-4 text-[hsl(38,52%,40%)]" /> Videos
+                </Link>
+              </nav>
+            )}
+          </div>
         </div>
       </nav>
 
@@ -318,6 +365,15 @@ export default function Header() {
               {item.label}
             </Link>
           ))}
+          <div className="border-t border-gray-100">
+            <p className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">Gallery</p>
+            <Link href="/gallery/photos" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 text-sm border-b hover:bg-gray-50">
+              <ImageIcon className="w-4 h-4 text-[hsl(38,52%,40%)]" /> Photos
+            </Link>
+            <Link href="/gallery/videos" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 text-sm border-b hover:bg-gray-50">
+              <Video className="w-4 h-4 text-[hsl(38,52%,40%)]" /> Videos
+            </Link>
+          </div>
         </div>
       )}
     </header>

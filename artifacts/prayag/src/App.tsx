@@ -26,7 +26,8 @@ import AboutPage from "@/pages/AboutPage";
 import FaqPage from "@/pages/FaqPage";
 import CareersPage from "@/pages/CareersPage";
 import PolicyPage from "@/pages/PolicyPage";
-import GalleryPage from "@/pages/GalleryPage";
+import PhotosGalleryPage from "@/pages/PhotosGalleryPage";
+import VideosGalleryPage from "@/pages/VideosGalleryPage";
 import CataloguesPage from "@/pages/CataloguesPage";
 
 const queryClient = new QueryClient({
@@ -128,7 +129,9 @@ function Router() {
       <Route path="/about" component={AboutPage} />
       <Route path="/faq" component={FaqPage} />
       <Route path="/careers" component={CareersPage} />
-      <Route path="/gallery" component={GalleryPage} />
+      <Route path="/gallery/photos" component={PhotosGalleryPage} />
+      <Route path="/gallery/videos" component={VideosGalleryPage} />
+      <Route path="/gallery"><Redirect to="/gallery/photos" /></Route>
       <Route path="/shipping-policy">{() => <PolicyPage type="shipping" />}</Route>
       <Route path="/returns">{() => <PolicyPage type="returns" />}</Route>
       <Route path="/privacy-policy">{() => <PolicyPage type="privacy" />}</Route>
