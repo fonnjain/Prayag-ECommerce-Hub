@@ -28,7 +28,7 @@ export default function ProductsPage() {
     minPrice: "",
     maxPrice: "",
     inStock: false,
-    sortBy: "newest",
+    sortBy: "photo_ready",
     page: Math.max(1, parseInt(params.page || "1", 10) || 1),
   });
 
@@ -69,7 +69,7 @@ export default function ProductsPage() {
   }
 
   function clearFilters() {
-    setFilters({ category: "", search: "", minPrice: "", maxPrice: "", inStock: false, sortBy: "newest", page: 1 });
+    setFilters({ category: "", search: "", minPrice: "", maxPrice: "", inStock: false, sortBy: "photo_ready", page: 1 });
     setLocation("/products");
   }
 
@@ -201,6 +201,7 @@ export default function ProductsPage() {
                 <div className="relative">
                   <select value={filters.sortBy} onChange={e => updateFilter("sortBy", e.target.value)}
                     className="appearance-none bg-transparent pr-8 py-1 text-sm font-medium text-gray-900 outline-none cursor-pointer border-b border-transparent focus:border-[hsl(24,10%,16%)] transition-colors" data-testid="select-sort">
+                    <option value="photo_ready">Products with Photos</option>
                     <option value="newest">Latest Arrivals</option>
                     <option value="price_asc">Price: Ascending</option>
                     <option value="price_desc">Price: Descending</option>

@@ -46,10 +46,18 @@ router.get("/products", async (req, res): Promise<void> => {
   // authenticated /admin/products endpoints for the full inventory.
   conditions.push(eq(productsTable.inStock, true));
 
-  let orderBy = desc(productsTable.createdAt);
-  if (sortBy === "price_asc") orderBy = asc(productsTable.price as any);
-  if (sortBy === "price_desc") orderBy = desc(productsTable.price as any);
-  if (sortBy === "rating") orderBy = desc(productsTable.rating as any);
+  let orderBy: any[] = [desc(productsTable.createdAt)];
+  if (sortBy === "photo_ready") {
+    // Keep the full catalogue available, while placing products with verified
+    // catalogue photography first in the default browsing experience.
+    orderBy = [
+      sql`CASE WHEN ${productsTable.imageUrl} IS NULL THEN 1 ELSE 0 END`,
+      desc(productsTable.createdAt),
+    ];
+  }
+  if (sortBy === "price_asc") orderBy = [asc(productsTable.price as any)];
+  if (sortBy === "price_desc") orderBy = [desc(productsTable.price as any)];
+  if (sortBy === "rating") orderBy = [desc(productsTable.rating as any)];
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -59,7 +67,7 @@ router.get("/products", async (req, res): Promise<void> => {
     .from(productsTable)
     .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
     .where(whereClause)
-    .orderBy(orderBy)
+    .orderBy(...orderBy)
     .limit(pageLimit)
     .offset((pageNum - 1) * pageLimit);
 

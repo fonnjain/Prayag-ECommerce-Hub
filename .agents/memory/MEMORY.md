@@ -7,3 +7,4 @@
 - [Production sync authentication](prod-sync-auth.md) — prod sync logs in via service-login with SESSION_SECRET bearer, not ADMIN_PASSWORD (which drifted from live).
 - [Workspace typecheck references](workspace-typecheck-references.md) — artifact checks that reference workspace TypeScript projects must build references, not only typecheck their own config.
 - [Manifest photo matching](manifest-photo-matching.md) — map a Drive photo only when its filename normalizes uniquely to one SKU; duplicate codes need reviewed mapping.
+- [Image-first catalogue browsing](image-first-catalogue-browsing.md) — when coverage is partial, show verified product photos first but retain the complete catalogue and a Latest Arrivals sort.
