@@ -12,6 +12,7 @@
     "import-external-products": "tsx ./src/import-external-products.ts",
     "sync-external-mrp": "tsx ./src/sync-external-mrp.ts",
     "shorten-product-names": "tsx ./src/shorten-product-names.ts",
+    "validate-product-image-manifest": "tsx ./src/validate-product-image-manifest.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

@@ -1185,6 +1185,36 @@
     "hls-9070-bbm.webp",
     "hls-9090-bbm.webp"
   ],
+  "kitchen-sinks-web": [
+    "coke-smudge-double-bowl.webp",
+    "crystal-vanilla-singe-bowl-with-drain-board-0.webp",
+    "crystal-vanilla-singe-bowl-with-drain-board.webp",
+    "dark-choco-single-bowl.webp",
+    "double-bowl-0.webp",
+    "double-bowl.webp",
+    "hand-made-double-bowl.webp",
+    "hand-made-single-bowl.webp",
+    "ivory-lucid-double-bowl-with-drain-board.webp",
+    "sand-azaro-double-bowl.webp",
+    "sand-soul-double-bowl.webp",
+    "sand-unico-single-bowl-0.webp",
+    "sand-unico-single-bowl.webp",
+    "sand-unico-twin-double-bowl.webp",
+    "sand-valentine-double-bowl.webp",
+    "single-bowl-0.webp",
+    "single-bowl.webp"
+  ],
+  "pipes-and-fittings-web": [
+    "coupler.webp",
+    "cpvc-pipes.webp",
+    "pvc-o-pipes.webp",
+    "repair-coupler.webp",
+    "single-y-with-door-selfit.webp",
+    "tee-with-door-selfit.webp",
+    "tee.webp",
+    "upvc-pipes.webp",
+    "vent-cowl.webp"
+  ],
   "polo": [
     "6002.webp",
     "6006.webp",
@@ -1199,7 +1229,8 @@
     "6075.webp",
     "6080.webp",
     "6091-n.webp",
-    "6092-on-off-n.webp"
+    "6092-on-off-n.webp",
+    "6093-on-off-n.webp"
   ],
   "ppr-pipe-fittings-blue": [
     "coupler.webp",
@@ -1712,6 +1743,7 @@
     "1375-b.webp",
     "144-b.webp",
     "145-b.webp",
+    "147-b.webp",
     "147-bb.webp",
     "149-b.webp"
   ],
@@ -2180,36 +2212,6 @@
     "cat-no-bos-801b.webp",
     "cat-no-bos-801g.webp",
     "cat-no-bos-801rg.webp"
-  ],
-  "pipes-and-fittings-web": [
-    "coupler.webp",
-    "cpvc-pipes.webp",
-    "pvc-o-pipes.webp",
-    "repair-coupler.webp",
-    "single-y-with-door-selfit.webp",
-    "tee-with-door-selfit.webp",
-    "tee.webp",
-    "upvc-pipes.webp",
-    "vent-cowl.webp"
-  ],
-  "kitchen-sinks-web": [
-    "coke-smudge-double-bowl.webp",
-    "crystal-vanilla-singe-bowl-with-drain-board-0.webp",
-    "crystal-vanilla-singe-bowl-with-drain-board.webp",
-    "dark-choco-single-bowl.webp",
-    "double-bowl-0.webp",
-    "double-bowl.webp",
-    "hand-made-double-bowl.webp",
-    "hand-made-single-bowl.webp",
-    "ivory-lucid-double-bowl-with-drain-board.webp",
-    "sand-azaro-double-bowl.webp",
-    "sand-soul-double-bowl.webp",
-    "sand-unico-single-bowl-0.webp",
-    "sand-unico-single-bowl.webp",
-    "sand-unico-twin-double-bowl.webp",
-    "sand-valentine-double-bowl.webp",
-    "single-bowl-0.webp",
-    "single-bowl.webp"
   ],
   "storage-tanks-web": [
     "wt-4ll-05.webp",
