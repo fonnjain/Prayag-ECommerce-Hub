@@ -101,38 +101,37 @@ function SectionHeader({ title, accent, href, icon: Icon }: { title: string; acc
   );
 }
 
-function selectDiverseShowcaseProducts<T extends { imageUrl?: string | null; categoryName?: string | null }>(products: T[], count: number) {
-  const verified = products.filter((product) => Boolean(product.imageUrl));
-  const preferredCategories = ["cp faucets", "storage tanks", "ptmt faucets"];
+function selectCategoryShowcaseProducts<T extends { imageUrl?: string | null; categoryName?: string | null }>(products: T[], perCategory: number) {
+  const productsByCategory = new Map<string, T[]>();
+  for (const product of products) {
+    if (!product.imageUrl || !product.categoryName) continue;
+    const category = product.categoryName.trim();
+    const categoryProducts = productsByCategory.get(category) ?? [];
+    if (categoryProducts.length < perCategory) categoryProducts.push(product);
+    productsByCategory.set(category, categoryProducts);
+  }
+
   const selected: T[] = [];
-
-  for (const category of preferredCategories) {
-    const product = verified.find((candidate) =>
-      candidate.categoryName?.trim().toLowerCase() === category && !selected.includes(candidate),
-    );
-    if (product) selected.push(product);
+  for (let index = 0; index < perCategory; index++) {
+    for (const categoryProducts of productsByCategory.values()) {
+      if (categoryProducts[index]) selected.push(categoryProducts[index]);
+    }
   }
-
-  for (const product of verified) {
-    if (selected.length >= count) break;
-    if (!selected.includes(product)) selected.push(product);
-  }
-
-  return selected.slice(0, count);
+  return selected;
 }
 
 export default function HomePage() {
   const { data: categories, isLoading: catsLoading } = useListCategoriesWithCounts();
-  const { data: cpFaucetDeals, isLoading: cpDealsLoading } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 14 });
+  const { data: cpFaucetDeals } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 14 });
   const { data: showcaseProducts, isLoading: showcaseLoading } = useListProducts({ sortBy: "photo_ready", limit: 100 });
-  const faucetScrollRef = useRef<HTMLDivElement>(null);
-  const faucetResumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [faucetPaused, setFaucetPaused] = useState(false);
+  const showcaseScrollRef = useRef<HTMLDivElement>(null);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const { section } = useSiteContent();
   const hero = section("hero");
   const heroFeatureProduct = cpFaucetDeals?.products.find((product) => Boolean(product.imageUrl));
-  const diverseShowcaseProducts = selectDiverseShowcaseProducts(showcaseProducts?.products ?? [], 4);
-  const verifiedFaucetProducts = (cpFaucetDeals?.products ?? []).filter((product) => Boolean(product.imageUrl)).slice(5, 13);
+  const categoryShowcaseProducts = selectCategoryShowcaseProducts(showcaseProducts?.products ?? [], 6);
+  const bestSellerProducts = categoryShowcaseProducts.slice(0, 4);
+  const newArrivalProducts = categoryShowcaseProducts.slice(4, 12);
   const heroFeatureName = heroFeatureProduct?.name ?? hero.featured.name;
   const heroFeatureImage = heroFeatureProduct?.imageUrl ?? hero.featured.image;
   const heroFeaturePrice = heroFeatureProduct?.price ?? hero.featured.price;
@@ -150,38 +149,13 @@ export default function HomePage() {
   const rx = useSpring(my, { stiffness: 120, damping: 15 });
   const ry = useSpring(mx, { stiffness: 120, damping: 15 });
 
-  function scrollFaucets(dir: "left" | "right") {
-    pauseFaucetAutoplay();
-    faucetScrollRef.current?.scrollBy({ left: dir === "left" ? -340 : 340, behavior: "smooth" });
-    resumeFaucetAutoplay();
-  }
-
-  function pauseFaucetAutoplay() {
-    if (faucetResumeTimer.current) {
-      clearTimeout(faucetResumeTimer.current);
-      faucetResumeTimer.current = null;
-    }
-    setFaucetPaused(true);
-  }
-
-  function resumeFaucetAutoplay() {
-    if (faucetResumeTimer.current) clearTimeout(faucetResumeTimer.current);
-    faucetResumeTimer.current = setTimeout(() => {
-      faucetResumeTimer.current = null;
-      setFaucetPaused(false);
-    }, 1600);
+  function scrollShowcase(dir: "left" | "right") {
+    showcaseScrollRef.current?.scrollBy({ left: dir === "left" ? -340 : 340, behavior: "smooth" });
   }
 
   useEffect(() => {
-    return () => {
-      if (faucetResumeTimer.current) clearTimeout(faucetResumeTimer.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    const track = faucetScrollRef.current;
-    const dealCount = cpFaucetDeals?.products.length ?? 0;
-    if (!track || dealCount < 2 || faucetPaused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const track = showcaseScrollRef.current;
+    if (!track || categoryShowcaseProducts.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let frame = 0;
     let previousTime = performance.now();
@@ -199,7 +173,7 @@ export default function HomePage() {
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [cpFaucetDeals?.products.length, faucetPaused]);
+  }, [categoryShowcaseProducts.length]);
 
   const catList = (categories && categories.length > 0) ? categories : [
     { id: 1, name: "CP Faucets", slug: "cp-faucets", productCount: 12 },
@@ -321,35 +295,47 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ══════════ GRAB BEST DEAL ══════════ */}
-      <section className="bg-white py-10 border-b">
+      {/* ══════════ ALL-CATEGORY SHOWCASE ══════════ */}
+      <section className="relative overflow-hidden border-b bg-white py-10 md:py-12">
+        <div className="pointer-events-none absolute -right-24 top-8 h-72 w-72 rounded-full bg-[hsl(38,52%,52%)]/10 blur-3xl" />
         <div className="max-w-7xl mx-auto px-4">
-          <Reveal><SectionHeader title="Grab the best deal on" accent="Faucets" href="/products?category=cp-faucets" icon={Tag} /></Reveal>
+          <Reveal>
+            <div className="relative mb-7 flex items-end justify-between">
+              <div>
+                <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[hsl(38,52%,52%)]">
+                  <span className="h-px w-8 bg-[hsl(38,52%,52%)]" /> Curated collection highlights
+                </p>
+                <h2 className="flex items-center gap-2.5 font-display text-3xl font-bold tracking-tight text-gray-900 md:text-[2.1rem]">
+                  Discover the <span className="text-gradient-gold italic">Prayag Edit</span>
+                </h2>
+                <div className="mt-2.5 h-[2px] w-16 rounded-full bg-gradient-to-r from-[hsl(38,52%,52%)] to-transparent" />
+                <p className="mt-3 text-sm text-gray-500">A moving selection of photo-ready favourites across our collections.</p>
+              </div>
+              <Link href="/products" className="group mb-2 hidden items-center gap-1.5 text-sm font-semibold text-[hsl(24,10%,16%)] transition-all hover:gap-2.5 sm:flex">
+                View All <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </div>
+          </Reveal>
           <div className="relative">
-            <button onClick={() => scrollFaucets("left")} aria-label="Scroll deals left" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white shadow-lg border border-gray-100 rounded-full flex items-center justify-center hover:bg-[hsl(24,10%,16%)] hover:text-white transition-colors">
+            <button onClick={() => scrollShowcase("left")} aria-label="Scroll showcase left" className="absolute left-0 top-1/2 z-10 flex h-10 w-10 -translate-x-4 -translate-y-1/2 items-center justify-center rounded-full border border-gray-100 bg-white shadow-lg transition-colors hover:bg-[hsl(24,10%,16%)] hover:text-white">
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div
-              ref={faucetScrollRef}
-              onMouseEnter={pauseFaucetAutoplay}
-              onMouseLeave={resumeFaucetAutoplay}
-              onTouchStart={pauseFaucetAutoplay}
-              onTouchEnd={resumeFaucetAutoplay}
-              onFocus={pauseFaucetAutoplay}
-              onBlur={resumeFaucetAutoplay}
-              className="flex gap-4 overflow-x-auto scrollbar-hide pt-3 -mt-3 pb-2 scroll-smooth"
-              aria-label="Faucet deals carousel"
+              ref={showcaseScrollRef}
+              className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 pt-3 scroll-smooth"
+              aria-label="All-category product carousel"
             >
-              {cpDealsLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="w-44 h-72 flex-shrink-0 rounded-2xl" />) :
-                [...(cpFaucetDeals?.products || []), ...(cpFaucetDeals?.products || [])].map((p, idx) => (
-                  <motion.div key={`${p.id}-${idx}`} initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: (idx % 14) * 0.05 }} className="flex-shrink-0 w-44">
+              {showcaseLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="h-80 w-52 flex-shrink-0 rounded-2xl" />) :
+                categoryShowcaseProducts.length > 0 ? [...categoryShowcaseProducts, ...categoryShowcaseProducts].map((p, idx) => (
+                  <motion.div key={`${p.id}-${idx}`} initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: (idx % 18) * 0.05 }} className="w-52 flex-shrink-0 md:w-60">
                     <Link href={`/products/${p.slug}`}>
                       <motion.div whileHover={{ y: -8 }} className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(28,22,16,0.25)] hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-deal-${p.id}`}>
-                        <div className="relative overflow-hidden">
+                        <div className="relative aspect-[1.08] overflow-hidden bg-gradient-to-b from-stone-50 to-white">
                           {p.discount && p.discount > 0 && (
                             <span className="absolute top-2 left-2 bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,24%)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">-{p.discount}%</span>
                           )}
-                          <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=160&fit=crop"} alt={p.name} className="w-full aspect-square object-contain bg-white hover:scale-110 transition-transform duration-500" />
+                          <span className="absolute right-2 top-2 z-10 rounded-full border border-[hsl(38,52%,52%)]/30 bg-white/90 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-[hsl(38,52%,42%)] shadow-sm backdrop-blur-sm">{p.categoryName}</span>
+                          <img loading="lazy" decoding="async" src={p.imageUrl!} alt={p.name} className="h-full w-full object-contain bg-white transition-transform duration-500 group-hover:scale-110" />
                         </div>
                         <div className="p-3">
                           <SkuBadge sku={p.sku} className="mb-1" />
@@ -362,9 +348,11 @@ export default function HomePage() {
                       </motion.div>
                     </Link>
                   </motion.div>
-                ))}
+                )) : (
+                  <div className="w-full rounded-2xl border border-dashed border-gray-200 bg-stone-50 p-8 text-center text-sm text-gray-500">Verified product photos are being added across our collections.</div>
+                )}
             </div>
-            <button onClick={() => scrollFaucets("right")} aria-label="Scroll deals right" className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 bg-white shadow-lg border border-gray-100 rounded-full flex items-center justify-center hover:bg-[hsl(24,10%,16%)] hover:text-white transition-colors">
+            <button onClick={() => scrollShowcase("right")} aria-label="Scroll showcase right" className="absolute right-0 top-1/2 z-10 flex h-10 w-10 translate-x-4 -translate-y-1/2 items-center justify-center rounded-full border border-gray-100 bg-white shadow-lg transition-colors hover:bg-[hsl(24,10%,16%)] hover:text-white">
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
@@ -376,34 +364,54 @@ export default function HomePage() {
         <div className="pointer-events-none absolute -top-24 right-[8%] h-64 w-64 rounded-full bg-[hsl(38,52%,52%)]/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 left-[12%] h-72 w-72 rounded-full bg-stone-200/50 blur-3xl" />
         <div className="max-w-7xl mx-auto px-4">
-          <Reveal><SectionHeader title="Shop From" accent="Top Categories" href="/products" icon={Package} /></Reveal>
+          <Reveal>
+            <div className="mb-7 flex items-end justify-between">
+              <div>
+                <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[hsl(38,52%,52%)]">
+                  <span className="h-px w-8 bg-[hsl(38,52%,52%)]" /> Curated collections
+                </p>
+                <SectionHeader title="Shop From" accent="Top Categories" icon={Package} />
+              </div>
+              <Link href="/products" className="group mb-2 hidden items-center gap-1.5 text-sm font-semibold text-[hsl(24,10%,16%)] transition-all hover:gap-2.5 sm:flex">
+                View All <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </div>
+          </Reveal>
           {catsLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3 md:gap-4">{[...Array(8)].map((_, i) => <Skeleton key={i} className="h-44 md:h-52 rounded-[1.35rem]" />)}</div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">{[...Array(8)].map((_, i) => <Skeleton key={i} className="aspect-[1.25] rounded-[1.6rem]" />)}</div>
           ) : (
-            <div className="relative grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3 md:gap-4">
+            <div className="relative grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {catList.map((cat, i) => (
                 <motion.div key={cat.id} initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
-                  <Link href={`/products?category=${cat.slug}`} data-testid={`card-category-${cat.id}`}>
-                    <motion.div whileHover={{ y: -7 }} className="group cursor-pointer">
-                      <div className="relative aspect-[0.88] overflow-hidden rounded-[1.35rem] border border-white bg-stone-100 shadow-[0_8px_24px_-16px_rgba(28,22,16,0.55)] transition-all duration-500 group-hover:border-[hsl(38,52%,52%)]/50 group-hover:shadow-[0_18px_34px_-16px_rgba(28,22,16,0.42)]">
-                        <img loading="lazy" decoding="async" src={categoryImages[cat.slug] || cat.imageUrl || "/images/categories/cp-faucets.webp"} alt={cat.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(24,12%,8%)]/65 via-transparent to-white/10 opacity-70 transition-opacity duration-500 group-hover:opacity-90" />
-                        <span className="absolute left-2.5 top-2.5 flex h-6 min-w-6 items-center justify-center rounded-full border border-white/70 bg-white/75 px-1.5 text-[10px] font-black text-[hsl(24,10%,16%)] shadow-sm backdrop-blur-sm">
+                  <Link
+                    href={`/products?category=${cat.slug}`}
+                    className="group"
+                    onMouseEnter={() => setHoveredCategory(cat.slug)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                    onFocus={() => setHoveredCategory(cat.slug)}
+                    onBlur={() => setHoveredCategory(null)}
+                    data-testid={`card-category-${cat.id}`}
+                  >
+                    <motion.div whileHover={{ y: -7 }} className="cursor-pointer">
+                      <div className={`relative aspect-[1.25] overflow-hidden rounded-[1.6rem] border border-white bg-stone-100 shadow-[0_12px_28px_-16px_rgba(28,22,16,0.55)] transition-all duration-500 ${hoveredCategory === cat.slug ? "border-[hsl(38,52%,52%)]/60 shadow-[0_22px_38px_-16px_rgba(28,22,16,0.42)]" : ""}`}>
+                        <img loading="lazy" decoding="async" src={categoryImages[cat.slug] || cat.imageUrl || "/images/categories/cp-faucets.webp"} alt={cat.name} className={`absolute inset-0 h-full w-full object-cover transition-transform duration-700 ${hoveredCategory === cat.slug ? "scale-110" : ""}`} />
+                        <div className={`absolute inset-0 bg-gradient-to-t from-[hsl(24,12%,8%)]/80 via-[hsl(24,12%,8%)]/5 to-white/15 transition-opacity duration-500 ${hoveredCategory === cat.slug ? "opacity-100" : "opacity-80"}`} />
+                        <span className="absolute left-3 top-3 flex h-8 min-w-8 items-center justify-center rounded-full border border-white/70 bg-white/85 px-2 text-[10px] font-black text-[hsl(24,10%,16%)] shadow-sm backdrop-blur-sm">
                           {String(i + 1).padStart(2, "0")}
                         </span>
-                        <span className="absolute bottom-2.5 left-2.5 right-2.5 translate-y-1 text-[11px] font-bold leading-tight text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                          Explore collection <ArrowRight className="ml-0.5 inline-block h-3 w-3" />
+                        <span className={`absolute bottom-4 left-4 right-4 text-xs font-bold leading-tight text-white transition-all duration-300 ${hoveredCategory === cat.slug ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
+                          Explore collection <ArrowRight className="ml-1 inline-block h-3.5 w-3.5" />
                         </span>
                       </div>
-                      <div className="px-1 pt-3">
+                      <div className="flex items-start justify-between gap-3 px-1 pt-3.5">
                         <div className="flex items-start justify-between gap-1">
-                          <span className="text-[11px] font-bold leading-tight text-gray-800 transition-colors group-hover:text-[hsl(24,10%,16%)]">{cat.name}</span>
-                          <ArrowRight className="mt-0.5 h-3 w-3 flex-shrink-0 text-[hsl(38,52%,52%)] transition-transform group-hover:translate-x-0.5" />
+                          <span className="text-sm font-bold leading-tight text-gray-800 transition-colors group-hover:text-[hsl(24,10%,16%)]">{cat.name}</span>
                         </div>
-                        <span className="mt-1 block text-[9px] font-medium uppercase tracking-[0.12em] text-gray-400">
-                          {cat.productCount.toLocaleString("en-IN")} products
-                        </span>
+                        <ArrowRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-[hsl(38,52%,52%)] transition-transform group-hover:translate-x-0.5" />
                       </div>
+                      <span className="mt-1 block px-1 text-[10px] font-medium uppercase tracking-[0.14em] text-gray-400">
+                          {cat.productCount.toLocaleString("en-IN")} products
+                      </span>
                     </motion.div>
                   </Link>
                 </motion.div>
@@ -445,16 +453,18 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ BEST SELLERS + NEW ARRIVALS ══════════ */}
-      <section className="bg-gradient-to-b from-stone-100/60 to-white py-10 border-b">
-        <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-8">
+      <section className="relative overflow-hidden border-b bg-gradient-to-b from-stone-100/60 to-white py-10 md:py-12">
+        <div className="pointer-events-none absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-[hsl(38,52%,52%)]/10 blur-3xl" />
+        <div className="relative max-w-7xl mx-auto grid gap-8 px-4 md:grid-cols-2">
           {/* Best Sellers */}
           <Reveal>
-            <SectionHeader title="Best" accent="Sellers" href="/products" icon={Award} />
+            <div className="rounded-[2rem] border border-stone-200/80 bg-white/75 p-4 shadow-[0_18px_40px_-30px_rgba(28,22,16,0.5)] backdrop-blur-sm md:p-5">
+            <SectionHeader title="Best Picks Across" accent="Categories" href="/products" icon={Award} />
             {showcaseLoading ? (
               <div className="grid grid-cols-2 gap-3">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}</div>
-            ) : diverseShowcaseProducts.length > 0 ? (
+            ) : bestSellerProducts.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
-                {diverseShowcaseProducts.map(p => (
+                {bestSellerProducts.map(p => (
                   <Link key={p.id} href={`/products/${p.slug}`}>
                     <motion.div whileHover={{ y: -6 }} className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:border-[hsl(38,52%,52%)]/60 hover:shadow-xl" data-testid={`card-bestseller-${p.id}`}>
                       <div className="relative aspect-square overflow-hidden bg-gradient-to-b from-stone-50 to-white p-3">
@@ -479,16 +489,18 @@ export default function HomePage() {
             ) : (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">Verified product photos are being added to this collection.</div>
             )}
+            </div>
           </Reveal>
 
           {/* New Arrivals */}
           <Reveal delay={0.15}>
-            <SectionHeader title="New" accent="Arrivals" href="/products" icon={Sparkles} />
-            {cpDealsLoading ? (
+            <div className="rounded-[2rem] border border-stone-200/80 bg-white/75 p-4 shadow-[0_18px_40px_-30px_rgba(28,22,16,0.5)] backdrop-blur-sm md:p-5">
+            <SectionHeader title="Fresh From" accent="The Collection" href="/products" icon={Sparkles} />
+            {showcaseLoading ? (
               <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}</div>
-            ) : verifiedFaucetProducts.length > 0 ? (
+            ) : newArrivalProducts.length > 0 ? (
               <div className="space-y-2.5">
-                {verifiedFaucetProducts.map((p, i) => (
+                {newArrivalProducts.map((p, i) => (
                   <motion.div key={p.id} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}>
                     <Link href={`/products/${p.slug}`}>
                       <div className="group flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-2.5 shadow-sm transition-all hover:border-[hsl(38,52%,52%)]/60 hover:shadow-md" data-testid={`card-new-arrival-${p.id}`}>
@@ -512,6 +524,7 @@ export default function HomePage() {
             ) : (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">Verified product photos are being added to this collection.</div>
             )}
+            </div>
           </Reveal>
         </div>
       </section>
