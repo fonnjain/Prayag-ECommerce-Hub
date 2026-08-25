@@ -122,11 +122,11 @@ export default function HomePage() {
   const { data: categories, isLoading: catsLoading } = useListCategoriesWithCounts();
   const { data: featured, isLoading: featLoading } = useListFeaturedProducts();
   const { data: newArrivals, isLoading: newLoading } = useListNewArrivals();
-  const { data: cpFaucetFeature } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 1 });
+  const { data: cpFaucetDeals, isLoading: cpDealsLoading } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 10 });
   const faucetScrollRef = useRef<HTMLDivElement>(null);
   const { section } = useSiteContent();
   const hero = section("hero");
-  const heroFeatureProduct = cpFaucetFeature?.products.find((product) => Boolean(product.imageUrl));
+  const heroFeatureProduct = cpFaucetDeals?.products.find((product) => Boolean(product.imageUrl));
   const heroFeatureName = heroFeatureProduct?.name ?? hero.featured.name;
   const heroFeatureImage = heroFeatureProduct?.imageUrl ?? hero.featured.image;
   const heroFeaturePrice = heroFeatureProduct?.price ?? hero.featured.price;
@@ -277,8 +277,8 @@ export default function HomePage() {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div ref={faucetScrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide pt-3 -mt-3 pb-2 scroll-smooth">
-              {featLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="w-44 h-72 flex-shrink-0 rounded-2xl" />) :
-                (featured || []).slice(0, 10).map((p, idx) => (
+              {cpDealsLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="w-44 h-72 flex-shrink-0 rounded-2xl" />) :
+                (cpFaucetDeals?.products || []).map((p, idx) => (
                   <motion.div key={p.id} initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} className="flex-shrink-0 w-44">
                     <Link href={`/products/${p.slug}`}>
                       <motion.div whileHover={{ y: -8 }} className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(28,22,16,0.25)] hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-deal-${p.id}`}>
