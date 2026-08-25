@@ -4,7 +4,7 @@ import { db, ordersTable, productsTable, usersTable, dealersTable, categoriesTab
 import { eq, ilike, sql, and, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAdmin } from "../middleware/auth";
-import { readProductImageReview, saveProductImageOverride, normalizedItemCode } from "../lib/product-image-review";
+import { ProductImageApprovalBusy, ProductImageApprovalConflict, readProductImageReview, saveProductImageOverride, normalizedItemCode } from "../lib/product-image-review";
 
 const router: IRouter = Router();
 
@@ -66,10 +66,18 @@ router.put("/admin/product-image-review/:sku", async (req, res): Promise<void> =
   }
 
   try {
-    const paths = await saveProductImageOverride(product.sku, body.data.paths);
-    req.log.info({ sku: product.sku, pathCount: paths.length }, "Product image approval updated");
-    res.json(UpdateAdminProductImageOverrideResponse.parse({ sku: product.sku, paths }));
+    const approval = await saveProductImageOverride(product.sku, body.data.paths, body.data.expectedVersion);
+    req.log.info({ sku: product.sku, pathCount: approval.paths.length }, "Product image approval updated");
+    res.json(UpdateAdminProductImageOverrideResponse.parse({ sku: product.sku, paths: approval.paths, version: approval.version }));
   } catch (error) {
+    if (error instanceof ProductImageApprovalConflict) {
+      res.status(409).json({ error: error.message });
+      return;
+    }
+    if (error instanceof ProductImageApprovalBusy) {
+      res.status(503).json({ error: error.message });
+      return;
+    }
     res.status(400).json({ error: error instanceof Error ? error.message : "Could not save image approval" });
   }
 });

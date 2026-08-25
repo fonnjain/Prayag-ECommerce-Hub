@@ -1,3 +1,5 @@
+import { pool } from "@workspace/db";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
@@ -12,6 +14,11 @@ export interface ProductImageReviewGroup {
   sku: string | null;
   candidates: ProductImageCandidate[];
   reviewedPaths: string[];
+}
+
+export interface ProductImageReview {
+  version: string;
+  groups: ProductImageReviewGroup[];
 }
 
 export interface ProductImageOverrides {
@@ -34,6 +41,23 @@ function findImageRoot(): string {
 const imageRoot = findImageRoot();
 const manifestPath = resolve(imageRoot, "manifest.json");
 const overridesPath = resolve(imageRoot, "product-image-overrides.json");
+const lockRetryDelayMs = 25;
+const lockWaitTimeoutMs = 5_000;
+const productImageOverrideLockId = 780_346_113;
+
+export class ProductImageApprovalConflict extends Error {
+  constructor() {
+    super("This approval was changed by another reviewer. Refresh the latest selections before saving again.");
+    this.name = "ProductImageApprovalConflict";
+  }
+}
+
+export class ProductImageApprovalBusy extends Error {
+  constructor() {
+    super("Another approval update is still being saved. Please try again in a moment.");
+    this.name = "ProductImageApprovalBusy";
+  }
+}
 
 export function normalizedItemCode(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -41,6 +65,62 @@ export function normalizedItemCode(value: string): string {
 
 function readJsonFile<T>(path: string): T {
   return JSON.parse(readFileSync(path, "utf8")) as T;
+}
+
+function versionForContents(contents: string): string {
+  return createHash("sha256").update(contents, "utf8").digest("hex");
+}
+
+function readProductImageOverridesSnapshot(): {
+  overrides: ProductImageOverrides;
+  version: string;
+} {
+  const raw = readFileSync(overridesPath, "utf8");
+  return {
+    overrides: JSON.parse(raw) as ProductImageOverrides,
+    version: versionForContents(raw),
+  };
+}
+
+async function acquireOverridesLock(): Promise<() => Promise<void>> {
+  const waitStartedAt = Date.now();
+
+  while (true) {
+    const client = await pool.connect();
+    try {
+      const result = await client.query<{ acquired: boolean }>(
+        "SELECT pg_try_advisory_lock($1::bigint) AS acquired",
+        [productImageOverrideLockId],
+      );
+      if (result.rows[0]?.acquired) {
+        return async () => {
+          try {
+            await client.query("SELECT pg_advisory_unlock($1::bigint)", [productImageOverrideLockId]);
+            client.release();
+          } catch (error) {
+            client.release(error as Error);
+            throw error;
+          }
+        };
+      }
+    } catch (error) {
+      client.release(error as Error);
+      throw error;
+    }
+    client.release();
+
+    if (Date.now() - waitStartedAt >= lockWaitTimeoutMs) throw new ProductImageApprovalBusy();
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, lockRetryDelayMs));
+  }
+}
+
+async function withOverridesLock<T>(operation: () => T | Promise<T>): Promise<T> {
+  const releaseLock = await acquireOverridesLock();
+  try {
+    return await operation();
+  } finally {
+    await releaseLock();
+  }
 }
 
 function isSafeFolder(folder: string): boolean {
@@ -157,18 +237,22 @@ export function buildImageReviewGroups(
     .sort((a, b) => a.normalizedCode.localeCompare(b.normalizedCode, undefined, { numeric: true }));
 }
 
-export function readProductImageReview(skus: string[]): { version: number; groups: ProductImageReviewGroup[] } {
+export function readProductImageReview(skus: string[]): ProductImageReview {
   const manifest = readProductImageManifest();
-  const overrides = readProductImageOverrides();
+  const snapshot = readProductImageOverridesSnapshot();
   const candidates = buildImageCandidates(manifest);
-  validateOverrides(overrides, candidates);
-  return { version: 1, groups: buildImageReviewGroups(manifest, overrides, skus) };
+  validateOverrides(snapshot.overrides, candidates);
+  return { version: snapshot.version, groups: buildImageReviewGroups(manifest, snapshot.overrides, skus) };
 }
 
 let writeQueue = Promise.resolve();
 
-export function saveProductImageOverride(sku: string, paths: string[]): Promise<string[]> {
-  const operation = writeQueue.then(() => {
+export function saveProductImageOverride(
+  sku: string,
+  paths: string[],
+  expectedVersion: string,
+): Promise<{ paths: string[]; version: string }> {
+  const operation = writeQueue.then(() => withOverridesLock(() => {
     const manifest = readProductImageManifest();
     const candidates = buildImageCandidates(manifest);
     const normalizedCode = normalizedItemCode(sku);
@@ -181,19 +265,21 @@ export function saveProductImageOverride(sku: string, paths: string[]): Promise<
       throw new Error(`Every approved image must be an exact candidate path for SKU: ${sku}`);
     }
 
-    const current = readProductImageOverrides();
-    validateOverrides(current, candidates);
+    const snapshot = readProductImageOverridesSnapshot();
+    if (snapshot.version !== expectedVersion) throw new ProductImageApprovalConflict();
+    validateOverrides(snapshot.overrides, candidates);
     const next: ProductImageOverrides = Object.fromEntries(
-      Object.entries(current).filter(([currentSku]) => normalizedItemCode(currentSku) !== normalizedCode),
+      Object.entries(snapshot.overrides).filter(([currentSku]) => normalizedItemCode(currentSku) !== normalizedCode),
     );
     if (paths.length > 0) next[sku] = paths;
     validateOverrides(next, candidates);
 
+    const nextRaw = `${JSON.stringify(next, null, 2)}\n`;
     const temporaryPath = `${overridesPath}.${process.pid}.tmp`;
-    writeFileSync(temporaryPath, `${JSON.stringify(next, null, 2)}\n`, "utf8");
+    writeFileSync(temporaryPath, nextRaw, "utf8");
     renameSync(temporaryPath, overridesPath);
-    return paths;
-  });
+    return { paths, version: versionForContents(nextRaw) };
+  }));
   writeQueue = operation.then(() => undefined, () => undefined);
   return operation;
 }

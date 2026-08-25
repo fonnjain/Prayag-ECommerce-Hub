@@ -56,9 +56,9 @@ export default function ProductImageReview() {
   }
 
   function saveSelection(group: ProductImageReviewGroup, paths = selectedPaths(group)): void {
-    if (!group.sku) return;
+    if (!group.sku || !data?.version) return;
     saveApproval.mutate(
-      { sku: group.sku, data: { paths } },
+      { sku: group.sku, data: { paths, expectedVersion: data.version } },
       {
         onSuccess: (approval) => {
           setSelections((current) => ({ ...current, [group.normalizedCode]: approval.paths }));
@@ -70,7 +70,27 @@ export default function ProductImageReview() {
               : `${approval.sku} will stay excluded from the next catalogue sync.`,
           });
         },
-        onError: () => toast({ title: "Could not save photo approval", variant: "destructive" }),
+        onError: (error: any) => {
+          if (error?.status === 409) {
+            setSelections((current) => {
+              const next = { ...current };
+              delete next[group.normalizedCode];
+              return next;
+            });
+            queryClient.invalidateQueries({ queryKey: getGetAdminProductImageReviewQueryKey() });
+            toast({
+              title: "Approval changed by another reviewer",
+              description: "The latest approval has been loaded. Review the current selections before saving again.",
+              variant: "destructive",
+            });
+            return;
+          }
+          toast({
+            title: "Could not save photo approval",
+            description: error?.data?.error ?? "Please try again.",
+            variant: "destructive",
+          });
+        },
       },
     );
   }

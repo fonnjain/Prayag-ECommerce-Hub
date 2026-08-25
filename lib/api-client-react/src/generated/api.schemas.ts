@@ -499,18 +499,22 @@ export interface ProductImageReviewGroup {
 }
 
 export interface ProductImageReview {
-  version: number;
+  /** SHA-256 snapshot of the approval file used for optimistic concurrency */
+  version: string;
   groups: ProductImageReviewGroup[];
 }
 
 export interface ProductImageOverrideInput {
   /** @maxItems 20 */
   paths: string[];
+  /** @minLength 1 */
+  expectedVersion: string;
 }
 
 export interface ProductImageOverride {
   sku: string;
   paths: string[];
+  version: string;
 }
 
 export interface RevenueStat {

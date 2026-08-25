@@ -2814,7 +2814,7 @@ export const updateAdminProductImageOverride = async (sku: string,
 
 
 
-export const getUpdateAdminProductImageOverrideMutationOptions = <TError = ErrorType<unknown>,
+export const getUpdateAdminProductImageOverrideMutationOptions = <TError = ErrorType<ErrorEnvelope>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminProductImageOverride>>, TError,{sku: string;data: BodyType<ProductImageOverrideInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateAdminProductImageOverride>>, TError,{sku: string;data: BodyType<ProductImageOverrideInput>}, TContext> => {
 
@@ -2843,12 +2843,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateAdminProductImageOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminProductImageOverride>>>
     export type UpdateAdminProductImageOverrideMutationBody = BodyType<ProductImageOverrideInput>
-    export type UpdateAdminProductImageOverrideMutationError = ErrorType<unknown>
+    export type UpdateAdminProductImageOverrideMutationError = ErrorType<ErrorEnvelope>
 
     /**
  * @summary Replace or clear a product image approval
  */
-export const useUpdateAdminProductImageOverride = <TError = ErrorType<unknown>,
+export const useUpdateAdminProductImageOverride = <TError = ErrorType<ErrorEnvelope>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminProductImageOverride>>, TError,{sku: string;data: BodyType<ProductImageOverrideInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof updateAdminProductImageOverride>>,

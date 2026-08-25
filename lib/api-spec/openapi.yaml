@@ -728,6 +728,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProductImageOverride"
+        "409":
+          description: Approval changed after the reviewer loaded the current selections
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "503":
+          description: Another approval update is still being saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
 
   /admin/products:
     get:
@@ -2015,7 +2027,8 @@ components:
       required: [version, groups]
       properties:
         version:
-          type: integer
+          type: string
+          description: SHA-256 snapshot of the approval file used for optimistic concurrency
         groups:
           type: array
           items:
@@ -2023,17 +2036,20 @@ components:
 
     ProductImageOverrideInput:
       type: object
-      required: [paths]
+      required: [paths, expectedVersion]
       properties:
         paths:
           type: array
           maxItems: 20
           items:
             type: string
+        expectedVersion:
+          type: string
+          minLength: 1
 
     ProductImageOverride:
       type: object
-      required: [sku, paths]
+      required: [sku, paths, version]
       properties:
         sku:
           type: string
@@ -2041,6 +2057,8 @@ components:
           type: array
           items:
             type: string
+        version:
+          type: string
 
     RevenueStat:
       type: object

@@ -9,4 +9,6 @@
 export interface ProductImageOverrideInput {
   /** @maxItems 20 */
   paths: string[];
+  /** @minLength 1 */
+  expectedVersion: string;
 }

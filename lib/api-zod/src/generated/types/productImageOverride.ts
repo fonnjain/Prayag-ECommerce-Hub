@@ -9,4 +9,5 @@
 export interface ProductImageOverride {
   sku: string;
   paths: string[];
+  version: string;
 }

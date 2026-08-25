@@ -813,7 +813,7 @@ export const GetAdminDashboardResponse = zod.object({
  * @summary Review duplicate product image candidates
  */
 export const GetAdminProductImageReviewResponse = zod.object({
-  "version": zod.number(),
+  "version": zod.string().describe('SHA-256 snapshot of the approval file used for optimistic concurrency'),
   "groups": zod.array(zod.object({
   "normalizedCode": zod.string(),
   "sku": zod.string().nullable(),
@@ -838,13 +838,16 @@ export const updateAdminProductImageOverrideBodyPathsMax = 20;
 
 
 
+
 export const UpdateAdminProductImageOverrideBody = zod.object({
-  "paths": zod.array(zod.string()).max(updateAdminProductImageOverrideBodyPathsMax)
+  "paths": zod.array(zod.string()).max(updateAdminProductImageOverrideBodyPathsMax),
+  "expectedVersion": zod.string().min(1)
 })
 
 export const UpdateAdminProductImageOverrideResponse = zod.object({
   "sku": zod.string(),
-  "paths": zod.array(zod.string())
+  "paths": zod.array(zod.string()),
+  "version": zod.string()
 })
 
 

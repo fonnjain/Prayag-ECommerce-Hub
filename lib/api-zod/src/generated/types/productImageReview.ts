@@ -8,6 +8,7 @@
 import type { ProductImageReviewGroup } from './productImageReviewGroup';
 
 export interface ProductImageReview {
-  version: number;
+  /** SHA-256 snapshot of the approval file used for optimistic concurrency */
+  version: string;
   groups: ProductImageReviewGroup[];
 }
