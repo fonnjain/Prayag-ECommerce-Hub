@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView, useMotionValue, useSpring, animate, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Shield, Truck, Award, RefreshCw, BadgeCheck, Headphones, Tag, Star, Droplets, Sparkles, Package, Eye } from "lucide-react";
-import { getListProductsQueryOptions, useListCategoriesWithCounts, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
+import { getListProductsQueryOptions, useListCategoriesWithCounts, useListProducts, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/lib/store";
@@ -334,6 +334,7 @@ function selectCategoryShowcaseProducts<T extends { imageUrl?: string | null; ca
 
 export default function HomePage() {
   const { data: categories, isLoading: catsLoading } = useListCategoriesWithCounts();
+  const { data: cpFaucetFeature } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 1 });
   const collectionQueries = useQueries({
     queries: (categories ?? [])
       .filter((category) => category.productCount > 0)
@@ -362,6 +363,13 @@ export default function HomePage() {
   const categoryShowcaseProducts = selectCategoryShowcaseProducts(collectionProducts, 6);
   const bestSellerProducts = categoryShowcaseProducts;
   const newArrivalProducts = categoryShowcaseProducts.slice(4, 12);
+  const heroFeatureProduct = cpFaucetFeature?.products.find((product) => Boolean(product.imageUrl));
+  const heroFeatureName = heroFeatureProduct?.name ?? hero.featured.name;
+  const heroFeatureImage = heroFeatureProduct?.imageUrl ?? hero.featured.image;
+  const heroFeaturePrice = heroFeatureProduct?.price ?? hero.featured.price;
+  const heroFeatureMrp = heroFeatureProduct?.mrp ?? hero.featured.mrp;
+  const heroFeatureReviews = heroFeatureProduct?.reviewCount ?? hero.featured.reviews;
+  const heroFeatureLink = heroFeatureProduct ? `/products/${heroFeatureProduct.slug}` : hero.featured.link;
   const collectionCards = section("collections").cards;
   const trustItems = section("trust").items;
   const marqueeWords = section("marquee").words;
@@ -490,7 +498,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right: Video Carousel */}
+          {/* Right: Featured product */}
           <div className="flex w-full justify-center"
             onMouseMove={e => {
               const r = e.currentTarget.getBoundingClientRect();
@@ -498,59 +506,41 @@ export default function HomePage() {
               my.set(-((e.clientY - r.top) / r.height - 0.5) * 16);
             }}
             onMouseLeave={() => { mx.set(0); my.set(0); }}>
-            <motion.div style={{ rotateX: rx, rotateY: ry, transformPerspective: 1200 }}
-              className="relative w-full max-w-[34rem] aspect-video rounded-3xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] border border-[hsl(38,52%,52%)]/20 bg-black group">
-              <div className="absolute -top-3 -right-3 z-30 bg-gold-gradient text-[hsl(24,14%,8%)] text-[11px] font-bold px-4 py-1.5 rounded-full shadow-gold flex items-center gap-1.5 transform group-hover:scale-105 transition-transform duration-300">
-                <Sparkles className="w-3.5 h-3.5" /> Featured Series
+            <motion.div style={{ rotateX: rx, rotateY: ry, transformPerspective: 900 }}
+              className="animate-float relative w-full max-w-[22rem] rounded-3xl bg-white p-5 shadow-2xl sm:p-6 lg:w-72"
+              data-testid="hero-feature-card"
+            >
+              <div className="absolute -right-3 -top-3 z-30 flex items-center gap-1 rounded-full bg-gold-gradient px-3 py-1 text-[11px] font-bold text-[hsl(24,14%,8%)] shadow-gold">
+                <Sparkles className="h-3 w-3" /> Featured
               </div>
-
-              <AnimatePresence mode="sync" initial={false}>
-                <motion.img
-                  key={`featured-poster-${heroCarouselItems[carouselIdx].poster}`}
-                  src={`${import.meta.env.BASE_URL}${heroCarouselItems[carouselIdx].poster}`}
-                  initial={{ clipPath: "inset(0 100% 0 0)", scale: 1.08 }}
-                  animate={{ clipPath: "inset(0 0% 0 0)", scale: 1 }}
-                  exit={{ clipPath: "inset(0 0 0 100%)", scale: 1.04 }}
-                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute inset-0 h-full w-full object-cover"
-                  alt={`${heroCarouselItems[carouselIdx].title} featured series`}
+              <div className="mb-4 overflow-hidden rounded-2xl bg-stone-100">
+                <img
+                  src={heroFeatureImage}
+                  alt={heroFeatureName}
+                  className="h-40 w-full bg-white object-contain p-3"
+                  data-testid="hero-feature-image"
                 />
-              </AnimatePresence>
-
-              {/* Overlay Content */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-7 z-10">
-                <motion.div
-                  key={carouselIdx}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                >
-                  <h3 className="font-display text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight">{heroCarouselItems[carouselIdx].title}</h3>
-                  <p className="text-sm text-stone-300 mb-5 max-w-[80%]">{heroCarouselItems[carouselIdx].subtitle}</p>
-                  <Link href="/products">
-                    <button className="gold-sheen text-xs font-bold text-white bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] px-5 py-2.5 rounded-xl flex items-center gap-2 hover:scale-105 transition-all">
-                      Explore Collection <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </Link>
-                </motion.div>
               </div>
-
-              {/* Carousel Indicators */}
-              <div className="absolute top-1/2 right-5 -translate-y-1/2 flex flex-col gap-2.5 z-20">
-                {heroCarouselItems.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setCarouselIdx(i);
-                    }}
-                    aria-label={`Go to slide ${i + 1}`}
-                    className={`w-1.5 rounded-full transition-all duration-500 ${
-                      i === carouselIdx ? "h-8 bg-[hsl(38,52%,52%)] shadow-[0_0_10px_rgba(212,175,55,0.5)]" : "h-2 bg-white/40 hover:bg-white/80"
-                    }`}
-                  />
-                ))}
+              <div className="mb-1 line-clamp-2 text-sm font-black text-gray-900">{heroFeatureName}</div>
+              <div className="mb-3 flex items-center gap-1">
+                {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-[hsl(38,52%,52%)] text-[hsl(38,52%,52%)]" />)}
+                <span className="ml-1 text-[11px] text-gray-400">({heroFeatureReviews})</span>
               </div>
+              <div className="mb-4 flex items-baseline gap-2">
+                <span className="text-2xl font-black text-[hsl(24,10%,16%)]">₹{Number(heroFeaturePrice).toLocaleString("en-IN")}</span>
+                {heroFeatureMrp > heroFeaturePrice && (
+                  <>
+                    <span className="text-sm text-gray-400 line-through">₹{Number(heroFeatureMrp).toLocaleString("en-IN")}</span>
+                    <span className="text-[11px] font-bold text-green-600">{Math.round((1 - heroFeaturePrice / heroFeatureMrp) * 100)}% OFF</span>
+                  </>
+                )}
+              </div>
+              <Link href={heroFeatureLink}>
+                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  className="gold-sheen flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] py-3 text-sm font-bold text-white">
+                  Explore Now <ArrowRight className="h-4 w-4" />
+                </motion.button>
+              </Link>
             </motion.div>
           </div>
         </div>
