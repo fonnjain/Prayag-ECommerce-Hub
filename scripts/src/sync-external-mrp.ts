@@ -22,8 +22,7 @@ import {
 } from "./product-image-manifest.js";
 import {
   buildProductImageIndex,
-  productImageUrls,
-  reconcileProductImages,
+  syncProductImagesInTransaction,
   type ProductImageIndex,
 } from "./product-image-sync.js";
 
@@ -300,53 +299,11 @@ async function main() {
     const { rows: productsForImages } = await client.query<{ id: number; sku: string; image_url: string | null }>(
       "SELECT id, sku, image_url FROM products WHERE in_stock = true",
     );
-    const imageProductIds = productsForImages.map((product) => product.id);
-    const { rows: currentDetailImages } = imageProductIds.length > 0
-      ? await client.query<{ product_id: number; image_url: string; sort_order: number }>(
-          `SELECT product_id, image_url, sort_order
-           FROM product_images
-           WHERE product_id = ANY($1::int[])
-           ORDER BY product_id, sort_order, id`,
-          [imageProductIds],
-        )
-      : { rows: [] };
-    const detailImagesByProduct = new Map<number, Array<{ imageUrl: string; sortOrder: number }>>();
-    for (const image of currentDetailImages) {
-      detailImagesByProduct.set(image.product_id, [
-        ...(detailImagesByProduct.get(image.product_id) ?? []),
-        { imageUrl: image.image_url, sortOrder: image.sort_order },
-      ]);
-    }
-
-    let productsWithReconciledImages = 0;
-    for (const product of productsForImages) {
-      const desired = productImageUrls(product.sku, PRODUCT_IMAGE_INDEX);
-      const currentDetails = detailImagesByProduct.get(product.id) ?? [];
-      const reconciliation = reconcileProductImages(product.image_url, currentDetails, desired);
-      const currentDriveDetails = currentDetails.filter((image) => image.imageUrl.startsWith("/images/drive/"));
-      if (
-        product.image_url === reconciliation.primaryImageUrl &&
-        currentDriveDetails.length === reconciliation.driveImageUrls.length &&
-        currentDriveDetails.every((image, index) => image.imageUrl === reconciliation.driveImageUrls[index])
-      ) continue;
-
-      await client.query(
-        "UPDATE products SET image_url = $1, updated_at = now() WHERE id = $2",
-        [reconciliation.primaryImageUrl, product.id],
-      );
-      await client.query(
-        "DELETE FROM product_images WHERE product_id = $1 AND image_url LIKE '/images/drive/%'",
-        [product.id],
-      );
-      const nextSortOrder = Math.max(0, ...reconciliation.preservedDetailImages.map((image) => image.sortOrder));
-      for (const [sortOrder, imageUrl] of reconciliation.driveImageUrls.entries()) {
-        await client.query(
-          "INSERT INTO product_images (product_id, image_url, sort_order) VALUES ($1, $2, $3)",
-          [product.id, imageUrl, nextSortOrder + sortOrder + 1],
-        );
-      }
-      productsWithReconciledImages++;
-    }
+    const productsWithReconciledImages = await syncProductImagesInTransaction(
+      client,
+      productsForImages.map(({ id, sku, image_url: imageUrl }) => ({ id, sku, imageUrl })),
+      PRODUCT_IMAGE_INDEX,
+    );
 
     await client.query("UPDATE products SET is_featured = false, is_new = false WHERE in_stock = true");
     await client.query("UPDATE products SET is_featured = true WHERE id IN (SELECT id FROM products WHERE in_stock = true ORDER BY mrp::numeric DESC LIMIT 12)");

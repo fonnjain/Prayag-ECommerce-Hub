@@ -5,6 +5,7 @@ import {
   type ProductImageOverrides,
   validateProductImageOverrides,
 } from "./product-image-manifest.js";
+import type { PoolClient } from "@workspace/db";
 
 export interface ProductImageIndex {
   unambiguous: Map<string, string[]>;
@@ -15,6 +16,12 @@ export interface ProductImageIndex {
 export interface ExistingProductDetailImage {
   imageUrl: string;
   sortOrder: number;
+}
+
+export interface ProductForImageSync {
+  id: number;
+  sku: string;
+  imageUrl: string | null;
 }
 
 export interface ProductImageReconciliation {
@@ -68,4 +75,68 @@ export function reconcileProductImages(
     preservedDetailImages,
     driveImageUrls: drivePrimaryIsManaged ? desiredImageUrls.slice(1) : desiredImageUrls,
   };
+}
+
+/**
+ * Reconcile Drive-managed product images using an already-open sync transaction.
+ *
+ * Keeping the transaction ownership with the caller lets the catalogue sync
+ * commit product, price, and image changes atomically. It also lets tests run
+ * this exact SQL against disposable fixtures and roll the whole transaction
+ * back without changing the development catalogue.
+ */
+export async function syncProductImagesInTransaction(
+  client: PoolClient,
+  productsForImages: ProductForImageSync[],
+  imageIndex: ProductImageIndex,
+): Promise<number> {
+  const imageProductIds = productsForImages.map((product) => product.id);
+  const { rows: currentDetailImages } = imageProductIds.length > 0
+    ? await client.query<{ product_id: number; image_url: string; sort_order: number }>(
+        `SELECT product_id, image_url, sort_order
+         FROM product_images
+         WHERE product_id = ANY($1::int[])
+         ORDER BY product_id, sort_order, id`,
+        [imageProductIds],
+      )
+    : { rows: [] };
+  const detailImagesByProduct = new Map<number, Array<{ imageUrl: string; sortOrder: number }>>();
+  for (const image of currentDetailImages) {
+    detailImagesByProduct.set(image.product_id, [
+      ...(detailImagesByProduct.get(image.product_id) ?? []),
+      { imageUrl: image.image_url, sortOrder: image.sort_order },
+    ]);
+  }
+
+  let productsWithReconciledImages = 0;
+  for (const product of productsForImages) {
+    const desired = productImageUrls(product.sku, imageIndex);
+    const currentDetails = detailImagesByProduct.get(product.id) ?? [];
+    const reconciliation = reconcileProductImages(product.imageUrl, currentDetails, desired);
+    const currentDriveDetails = currentDetails.filter((image) => image.imageUrl.startsWith("/images/drive/"));
+    if (
+      product.imageUrl === reconciliation.primaryImageUrl &&
+      currentDriveDetails.length === reconciliation.driveImageUrls.length &&
+      currentDriveDetails.every((image, index) => image.imageUrl === reconciliation.driveImageUrls[index])
+    ) continue;
+
+    await client.query(
+      "UPDATE products SET image_url = $1, updated_at = now() WHERE id = $2",
+      [reconciliation.primaryImageUrl, product.id],
+    );
+    await client.query(
+      "DELETE FROM product_images WHERE product_id = $1 AND image_url LIKE '/images/drive/%'",
+      [product.id],
+    );
+    const nextSortOrder = Math.max(0, ...reconciliation.preservedDetailImages.map((image) => image.sortOrder));
+    for (const [sortOrder, imageUrl] of reconciliation.driveImageUrls.entries()) {
+      await client.query(
+        "INSERT INTO product_images (product_id, image_url, sort_order) VALUES ($1, $2, $3)",
+        [product.id, imageUrl, nextSortOrder + sortOrder + 1],
+      );
+    }
+    productsWithReconciledImages++;
+  }
+
+  return productsWithReconciledImages;
 }
