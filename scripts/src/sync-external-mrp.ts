@@ -248,7 +248,17 @@ export async function runCatalogueSyncTransaction({
           const slug = claimSlug(`${slugify(name)}-${slugify(row.itemCode)}`);
           await client.query(
             `UPDATE products
-             SET name = $1, slug = $2, description = $3, specifications = $4,
+             SET name = $1, slug = $2,
+                 description = CASE
+                   WHEN COALESCE(specifications::text, '') LIKE '%"contentSource"%prayagindia.com%'
+                     THEN description
+                   ELSE $3
+                 END,
+                 specifications = CASE
+                   WHEN COALESCE(specifications::text, '') LIKE '%"contentSource"%prayagindia.com%'
+                     THEN specifications
+                   ELSE $4
+                 END,
                  price = $5, mrp = $5, category_id = $6, in_stock = true, updated_at = now()
              WHERE id = $7`,
             [name, slug, `${name} — genuine PRAYAG product.`, specifications(row), mrp, categoryId, existing.id]
@@ -259,7 +269,12 @@ export async function runCatalogueSyncTransaction({
           reserved.add(existing.slug);
           await client.query(
             `UPDATE products
-             SET specifications = $1, price = $2, mrp = $2, category_id = $3, in_stock = true, updated_at = now()
+             SET specifications = CASE
+                   WHEN COALESCE(specifications::text, '') LIKE '%"contentSource"%prayagindia.com%'
+                     THEN specifications
+                   ELSE $1
+                 END,
+                 price = $2, mrp = $2, category_id = $3, in_stock = true, updated_at = now()
              WHERE id = $4`,
             [specifications(row), mrp, categoryId, existing.id]
           );

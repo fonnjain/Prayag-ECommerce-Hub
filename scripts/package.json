@@ -11,6 +11,8 @@
     "sync-prod-products": "tsx ./src/sync-prod-products.ts",
     "import-external-products": "tsx ./src/import-external-products.ts",
     "sync-external-mrp": "tsx ./src/sync-external-mrp.ts",
+    "sync-product-images": "tsx ./src/sync-product-images.ts",
+    "sync-bathroom-accessories-content": "tsx ./src/sync-bathroom-accessories-content.ts",
     "shorten-product-names": "tsx ./src/shorten-product-names.ts",
     "validate-product-image-manifest": "tsx ./src/validate-product-image-manifest.ts",
     "generate-product-image-review": "tsx ./src/validate-product-image-manifest.ts --write-review",

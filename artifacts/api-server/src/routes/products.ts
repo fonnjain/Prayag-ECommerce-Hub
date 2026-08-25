@@ -62,10 +62,16 @@ router.get("/products", async (req, res): Promise<void> => {
 
   let orderBy: any[] = [desc(productsTable.createdAt)];
   if (sortBy === "photo_ready") {
-    // Keep the full catalogue available, while placing products with verified
-    // catalogue photography first in the default browsing experience.
+    // Keep the full catalogue available, while placing curated official
+    // descriptions first, followed by products with verified photography.
     orderBy = [
-      sql`CASE WHEN ${productsTable.imageUrl} IS NULL THEN 1 ELSE 0 END`,
+      sql`CASE
+        WHEN COALESCE(${productsTable.specifications}, '') LIKE '%"contentSource"%prayagindia.com%'
+          THEN 0
+        WHEN ${productsTable.imageUrl} IS NOT NULL
+          THEN 1
+        ELSE 2
+      END`,
       desc(productsTable.createdAt),
     ];
   }

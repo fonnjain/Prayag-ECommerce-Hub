@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
-import { motion, useInView, useMotionValue, useSpring, animate } from "framer-motion";
-import { ArrowRight, ChevronRight, ChevronLeft, Shield, Truck, Award, RefreshCw, BadgeCheck, Headphones, Tag, Star, Droplets, Sparkles, Package, Eye } from "lucide-react";
-import { getListProductsQueryOptions, useListCategoriesWithCounts, useListProducts, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
+import { motion, useInView, useMotionValue, useSpring, animate, AnimatePresence } from "framer-motion";
+import { ArrowRight, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Shield, Truck, Award, RefreshCw, BadgeCheck, Headphones, Tag, Star, Droplets, Sparkles, Package, Eye } from "lucide-react";
+import { getListProductsQueryOptions, useListCategoriesWithCounts, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/lib/store";
@@ -54,6 +54,30 @@ const categoryImages: Record<string, string> = {
 
 const trustIcons = [BadgeCheck, RefreshCw, Shield, Tag, Headphones];
 
+const heroCarouselItems = [
+  {
+    video: "videos/faucet-carousel.webm",
+    fallbackVideo: "videos/faucet-carousel.mp4",
+    poster: "videos/faucet-carousel-poster.webp",
+    title: "Premium Faucets",
+    subtitle: "Precision engineering meets luxury design."
+  },
+  {
+    video: "videos/shower-carousel.webm",
+    fallbackVideo: "videos/shower-carousel.mp4",
+    poster: "videos/shower-carousel-poster.webp",
+    title: "Rainfall Showers",
+    subtitle: "Transform your daily routine."
+  },
+  {
+    video: "videos/sink-carousel.webm",
+    fallbackVideo: "videos/sink-carousel.mp4",
+    poster: "videos/sink-carousel-poster.webp",
+    title: "Designer Sinks",
+    subtitle: "The centerpiece of your modern kitchen."
+  }
+];
+
 /* Animated number counter */
 function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -101,6 +125,123 @@ function SectionHeader({ title, accent, href, icon: Icon }: { title: string; acc
   );
 }
 
+function BestSellerSlider({ products }: { products: Array<{
+  id: number;
+  slug: string;
+  sku?: string | null;
+  name: string;
+  imageUrl?: string | null;
+  categoryName?: string | null;
+  price: number;
+  mrp: number;
+  rating: number;
+  reviewCount: number;
+}> }) {
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [rowIndex, setRowIndex] = useState(0);
+  const [rowHeight, setRowHeight] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const rows = Array.from({ length: Math.ceil(products.length / 2) }, (_, index) => products.slice(index * 2, index * 2 + 2));
+  const loopRows = [...rows, ...rows];
+
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+
+    const measure = () => setRowHeight(row.getBoundingClientRect().height + 12);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, [products.length]);
+
+  useEffect(() => {
+    if (paused || rows.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => setRowIndex((index) => index + 1), 4500);
+    return () => window.clearInterval(timer);
+  }, [paused, rows.length]);
+
+  useEffect(() => {
+    if (rowIndex < rows.length) return;
+    const reset = window.setTimeout(() => setRowIndex((index) => index - rows.length), 750);
+    return () => window.clearTimeout(reset);
+  }, [rowIndex, rows.length]);
+
+  function moveRow(direction: "up" | "down") {
+    setRowIndex((index) => {
+      const next = direction === "down" ? index + 1 : index - 1;
+      return next < 0 ? rows.length - 1 : next;
+    });
+  }
+
+  return (
+    <div
+      ref={viewportRef}
+      className="relative overflow-hidden"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      data-testid="best-seller-vertical-slider"
+    >
+      <motion.div
+        animate={{ y: rowHeight ? -(rowIndex * rowHeight) : 0 }}
+        transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+        className="flex flex-col gap-3"
+      >
+        {loopRows.map((row, index) => (
+          <div
+            key={`best-seller-row-${index}`}
+            ref={index === 0 ? rowRef : undefined}
+            className="grid h-[410px] flex-shrink-0 grid-cols-2 gap-3 md:h-[470px]"
+          >
+            {row.map((p) => (
+              <Link key={`${p.id}-${index}`} href={`/products/${p.slug}`} className="min-w-0">
+                <motion.div whileHover={{ y: -6 }} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:border-[hsl(38,52%,52%)]/60 hover:shadow-xl" data-testid={`card-bestseller-${p.id}`}>
+                  <div className="relative aspect-square flex-shrink-0 overflow-hidden bg-gradient-to-b from-stone-50 to-white p-3">
+                    <span className="absolute left-2 top-2 z-10 rounded-full bg-gold-gradient px-2 py-0.5 text-[9px] font-bold text-[hsl(24,14%,8%)]">Bestseller</span>
+                    <img loading="lazy" decoding="async" src={p.imageUrl!} alt={p.name} className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105" />
+                    <span className="absolute bottom-2 left-2 rounded-full bg-[hsl(24,10%,16%)]/85 px-2 py-1 text-[9px] font-semibold text-white backdrop-blur-sm">{p.categoryName}</span>
+                  </div>
+                  <div className="flex min-h-0 flex-1 flex-col p-3.5">
+                    <SkuBadge sku={p.sku ?? "—"} className="mb-2" />
+                    <div className="mb-2 min-h-9 text-xs font-semibold leading-tight text-gray-800 line-clamp-2">{p.name}</div>
+                    <div className="mb-2 flex items-center gap-1.5">
+                      <span className="inline-flex items-center gap-0.5 text-[hsl(38,52%,52%)]">{[...Array(5)].map((_, starIndex) => <Star key={starIndex} className={`h-2.5 w-2.5 ${starIndex < Math.round(p.rating) ? "fill-current" : ""}`} />)}</span>
+                      <span className="text-[9px] font-semibold text-gray-500">{p.rating.toFixed(1)} · {p.reviewCount} reviews</span>
+                    </div>
+                    <div className="mb-3 flex items-baseline gap-1.5"><span className="text-base font-black text-[hsl(24,10%,16%)]">₹{Number(p.price).toLocaleString("en-IN")}</span>{p.mrp > p.price && <span className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</span>}</div>
+                    <div className="mt-auto"><AddToCartButton productId={p.id} productName={p.name} /></div>
+                  </div>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
+        ))}
+      </motion.div>
+      {rows.length > 1 && (
+        <div className="pointer-events-none absolute right-2 top-2 z-20 flex flex-col gap-1.5">
+          <button
+            type="button"
+            onClick={() => moveRow("up")}
+            className="pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white/90 text-gray-600 shadow-sm backdrop-blur transition-colors hover:bg-[hsl(24,10%,16%)] hover:text-white"
+            aria-label="Show previous best sellers"
+          >
+            <ChevronUp className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => moveRow("down")}
+            className="pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white/90 text-gray-600 shadow-sm backdrop-blur transition-colors hover:bg-[hsl(24,10%,16%)] hover:text-white"
+            aria-label="Show more best sellers"
+          >
+            <ChevronDown className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function selectCategoryShowcaseProducts<T extends { imageUrl?: string | null; categoryName?: string | null }>(products: T[], perCategory: number) {
   const productsByCategory = new Map<string, T[]>();
   for (const product of products) {
@@ -122,7 +263,6 @@ function selectCategoryShowcaseProducts<T extends { imageUrl?: string | null; ca
 
 export default function HomePage() {
   const { data: categories, isLoading: catsLoading } = useListCategoriesWithCounts();
-  const { data: cpFaucetDeals } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 14 });
   const collectionQueries = useQueries({
     queries: (categories ?? [])
       .filter((category) => category.productCount > 0)
@@ -134,20 +274,23 @@ export default function HomePage() {
   });
   const showcaseScrollRef = useRef<HTMLDivElement>(null);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [carouselIdx, setCarouselIdx] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const timer = setInterval(() => {
+      setCarouselIdx((prev) => (prev + 1) % heroCarouselItems.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
   const { section } = useSiteContent();
   const hero = section("hero");
-  const heroFeatureProduct = cpFaucetDeals?.products.find((product) => Boolean(product.imageUrl));
   const collectionProducts = collectionQueries.flatMap((query) => query.data?.products ?? []);
   const showcaseLoading = catsLoading || collectionQueries.some((query) => query.isLoading);
   const categoryShowcaseProducts = selectCategoryShowcaseProducts(collectionProducts, 6);
   const bestSellerProducts = categoryShowcaseProducts.slice(0, 4);
   const newArrivalProducts = categoryShowcaseProducts.slice(4, 12);
-  const heroFeatureName = heroFeatureProduct?.name ?? hero.featured.name;
-  const heroFeatureImage = heroFeatureProduct?.imageUrl ?? hero.featured.image;
-  const heroFeaturePrice = heroFeatureProduct?.price ?? hero.featured.price;
-  const heroFeatureMrp = heroFeatureProduct?.mrp ?? hero.featured.mrp;
-  const heroFeatureReviews = heroFeatureProduct?.reviewCount ?? hero.featured.reviews;
-  const heroFeatureLink = heroFeatureProduct ? `/products/${heroFeatureProduct.slug}` : hero.featured.link;
   const collectionCards = section("collections").cards;
   const trustItems = section("trust").items;
   const marqueeWords = section("marquee").words;
@@ -253,40 +396,75 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right: floating parallax product card */}
-          <div className="hidden lg:flex justify-center"
+          {/* Right: Video Carousel */}
+          <div className="flex w-full justify-center"
             onMouseMove={e => {
               const r = e.currentTarget.getBoundingClientRect();
               mx.set(((e.clientX - r.left) / r.width - 0.5) * 16);
               my.set(-((e.clientY - r.top) / r.height - 0.5) * 16);
             }}
             onMouseLeave={() => { mx.set(0); my.set(0); }}>
-            <motion.div style={{ rotateX: rx, rotateY: ry, transformPerspective: 900 }}
-              className="animate-float relative bg-white rounded-3xl shadow-2xl p-6 w-72">
-              <div className="absolute -top-3 -right-3 bg-gold-gradient text-[hsl(24,14%,8%)] text-[11px] font-bold px-3 py-1 rounded-full shadow-gold flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> Featured
+            <motion.div style={{ rotateX: rx, rotateY: ry, transformPerspective: 1200 }}
+              className="relative w-full max-w-[34rem] aspect-video rounded-3xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] border border-[hsl(38,52%,52%)]/20 bg-black group">
+              <div className="absolute -top-3 -right-3 z-30 bg-gold-gradient text-[hsl(24,14%,8%)] text-[11px] font-bold px-4 py-1.5 rounded-full shadow-gold flex items-center gap-1.5 transform group-hover:scale-105 transition-transform duration-300">
+                <Sparkles className="w-3.5 h-3.5" /> Featured Series
               </div>
-              <div className="rounded-2xl overflow-hidden mb-4 bg-stone-100">
-                <img src={heroFeatureImage} alt={heroFeatureName} className="w-full h-40 bg-white object-contain p-3" />
+
+              <AnimatePresence mode="sync" initial={false}>
+                <motion.video
+                  key={heroCarouselItems[carouselIdx].video}
+                  poster={`${import.meta.env.BASE_URL}${heroCarouselItems[carouselIdx].poster}`}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  initial={{ clipPath: "inset(0 100% 0 0)", scale: 1.08 }}
+                  animate={{ clipPath: "inset(0 0% 0 0)", scale: 1 }}
+                  exit={{ clipPath: "inset(0 0 0 100%)", scale: 1.04 }}
+                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  aria-label={`${heroCarouselItems[carouselIdx].title} product video`}
+                >
+                  <source src={`${import.meta.env.BASE_URL}${heroCarouselItems[carouselIdx].video}`} type="video/webm" />
+                  <source src={`${import.meta.env.BASE_URL}${heroCarouselItems[carouselIdx].fallbackVideo}`} type="video/mp4" />
+                </motion.video>
+              </AnimatePresence>
+
+              {/* Overlay Content */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-7 z-10">
+                <motion.div
+                  key={carouselIdx}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                >
+                  <h3 className="font-display text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight">{heroCarouselItems[carouselIdx].title}</h3>
+                  <p className="text-sm text-stone-300 mb-5 max-w-[80%]">{heroCarouselItems[carouselIdx].subtitle}</p>
+                  <Link href="/products">
+                    <button className="gold-sheen text-xs font-bold text-white bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] px-5 py-2.5 rounded-xl flex items-center gap-2 hover:scale-105 transition-all">
+                      Explore Collection <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </Link>
+                </motion.div>
               </div>
-              <div className="text-sm font-black text-gray-900 mb-1 line-clamp-2">{heroFeatureName}</div>
-              <div className="flex items-center gap-1 mb-3">
-                {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-[hsl(38,52%,52%)] text-[hsl(38,52%,52%)]" />)}
-                <span className="text-[11px] text-gray-400 ml-1">({heroFeatureReviews})</span>
+
+              {/* Carousel Indicators */}
+              <div className="absolute top-1/2 right-5 -translate-y-1/2 flex flex-col gap-2.5 z-20">
+                {heroCarouselItems.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setCarouselIdx(i);
+                    }}
+                    aria-label={`Go to slide ${i + 1}`}
+                    className={`w-1.5 rounded-full transition-all duration-500 ${
+                      i === carouselIdx ? "h-8 bg-[hsl(38,52%,52%)] shadow-[0_0_10px_rgba(212,175,55,0.5)]" : "h-2 bg-white/40 hover:bg-white/80"
+                    }`}
+                  />
+                ))}
               </div>
-              <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-2xl font-black text-[hsl(24,10%,16%)]">₹{Number(heroFeaturePrice).toLocaleString("en-IN")}</span>
-                {heroFeatureMrp > heroFeaturePrice && <>
-                  <span className="text-sm text-gray-400 line-through">₹{Number(heroFeatureMrp).toLocaleString("en-IN")}</span>
-                  <span className="text-[11px] font-bold text-green-600">{Math.round((1 - heroFeaturePrice / heroFeatureMrp) * 100)}% OFF</span>
-                </>}
-              </div>
-              <Link href={heroFeatureLink}>
-                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  className="gold-sheen w-full bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] text-white text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-1.5">
-                  Explore Now <ArrowRight className="w-4 h-4" />
-                </motion.button>
-              </Link>
             </motion.div>
           </div>
         </div>
@@ -505,29 +683,7 @@ export default function HomePage() {
             {showcaseLoading ? (
               <div className="grid grid-cols-2 gap-3">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}</div>
             ) : bestSellerProducts.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3">
-                {bestSellerProducts.map(p => (
-                  <Link key={p.id} href={`/products/${p.slug}`}>
-                    <motion.div whileHover={{ y: -6 }} className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:border-[hsl(38,52%,52%)]/60 hover:shadow-xl" data-testid={`card-bestseller-${p.id}`}>
-                      <div className="relative aspect-square overflow-hidden bg-gradient-to-b from-stone-50 to-white p-3">
-                        <span className="absolute left-2 top-2 z-10 rounded-full bg-gold-gradient px-2 py-0.5 text-[9px] font-bold text-[hsl(24,14%,8%)]">Bestseller</span>
-                        <img loading="lazy" decoding="async" src={p.imageUrl!} alt={p.name} className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105" />
-                        <span className="absolute bottom-2 left-2 rounded-full bg-[hsl(24,10%,16%)]/85 px-2 py-1 text-[9px] font-semibold text-white backdrop-blur-sm">{p.categoryName}</span>
-                      </div>
-                      <div className="p-3.5">
-                        <SkuBadge sku={p.sku} className="mb-2" />
-                        <div className="mb-2 min-h-9 text-xs font-semibold leading-tight text-gray-800 line-clamp-2">{p.name}</div>
-                        <div className="mb-2 flex items-center gap-1.5">
-                          <span className="inline-flex items-center gap-0.5 text-[hsl(38,52%,52%)]">{[...Array(5)].map((_, i) => <Star key={i} className={`h-2.5 w-2.5 ${i < Math.round(p.rating) ? "fill-current" : ""}`} />)}</span>
-                          <span className="text-[9px] font-semibold text-gray-500">{p.rating.toFixed(1)} · {p.reviewCount} reviews</span>
-                        </div>
-                        <div className="mb-3 flex items-baseline gap-1.5"><span className="text-base font-black text-[hsl(24,10%,16%)]">₹{Number(p.price).toLocaleString("en-IN")}</span>{p.mrp > p.price && <span className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</span>}</div>
-                        <AddToCartButton productId={p.id} productName={p.name} />
-                      </div>
-                    </motion.div>
-                  </Link>
-                ))}
-              </div>
+              <BestSellerSlider products={bestSellerProducts} />
             ) : (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">Verified product photos are being added to this collection.</div>
             )}
@@ -614,7 +770,7 @@ export default function HomePage() {
             </Link>
           </Reveal>
           <Reveal delay={0.15} className="hidden md:block">
-            <motion.img whileHover={{ scale: 1.03 }} loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=500&h=340&fit=crop" alt="Become a Dealer" className="w-full h-72 object-cover rounded-3xl shadow-2xl" />
+             <motion.img whileHover={{ scale: 1.03 }} loading="lazy" decoding="async" src={`${import.meta.env.BASE_URL}images/brand/prayag-puretech-pipes.webp`} alt="Prayag Puretech pipes and fittings" className="w-full h-72 object-cover rounded-3xl shadow-2xl" />
           </Reveal>
         </div>
       </section>

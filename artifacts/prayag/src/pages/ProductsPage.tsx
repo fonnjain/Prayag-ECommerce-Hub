@@ -7,16 +7,149 @@ import { useSiteContent } from "@/lib/siteContent";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 
-const pipesRangeHighlights = [
-  { name: "CPVC Pipes", detail: "Hot & cold water", image: "cpvc-pipes.webp" },
-  { name: "UPVC Pipes", detail: "Reliable plumbing", image: "upvc-pipes.webp" },
-  { name: "PVC-O Pipes", detail: "High-flow systems", image: "pvc-o-pipes.webp" },
-  { name: "Single Y With Door", detail: "Drainage fitting", image: "single-y-with-door-selfit.webp" },
-  { name: "Tee With Door", detail: "Easy access fitting", image: "tee-with-door-selfit.webp" },
-  { name: "Tee", detail: "Three-way connection", image: "tee.webp" },
-  { name: "Coupler", detail: "Secure pipe joint", image: "coupler.webp" },
-  { name: "Repair Coupler", detail: "Fast maintenance", image: "repair-coupler.webp" },
-  { name: "Reducing Tee", detail: "SWR branch connection", image: "reducing-tee.webp" },
+const waterHeaterRange = [
+  {
+    name: "Bromo Vertical",
+    image: "bromo.webp",
+    description: "BEE 5 Star vertical water heater",
+    orientation: "Vertical",
+    sizes: "6L–50L",
+    application: "Glass Line & Metal Tank",
+    features: ["Heat retention", "MG anode rod", "Glass-lined tank"],
+    sourceUrl: "https://prayagindia.com/bromo-vertical",
+  },
+  {
+    name: "Therma Horizontal",
+    image: "therma.webp",
+    description: "BEE 5 Star horizontal water heater",
+    orientation: "Horizontal",
+    sizes: "6L–50L",
+    application: "Glass Line Tank",
+    features: ["Metal tank", "Blue Diamond coating", "2–3 mm thickness"],
+    sourceUrl: "https://prayagindia.com/therma-horizontal",
+  },
+  {
+    name: "Nile Vertical",
+    image: "nile.webp",
+    description: "BEE 5 Star vertical water heater",
+    orientation: "Vertical",
+    sizes: "6L–50L",
+    application: "Steel Tank",
+    features: ["Corrosion protection", "Shock proof", "Copper heating element"],
+    sourceUrl: "https://prayagindia.com/nile-vertical",
+  },
+  {
+    name: "Pico Vertical",
+    image: "pico.webp",
+    description: "BEE 5 Star vertical water heater",
+    orientation: "Vertical",
+    sizes: "6L–50L",
+    application: "Steel Tank",
+    features: ["Corrosion protection", "Shock proof", "Copper heating element"],
+    sourceUrl: "https://prayagindia.com/pico-vertical",
+  },
+];
+
+const kitchenSinkRange = [
+  {
+    sku: "Q748 MB",
+    name: "Double Bowl with Drain Board",
+    collection: "Ivory Lucid",
+    image: "ivory-lucid-double-bowl-with-drain-board.webp",
+    colors: "Bianco · Pluto",
+    size: "45 × 20 × 8.5",
+    thickness: "10 mm",
+    weight: "21.5 kg approx.",
+    sourceUrl: "https://prayagindia.com/q748-mb-double-bowl-drain-board",
+  },
+  {
+    sku: "Q752 MB",
+    name: "Double Bowl",
+    collection: "Sand Soul",
+    image: "sand-soul-double-bowl.webp",
+    colors: "Black · White · Grey",
+    size: "45 × 20 × 8.5",
+    thickness: "10 mm",
+    weight: "30.5 kg approx.",
+    sourceUrl: "https://prayagindia.com/q752-mb-double-bowl",
+  },
+  {
+    sku: "Q752 GB",
+    name: "Double Bowl",
+    collection: "Sand Soul",
+    image: "sand-soul-double-bowl.webp",
+    colors: "Bianco · Pluto",
+    size: "45 × 20 × 8.5",
+    thickness: "10 mm",
+    weight: "30.5 kg approx.",
+    sourceUrl: "https://prayagindia.com/q752-gb-double-bowl",
+  },
+  {
+    sku: "Q732 MB",
+    name: "Double Bowl",
+    collection: "Sand Azaro",
+    image: "sand-azaro-double-bowl.webp",
+    colors: "Bianco · Pluto",
+    size: "34 × 19.5 × 8.5",
+    thickness: "10 mm",
+    weight: "9 kg approx.",
+    sourceUrl: "https://prayagindia.com/q732-mb-double-bowl",
+  },
+  {
+    sku: "Q740 MB",
+    name: "Double Bowl",
+    collection: "Sand Unico-Twin",
+    image: "sand-unico-twin-double-bowl.webp",
+    colors: "Black · White · Grey",
+    size: "37 × 18 × 8.5",
+    thickness: "14 mm",
+    weight: "22 kg approx.",
+    sourceUrl: "https://prayagindia.com/q740-mb-double-bowl",
+  },
+  {
+    sku: "Q736 MB",
+    name: "Single Bowl with Drain Board",
+    collection: "Crystal Vanilla",
+    image: "crystal-vanilla-singe-bowl-with-drain-board-0.webp",
+    colors: "Official finish",
+    size: "34 × 19.5 × 8.5",
+    thickness: "10 mm",
+    weight: "9 kg approx.",
+    sourceUrl: "https://prayagindia.com/q736-mb-single-bowl-drain-board",
+  },
+  {
+    sku: "Q740 GB",
+    name: "Double Bowl",
+    collection: "Sand Unico-Twin",
+    image: "sand-unico-twin-double-bowl.webp",
+    colors: "Bianco · Pluto",
+    size: "37 × 18 × 8.5",
+    thickness: "14 mm",
+    weight: "22 kg approx.",
+    sourceUrl: "https://prayagindia.com/q740-gb-double-bowl",
+  },
+  {
+    sku: "Q744 MB",
+    name: "Double Bowl",
+    collection: "Coke Smudge",
+    image: "coke-smudge-double-bowl.webp",
+    colors: "Black · White · Grey",
+    size: "40 × 18 × 8.5",
+    thickness: "10 mm",
+    weight: "21 kg approx.",
+    sourceUrl: "https://prayagindia.com/q744-mb-double-bowl",
+  },
+  {
+    sku: "Q744 GB",
+    name: "Double Bowl",
+    collection: "Coke Smudge",
+    image: "coke-smudge-double-bowl.webp",
+    colors: "Bianco · Pluto",
+    size: "40 × 18 × 8.5",
+    thickness: "10 mm",
+    weight: "21 kg approx.",
+    sourceUrl: "https://prayagindia.com/q744-gb-double-bowl",
+  },
 ];
 
 function useQueryParams() {
@@ -125,7 +258,11 @@ export default function ProductsPage() {
                 transition={{ delay: 0.3 }}
                 className={`font-bold tracking-wide uppercase text-xs ${bannerUrl ? "text-[hsl(42,62%,68%)]" : "text-gray-500"}`}
               >
-                {data?.total ?? "..."} {productsPage.countText}
+                 {filters.category === "water-heaters"
+                   ? `${waterHeaterRange.length} official models`
+                   : filters.category === "kitchen-sinks"
+                     ? `${kitchenSinkRange.length} official variants`
+                     : `${data?.total ?? "..."} ${productsPage.countText}`}
               </motion.p>
             </div>
           </div>
@@ -236,40 +373,141 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {filters.category === "pipes-fittings" && (
-              <section className="mb-12 overflow-hidden rounded-[2rem] bg-[hsl(24,10%,16%)] text-white shadow-[0_22px_55px_-30px_rgba(42,28,18,0.85)]" data-testid="pipes-range-showcase">
-                <div className="relative overflow-hidden px-6 py-8 md:px-10 md:py-10">
-                  <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.2),transparent_68%)]" />
-                  <div className="relative flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                    <div>
-                      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.28em] text-[hsl(42,62%,68%)]">Official Prayag Range</p>
-                      <h2 className="font-serif-lux text-3xl md:text-4xl">Pipes &amp; Fittings, built right</h2>
-                      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60">Browse genuine product visuals from Prayag’s pipes and fittings collection, then open the matching catalogue range below.</p>
-                    </div>
-                    <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/45"><span className="h-1.5 w-1.5 rounded-full bg-[hsl(42,62%,68%)]" /> Verified product visuals</span>
+            {filters.category === "water-heaters" && (
+              <section className="relative mb-12 overflow-hidden rounded-[2rem] border border-[hsl(42,62%,68%)]/20 bg-[hsl(24,10%,11%)] text-white shadow-[0_24px_60px_-32px_rgba(42,28,18,0.95)]" data-testid="water-heater-range">
+                <div className="pointer-events-none absolute -right-24 -top-28 h-96 w-96 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.18),transparent_68%)]" />
+                <div className="pointer-events-none absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-[radial-gradient(circle,hsl(30,35%,30%,0.28),transparent_68%)]" />
+                <div className="relative flex flex-col gap-4 border-b border-white/10 px-6 py-8 md:flex-row md:items-end md:justify-between md:px-10 md:py-10">
+                  <div>
+                    <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(42,62%,68%)]">
+                      <span className="h-px w-8 bg-[hsl(42,62%,68%)]" /> Official Prayag Range
+                    </p>
+                    <h2 className="font-serif-lux text-3xl md:text-4xl">Heat, engineered beautifully</h2>
+                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60">
+                      Explore Prayag’s BEE 5 Star water-heater range, designed with durable tanks, heat retention and dependable everyday performance.
+                    </p>
                   </div>
+                  <span className="inline-flex items-center gap-2 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[hsl(42,62%,68%)]" /> 6L–50L capacity
+                  </span>
                 </div>
-                <div className="grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-3 lg:grid-cols-4">
-                  {pipesRangeHighlights.map((item, index) => (
-                    <Link
+                <div className="relative grid gap-px bg-white/10 sm:grid-cols-2 xl:grid-cols-4">
+                  {waterHeaterRange.map((item, index) => (
+                    <a
                       key={item.name}
-                      href="/products?category=pipes-fittings"
-                      className="group relative bg-white/[0.06] p-3 transition-colors hover:bg-white/[0.12] sm:p-4"
-                      data-testid={`card-pipes-range-${index}`}
+                      href={item.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group relative flex min-h-[29rem] flex-col bg-white/[0.045] p-4 transition-colors hover:bg-[hsl(38,52%,52%)]/[0.12] md:p-5"
+                      data-testid={`card-water-heater-${index}`}
                     >
-                      <div className="relative mb-3 aspect-square overflow-hidden rounded-xl bg-white p-3">
+                      <div className="relative mb-5 flex aspect-[1.05] items-center justify-center overflow-hidden rounded-[1.4rem] border border-white/10 bg-gradient-to-br from-white via-stone-100 to-stone-300 p-8">
                         <img
-                          src={`${import.meta.env.BASE_URL}images/drive/pipes-and-fittings-web/${item.image}`}
+                          src={`${import.meta.env.BASE_URL}images/drive/geyser/${item.image}`}
                           alt={item.name}
-                          className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110"
+                          className="relative z-[1] h-full w-full object-contain transition-transform duration-700 ease-out group-hover:scale-110"
                         />
-                        <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[hsl(24,10%,16%)] text-white opacity-0 transition-opacity group-hover:opacity-100">
-                          <ArrowUpRight className="h-3.5 w-3.5" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(255,255,255,0.92),transparent_58%)]" />
+                        <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(42,62%,68%)]/70 bg-[hsl(24,10%,16%)] text-[10px] font-black text-[hsl(42,62%,78%)]">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span className="absolute right-3 top-3 rounded-full border border-[hsl(24,10%,16%)]/15 bg-white/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[hsl(24,10%,16%)]">
+                          {item.orientation}
+                        </span>
+                        <span className="absolute inset-0 flex items-center justify-center bg-[hsl(24,10%,10%)]/55 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[hsl(42,62%,68%)] bg-black/30 text-[hsl(42,62%,68%)] backdrop-blur-sm">
+                            <ArrowUpRight className="h-5 w-5" />
+                          </span>
                         </span>
                       </div>
-                      <p className="text-sm font-semibold text-white">{item.name}</p>
-                      <p className="mt-1 text-[10px] uppercase tracking-[0.13em] text-white/45">{item.detail}</p>
-                    </Link>
+                      <div className="flex flex-1 flex-col">
+                        <h3 className="font-serif-lux text-2xl text-white transition-colors group-hover:text-[hsl(42,62%,78%)]">{item.name}</h3>
+                        <p className="mt-1 text-xs text-white/55">{item.description}</p>
+                        <div className="mt-4 flex flex-wrap gap-1.5">
+                          {item.features.map((feature) => (
+                            <span key={feature} className="rounded-full border border-white/15 bg-white/[0.06] px-2.5 py-1 text-[9px] font-medium text-white/75">{feature}</span>
+                          ))}
+                        </div>
+                        <div className="mt-auto flex items-end justify-between gap-3 border-t border-white/10 pt-4">
+                          <div>
+                            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[hsl(42,62%,68%)]">{item.sizes}</p>
+                            <p className="mt-1 text-[10px] text-white/45">{item.application}</p>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/60 transition-colors group-hover:text-[hsl(42,62%,68%)]">
+                            Details <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          </span>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {filters.category === "kitchen-sinks" && (
+              <section className="relative mb-12 overflow-hidden rounded-[2rem] border border-[hsl(42,62%,68%)]/20 bg-[hsl(24,10%,11%)] text-white shadow-[0_24px_60px_-32px_rgba(42,28,18,0.95)]" data-testid="kitchen-sink-range">
+                <div className="pointer-events-none absolute -right-24 -top-28 h-96 w-96 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.18),transparent_68%)]" />
+                <div className="pointer-events-none absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-[radial-gradient(circle,hsl(30,35%,30%,0.28),transparent_68%)]" />
+                <div className="relative flex flex-col gap-4 border-b border-white/10 px-6 py-8 md:flex-row md:items-end md:justify-between md:px-10 md:py-10">
+                  <div>
+                    <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(42,62%,68%)]">
+                      <span className="h-px w-8 bg-[hsl(42,62%,68%)]" /> Official Prayag Range
+                    </p>
+                    <h2 className="font-serif-lux text-3xl md:text-4xl">Built for the heart of home</h2>
+                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60">
+                      Explore Prayag’s durable kitchen-sink collections, with smooth non-porous surfaces, heat and scratch resistance, and hygienic everyday performance.
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-2 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[hsl(42,62%,68%)]" /> Official size & material details
+                  </span>
+                </div>
+                <div className="relative grid gap-px bg-white/10 sm:grid-cols-2 xl:grid-cols-3">
+                  {kitchenSinkRange.map((item, index) => (
+                    <a
+                      key={item.sku}
+                      href={item.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group relative flex min-h-[28rem] flex-col bg-white/[0.045] p-4 transition-colors hover:bg-[hsl(38,52%,52%)]/[0.12] md:p-5"
+                      data-testid={`card-kitchen-sink-${item.sku.toLowerCase().replace(/\s+/g, "-")}`}
+                    >
+                      <div className="relative mb-5 flex aspect-[1.25] items-center justify-center overflow-hidden rounded-[1.4rem] border border-white/10 bg-gradient-to-br from-white via-stone-100 to-stone-300 p-5">
+                        <img
+                          src={`${import.meta.env.BASE_URL}images/drive/kitchen-sinks-web/${item.image}`}
+                          alt={`${item.collection} ${item.name}`}
+                          className="relative z-[1] h-full w-full object-contain transition-transform duration-700 ease-out group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(255,255,255,0.92),transparent_58%)]" />
+                        <span className="absolute left-3 top-3 flex h-8 min-w-8 items-center justify-center rounded-full border border-[hsl(42,62%,68%)]/70 bg-[hsl(24,10%,16%)] px-2 text-[9px] font-black text-[hsl(42,62%,78%)]">
+                          {item.sku}
+                        </span>
+                        <span className="absolute inset-0 flex items-center justify-center bg-[hsl(24,10%,10%)]/55 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[hsl(42,62%,68%)] bg-black/30 text-[hsl(42,62%,68%)] backdrop-blur-sm">
+                            <ArrowUpRight className="h-5 w-5" />
+                          </span>
+                        </span>
+                      </div>
+                      <div className="flex flex-1 flex-col">
+                        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[hsl(42,62%,68%)]">{item.collection}</p>
+                        <h3 className="mt-1 font-serif-lux text-2xl text-white transition-colors group-hover:text-[hsl(42,62%,78%)]">{item.name}</h3>
+                        <div className="mt-4 flex flex-wrap gap-1.5">
+                          {["Smooth & non-porous", "Heat & scratch resistant", "Hygienic"].map((feature) => (
+                            <span key={feature} className="rounded-full border border-white/15 bg-white/[0.06] px-2.5 py-1 text-[9px] font-medium text-white/75">{feature}</span>
+                          ))}
+                        </div>
+                        <div className="mt-auto flex items-end justify-between gap-3 border-t border-white/10 pt-4">
+                          <div>
+                            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[hsl(42,62%,68%)]">{item.size}</p>
+                            <p className="mt-1 text-[10px] text-white/45">{item.thickness} · {item.weight}</p>
+                            <p className="mt-1 text-[10px] text-white/45">{item.colors}</p>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/60 transition-colors group-hover:text-[hsl(42,62%,68%)]">
+                            Details <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          </span>
+                        </div>
+                      </div>
+                    </a>
                   ))}
                 </div>
               </section>
@@ -334,7 +572,7 @@ export default function ProductsPage() {
                   </div>
                 )}
               </>
-            ) : (
+            ) : filters.category === "water-heaters" || filters.category === "kitchen-sinks" ? null : (
               <div className="text-center py-32 bg-white border border-gray-100 mt-4">
                 <div className="w-20 h-20 mx-auto border-2 border-gray-100 flex items-center justify-center rounded-full mb-6">
                   <SlidersHorizontal className="w-8 h-8 text-gray-300" />

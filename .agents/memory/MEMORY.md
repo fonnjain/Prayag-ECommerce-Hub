@@ -12,3 +12,5 @@
 - [Water tank category override](water-tank-category-override.md) — the external feed labels water tanks as Pipes & Fittings; classify WT/water-tank products under Storage Tanks.
 - [Mobile product page overflow](mobile-product-page-overflow.md) — header action widths and tab labels can expand mobile layouts; verify document width at 390px.
 - [Product photo approvals](product-photo-approvals.md) — approval overrides are exact SKU→manifest-path sets; sync reconciles only Drive-managed imagery.
+- [Official catalogue content](official-catalogue-content.md) — source-derived SKU details may be curated; direct Prayag image embeds are blocked, so use approved local assets only.
+- [Hero video playback](hero-video-playback.md) — use WebM/VP9 as the primary local hero-video format, with MP4 only as a fallback.
