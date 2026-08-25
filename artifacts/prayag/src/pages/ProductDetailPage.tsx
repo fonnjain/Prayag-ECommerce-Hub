@@ -107,6 +107,14 @@ export default function ProductDetailPage() {
   );
 
   const images = product.images && product.images.length > 0 ? product.images : [product.imageUrl || ""];
+  const curatedGalleryImages: Record<string, string[]> = {
+    "single-lever-basin-mixer-tall-body-without-popup-waste-system-p6652": [
+      "/images/drive/6000-virgo/p6652.webp",
+      "/images/products/p6652/p6652-details.jpg",
+      "/images/products/p6652/p6652-installation.png",
+    ],
+  };
+  const galleryImages = curatedGalleryImages[product.slug] ?? images;
   const discount = product.mrp > product.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
   const gstPercent = product.gstPercent ?? 18;
   const gstAmount = Math.round(product.price * (gstPercent / 100) * 100) / 100;
@@ -166,11 +174,11 @@ export default function ProductDetailPage() {
           <div className="xl:col-span-7 flex xl:h-[760px] flex-col-reverse lg:flex-row gap-6">
             {/* Thumbnail Column */}
             <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-y-auto lg:w-24 flex-shrink-0 scrollbar-hide pb-2 lg:pb-0">
-              {images.map((img, i) => (
+              {galleryImages.map((img, i) => (
                 <button key={i} onClick={() => setActiveImg(i)}
                   className={`relative w-20 lg:w-full aspect-square flex-shrink-0 bg-white border transition-all duration-300 ${activeImg === i ? "border-[hsl(24,10%,16%)] ring-1 ring-[hsl(24,10%,16%)] ring-offset-2 ring-offset-[#FAF9F7]" : "border-gray-200 hover:border-gray-400 opacity-60 hover:opacity-100"}`}
                   data-testid={`button-img-thumb-${i}`}>
-                  <img src={img || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=200&fit=crop"} alt="" className="w-full h-full object-contain p-2 mix-blend-multiply" />
+                  <img src={img} alt={`${product.name} view ${i + 1}`} className="w-full h-full object-contain p-2 mix-blend-multiply" />
                 </button>
               ))}
             </div>
@@ -185,7 +193,7 @@ export default function ProductDetailPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
-                  src={images[activeImg] || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1200&h=1200&fit=crop"}
+                  src={galleryImages[activeImg]}
                   alt={product.name}
                   className="w-full h-full object-contain mix-blend-multiply relative z-10"
                   data-testid="img-product-main"

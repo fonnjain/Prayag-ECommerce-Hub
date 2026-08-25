@@ -1,11 +1,23 @@
 import { useState, useEffect } from "react";
-import { useLocation, useSearch } from "wouter";
-import { Grid3X3, List, SlidersHorizontal, X, ChevronDown, Check } from "lucide-react";
+import { Link, useLocation, useSearch } from "wouter";
+import { Grid3X3, List, SlidersHorizontal, X, ChevronDown, Check, ArrowUpRight } from "lucide-react";
 import { useListProducts, useListCategories, getListProductsQueryKey } from "@workspace/api-client-react";
 import ProductCard from "@/components/ProductCard";
 import { useSiteContent } from "@/lib/siteContent";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
+
+const pipesRangeHighlights = [
+  { name: "CPVC Pipes", detail: "Hot & cold water", image: "cpvc-pipes.webp" },
+  { name: "UPVC Pipes", detail: "Reliable plumbing", image: "upvc-pipes.webp" },
+  { name: "PVC-O Pipes", detail: "High-flow systems", image: "pvc-o-pipes.webp" },
+  { name: "Single Y With Door", detail: "Drainage fitting", image: "single-y-with-door-selfit.webp" },
+  { name: "Tee With Door", detail: "Easy access fitting", image: "tee-with-door-selfit.webp" },
+  { name: "Tee", detail: "Three-way connection", image: "tee.webp" },
+  { name: "Coupler", detail: "Secure pipe joint", image: "coupler.webp" },
+  { name: "Repair Coupler", detail: "Fast maintenance", image: "repair-coupler.webp" },
+  { name: "Vent Cowl", detail: "Drainage ventilation", image: "vent-cowl.webp" },
+];
 
 function useQueryParams() {
   const search = typeof window !== "undefined" ? window.location.search : "";
@@ -123,30 +135,32 @@ export default function ProductsPage() {
       <div className="max-w-[1400px] mx-auto px-6 py-10">
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Elegant Sidebar */}
-          <aside className={`w-full lg:w-64 flex-shrink-0 ${showFilters ? "block" : "hidden"} lg:block`}>
-            <div className="sticky top-28 space-y-8">
-              <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-                <h3 className="font-serif-lux text-xl text-gray-900">Refine By</h3>
-                <button onClick={clearFilters} className="text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-gray-900 transition-colors">Clear</button>
+          <aside className={`w-full flex-shrink-0 lg:w-64 ${showFilters ? "block" : "hidden"} lg:block`}>
+            <div className="sticky top-28 overflow-hidden rounded-[1.5rem] border border-[hsl(38,52%,52%)]/30 bg-[linear-gradient(165deg,#3a2a1d_0%,#261d17_58%,#1d1814_100%)] p-5 text-white shadow-[0_20px_45px_-28px_rgba(42,28,18,0.95)]">
+              <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.2),transparent_68%)]" />
+              <div className="relative space-y-8">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <h3 className="font-serif-lux text-xl text-[hsl(42,62%,78%)]">Refine By</h3>
+                <button onClick={clearFilters} className="text-xs font-bold uppercase tracking-wider text-[hsl(42,62%,68%)] transition-colors hover:text-white">Clear</button>
               </div>
 
               {/* Category */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-4">Category</h4>
+                <h4 className="mb-4 text-xs font-bold uppercase tracking-wider text-[hsl(42,62%,68%)]">Category</h4>
                 <div className="space-y-3">
                   <label className="flex items-center gap-3 cursor-pointer group">
-                    <div className={`w-4 h-4 border flex items-center justify-center transition-colors ${!filters.category ? 'border-[hsl(24,10%,16%)] bg-[hsl(24,10%,16%)]' : 'border-gray-300 group-hover:border-[hsl(24,10%,16%)]'}`}>
-                      {!filters.category && <Check className="w-3 h-3 text-white" />}
+                    <div className={`flex h-4 w-4 items-center justify-center border transition-colors ${!filters.category ? 'border-[hsl(42,62%,68%)] bg-[hsl(42,62%,68%)]' : 'border-white/30 group-hover:border-[hsl(42,62%,68%)]'}`}>
+                      {!filters.category && <Check className="h-3 w-3 text-[hsl(24,10%,16%)]" />}
                     </div>
-                    <span className={`text-sm transition-colors ${!filters.category ? 'text-[hsl(24,10%,16%)] font-semibold' : 'text-gray-600 group-hover:text-gray-900'}`}>All Collections</span>
+                    <span className={`text-sm transition-colors ${!filters.category ? 'font-semibold text-white' : 'text-white/60 group-hover:text-white'}`}>All Collections</span>
                     <input type="radio" name="cat" checked={!filters.category} onChange={() => updateFilter("category", "")} className="hidden" />
                   </label>
                   {(categories || []).map(c => (
                     <label key={c.id} className="flex items-center gap-3 cursor-pointer group">
-                      <div className={`w-4 h-4 border flex items-center justify-center transition-colors ${filters.category === c.slug ? 'border-[hsl(24,10%,16%)] bg-[hsl(24,10%,16%)]' : 'border-gray-300 group-hover:border-[hsl(24,10%,16%)]'}`}>
-                        {filters.category === c.slug && <Check className="w-3 h-3 text-white" />}
+                      <div className={`flex h-4 w-4 items-center justify-center border transition-colors ${filters.category === c.slug ? 'border-[hsl(42,62%,68%)] bg-[hsl(42,62%,68%)]' : 'border-white/30 group-hover:border-[hsl(42,62%,68%)]'}`}>
+                        {filters.category === c.slug && <Check className="h-3 w-3 text-[hsl(24,10%,16%)]" />}
                       </div>
-                      <span className={`text-sm transition-colors ${filters.category === c.slug ? 'text-[hsl(24,10%,16%)] font-semibold' : 'text-gray-600 group-hover:text-gray-900'}`}>{c.name}</span>
+                      <span className={`text-sm transition-colors ${filters.category === c.slug ? 'font-semibold text-white' : 'text-white/60 group-hover:text-white'}`}>{c.name}</span>
                       <input type="radio" name="cat" checked={filters.category === c.slug} onChange={() => updateFilter("category", c.slug)} className="hidden" />
                     </label>
                   ))}
@@ -154,32 +168,33 @@ export default function ProductsPage() {
               </div>
 
               {/* Price */}
-              <div className="pt-6 border-t border-gray-200">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-4">Price Scope</h4>
+              <div className="border-t border-white/10 pt-6">
+                <h4 className="mb-4 text-xs font-bold uppercase tracking-wider text-[hsl(42,62%,68%)]">Price Scope</h4>
                 <div className="flex items-center gap-3">
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-[hsl(42,62%,68%)]">₹</span>
                     <input type="number" placeholder="Min" value={filters.minPrice} onChange={e => updateFilter("minPrice", e.target.value)}
-                      className="w-full border border-gray-200 bg-white rounded-none pl-7 pr-2 py-2 text-sm outline-none focus:border-[hsl(24,10%,16%)] transition-colors" />
+                      className="w-full rounded-xl border border-white/15 bg-white/[0.08] py-2 pl-7 pr-2 text-sm text-white outline-none transition-colors placeholder:text-white/40 focus:border-[hsl(42,62%,68%)] focus:bg-white/[0.12]" />
                   </div>
-                  <span className="text-gray-300">-</span>
+                  <span className="text-[hsl(42,62%,68%)]/60">-</span>
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-[hsl(42,62%,68%)]">₹</span>
                     <input type="number" placeholder="Max" value={filters.maxPrice} onChange={e => updateFilter("maxPrice", e.target.value)}
-                      className="w-full border border-gray-200 bg-white rounded-none pl-7 pr-2 py-2 text-sm outline-none focus:border-[hsl(24,10%,16%)] transition-colors" />
+                      className="w-full rounded-xl border border-white/15 bg-white/[0.08] py-2 pl-7 pr-2 text-sm text-white outline-none transition-colors placeholder:text-white/40 focus:border-[hsl(42,62%,68%)] focus:bg-white/[0.12]" />
                   </div>
                 </div>
               </div>
 
               {/* Availability */}
-              <div className="pt-6 border-t border-gray-200">
+              <div className="border-t border-white/10 pt-6">
                 <label className="flex items-center gap-3 cursor-pointer group">
-                  <div className={`w-4 h-4 border flex items-center justify-center transition-colors ${filters.inStock ? 'border-[hsl(24,10%,16%)] bg-[hsl(24,10%,16%)]' : 'border-gray-300 group-hover:border-[hsl(24,10%,16%)]'}`}>
-                    {filters.inStock && <Check className="w-3 h-3 text-white" />}
+                  <div className={`flex h-4 w-4 items-center justify-center border transition-colors ${filters.inStock ? 'border-[hsl(42,62%,68%)] bg-[hsl(42,62%,68%)]' : 'border-white/30 group-hover:border-[hsl(42,62%,68%)]'}`}>
+                    {filters.inStock && <Check className="h-3 w-3 text-[hsl(24,10%,16%)]" />}
                   </div>
-                  <span className={`text-sm transition-colors ${filters.inStock ? 'text-[hsl(24,10%,16%)] font-semibold' : 'text-gray-600 group-hover:text-gray-900'}`}>In Stock Only</span>
+                  <span className={`text-sm transition-colors ${filters.inStock ? 'font-semibold text-white' : 'text-white/60 group-hover:text-white'}`}>In Stock Only</span>
                   <input type="checkbox" checked={filters.inStock} onChange={e => updateFilter("inStock", e.target.checked)} className="hidden" />
                 </label>
+              </div>
               </div>
             </div>
           </aside>
@@ -220,6 +235,45 @@ export default function ProductsPage() {
                 </div>
               </div>
             </div>
+
+            {filters.category === "pipes-fittings" && (
+              <section className="mb-12 overflow-hidden rounded-[2rem] bg-[hsl(24,10%,16%)] text-white shadow-[0_22px_55px_-30px_rgba(42,28,18,0.85)]" data-testid="pipes-range-showcase">
+                <div className="relative overflow-hidden px-6 py-8 md:px-10 md:py-10">
+                  <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.2),transparent_68%)]" />
+                  <div className="relative flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                    <div>
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.28em] text-[hsl(42,62%,68%)]">Official Prayag Range</p>
+                      <h2 className="font-serif-lux text-3xl md:text-4xl">Pipes &amp; Fittings, built right</h2>
+                      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60">Browse genuine product visuals from Prayag’s pipes and fittings collection, then open the matching catalogue range below.</p>
+                    </div>
+                    <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/45"><span className="h-1.5 w-1.5 rounded-full bg-[hsl(42,62%,68%)]" /> Verified product visuals</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-3 lg:grid-cols-4">
+                  {pipesRangeHighlights.map((item, index) => (
+                    <Link
+                      key={item.name}
+                      href="/products?category=pipes-fittings"
+                      className="group relative bg-white/[0.06] p-3 transition-colors hover:bg-white/[0.12] sm:p-4"
+                      data-testid={`card-pipes-range-${index}`}
+                    >
+                      <div className="relative mb-3 aspect-square overflow-hidden rounded-xl bg-white p-3">
+                        <img
+                          src={`${import.meta.env.BASE_URL}images/drive/pipes-and-fittings-web/${item.image}`}
+                          alt={item.name}
+                          className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[hsl(24,10%,16%)] text-white opacity-0 transition-opacity group-hover:opacity-100">
+                          <ArrowUpRight className="h-3.5 w-3.5" />
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold text-white">{item.name}</p>
+                      <p className="mt-1 text-[10px] uppercase tracking-[0.13em] text-white/45">{item.detail}</p>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {isLoading ? (
               <div className={`grid gap-6 ${view === "grid" ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1"}`}>

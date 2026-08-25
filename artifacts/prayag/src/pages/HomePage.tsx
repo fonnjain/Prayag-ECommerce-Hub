@@ -101,16 +101,36 @@ function SectionHeader({ title, accent, href, icon: Icon }: { title: string; acc
   );
 }
 
+function selectDiverseShowcaseProducts<T extends { imageUrl?: string | null; categoryName?: string | null }>(products: T[], count: number) {
+  const verified = products.filter((product) => Boolean(product.imageUrl));
+  const preferredCategories = ["cp faucets", "storage tanks", "ptmt faucets"];
+  const selected: T[] = [];
+
+  for (const category of preferredCategories) {
+    const product = verified.find((candidate) =>
+      candidate.categoryName?.trim().toLowerCase() === category && !selected.includes(candidate),
+    );
+    if (product) selected.push(product);
+  }
+
+  for (const product of verified) {
+    if (selected.length >= count) break;
+    if (!selected.includes(product)) selected.push(product);
+  }
+
+  return selected.slice(0, count);
+}
+
 export default function HomePage() {
   const { data: categories, isLoading: catsLoading } = useListCategoriesWithCounts();
-  const { data: cpFaucetDeals, isLoading: cpDealsLoading } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 10 });
-  const { data: tankShowcase, isLoading: tankShowcaseLoading } = useListProducts({ category: "storage-tanks", sortBy: "photo_ready", limit: 4 });
+  const { data: cpFaucetDeals, isLoading: cpDealsLoading } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 14 });
+  const { data: showcaseProducts, isLoading: showcaseLoading } = useListProducts({ sortBy: "photo_ready", limit: 100 });
   const faucetScrollRef = useRef<HTMLDivElement>(null);
   const { section } = useSiteContent();
   const hero = section("hero");
   const heroFeatureProduct = cpFaucetDeals?.products.find((product) => Boolean(product.imageUrl));
-  const verifiedTankProducts = (tankShowcase?.products ?? []).filter((product) => Boolean(product.imageUrl)).slice(0, 4);
-  const verifiedFaucetProducts = (cpFaucetDeals?.products ?? []).filter((product) => Boolean(product.imageUrl)).slice(5, 10);
+  const diverseShowcaseProducts = selectDiverseShowcaseProducts(showcaseProducts?.products ?? [], 4);
+  const verifiedFaucetProducts = (cpFaucetDeals?.products ?? []).filter((product) => Boolean(product.imageUrl)).slice(5, 13);
   const heroFeatureName = heroFeatureProduct?.name ?? hero.featured.name;
   const heroFeatureImage = heroFeatureProduct?.imageUrl ?? hero.featured.image;
   const heroFeaturePrice = heroFeatureProduct?.price ?? hero.featured.price;
@@ -371,11 +391,11 @@ export default function HomePage() {
           {/* Best Sellers */}
           <Reveal>
             <SectionHeader title="Best" accent="Sellers" href="/products" icon={Award} />
-            {tankShowcaseLoading ? (
+            {showcaseLoading ? (
               <div className="grid grid-cols-2 gap-3">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}</div>
-            ) : verifiedTankProducts.length > 0 ? (
+            ) : diverseShowcaseProducts.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
-                {verifiedTankProducts.map(p => (
+                {diverseShowcaseProducts.map(p => (
                   <Link key={p.id} href={`/products/${p.slug}`}>
                     <motion.div whileHover={{ y: -6 }} className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:border-[hsl(38,52%,52%)]/60 hover:shadow-xl" data-testid={`card-bestseller-${p.id}`}>
                       <div className="relative aspect-square overflow-hidden bg-gradient-to-b from-stone-50 to-white p-3">
