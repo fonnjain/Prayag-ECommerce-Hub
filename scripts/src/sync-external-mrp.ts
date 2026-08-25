@@ -14,7 +14,8 @@
  * imported into the website until the source app exposes variant pricing or
  * creates variant item codes, as it does for sink variants such as -D/-DM.
  */
-import { db, pool, productsTable, categoriesTable } from "@workspace/db";
+import { db, pool, productsTable, categoriesTable, type PoolClient } from "@workspace/db";
+import { pathToFileURL } from "node:url";
 import { buildShortProductName } from "./product-name.js";
 import {
   readProductImageManifest,
@@ -31,9 +32,7 @@ const KEY = process.env.PRAYAG_COMP_KEY;
 const APPROVED_ROLLOUT_DATE = "2026-09-01";
 const PAGE_SIZE = 200;
 
-if (!KEY) throw new Error("PRAYAG_COMP_KEY is required");
-
-interface PrayagProduct {
+export interface PrayagProduct {
   itemCode: string;
   productName: string | null;
   division: string | null;
@@ -46,6 +45,24 @@ interface PrayagProduct {
   currentMrp: number | null;
   currentBasis: string | null;
   effectiveDate: string | null;
+}
+
+interface LocalProduct {
+  id: number;
+  sku: string;
+  slug: string;
+  in_stock: boolean;
+}
+
+export interface CatalogueSyncTransactionOptions {
+  feed: PrayagProduct[];
+  categoryBySlug: Map<string, number>;
+  fallbackCategory: number;
+  local: LocalProduct[];
+  imageIndex?: ProductImageIndex;
+  imageProductIds?: number[];
+  failAfterImageSync?: Error;
+  client?: PoolClient;
 }
 
 const DIVISION_TO_CATEGORY_SLUG: Record<string, string> = {
@@ -121,6 +138,7 @@ function specifications(row: PrayagProduct): string {
 }
 
 async function fetchCompleteFeed(asOf: string | null): Promise<PrayagProduct[]> {
+  if (!KEY) throw new Error("PRAYAG_COMP_KEY is required");
   const rows: PrayagProduct[] = [];
   let expectedTotal: number | undefined;
 
@@ -174,44 +192,19 @@ function validateFeed(rows: PrayagProduct[], asOf: string): PrayagProduct[] {
   return active;
 }
 
-async function main() {
-  const asOf = selectedAsOf();
-  console.log(`[${new Date().toISOString()}] Fetching Prayag MRP feed as of ${asOf}...`);
-  const asOfRows = await fetchCompleteFeed(asOf);
-  // Quirk in the source API: some newly added item codes (e.g. the -D/-DM sink
-  // variants added Mar 2026) are returned by the default (no-asOf) query but are
-  // absent from an explicit future-dated asOf query, even though their effective
-  // date is in the past. Merge in any code the dated snapshot misses, taking its
-  // current price from the default snapshot.
-  const defaultRows = await fetchCompleteFeed(null);
-  const seenCodes = new Set(asOfRows.map((r) => r.itemCode?.trim()));
-  const merged = [...asOfRows];
-  for (const row of defaultRows) {
-    const code = row.itemCode?.trim();
-    if (code && !seenCodes.has(code)) {
-      seenCodes.add(code);
-      merged.push(row);
-      console.log(`merged code missing from asOf snapshot: ${code} (MRP ${row.currentMrp}, effective ${row.effectiveDate})`);
-    }
-  }
-  const feed = validateFeed(merged, asOf);
-
-  const categories = await db.select().from(categoriesTable);
-  const categoryBySlug = new Map(categories.map((category) => [category.slug, category.id]));
-  const fallbackCategory = categoryBySlug.get("bathroom-accessories") ?? categories[0]?.id;
-  if (!fallbackCategory) throw new Error("No product category exists for Prayag catalogue sync");
-
-  const { rows: local } = await pool.query<{ id: number; sku: string; slug: string; in_stock: boolean }>(
-    "SELECT id, sku, slug, in_stock FROM products"
-  );
+export async function runCatalogueSyncTransaction({
+  feed,
+  categoryBySlug,
+  fallbackCategory,
+  local,
+  imageIndex = PRODUCT_IMAGE_INDEX,
+  imageProductIds,
+  failAfterImageSync,
+  client: providedClient,
+}: CatalogueSyncTransactionOptions): Promise<void> {
   const localBySku = new Map(local.map((row) => [row.sku, row]));
   const activeCodes = new Set(feed.map((row) => row.itemCode));
   const missingIds = local.filter((row) => row.in_stock && !activeCodes.has(row.sku)).map((row) => row.id);
-
-  // Refuse a feed that would unexpectedly remove most of the visible catalogue.
-  if (missingIds.length > local.length / 2 && feed.length < local.length / 2) {
-    throw new Error(`Refusing unsafe feed: ${feed.length} active rows versus ${local.length} local rows`);
-  }
 
   // Assign every slug up front in JS so unique-constraint collisions cannot
   // happen mid-transaction. Slugs of rows we are NOT renaming stay reserved;
@@ -238,7 +231,8 @@ async function main() {
 
   let updated = 0;
   let inserted = 0;
-  const client = await pool.connect();
+  const client = providedClient ?? await pool.connect();
+  const ownsClient = !providedClient;
   try {
     await client.query("BEGIN");
 
@@ -296,14 +290,18 @@ async function main() {
     // Do not replace manually managed product imagery. Drive-managed images
     // are reconciled on every sync, so a later approval replacement/removal
     // changes only the images this sync previously published.
+    const imageScope = imageProductIds ? " AND id = ANY($1::int[])" : "";
     const { rows: productsForImages } = await client.query<{ id: number; sku: string; image_url: string | null }>(
-      "SELECT id, sku, image_url FROM products WHERE in_stock = true",
+      `SELECT id, sku, image_url FROM products WHERE in_stock = true${imageScope}`,
+      imageProductIds ? [imageProductIds] : [],
     );
     const productsWithReconciledImages = await syncProductImagesInTransaction(
       client,
       productsForImages.map(({ id, sku, image_url: imageUrl }) => ({ id, sku, imageUrl })),
-      PRODUCT_IMAGE_INDEX,
+      imageIndex,
     );
+
+    if (failAfterImageSync) throw failAfterImageSync;
 
     await client.query("UPDATE products SET is_featured = false, is_new = false WHERE in_stock = true");
     await client.query("UPDATE products SET is_featured = true WHERE id IN (SELECT id FROM products WHERE in_stock = true ORDER BY mrp::numeric DESC LIMIT 12)");
@@ -321,11 +319,59 @@ async function main() {
     await client.query("ROLLBACK").catch(() => {});
     throw error;
   } finally {
-    client.release();
+    if (ownsClient) client.release();
   }
 }
 
-main().catch((error) => {
-  console.error("Prayag MRP sync failed:", error);
-  process.exit(1);
-});
+async function main() {
+  const asOf = selectedAsOf();
+  console.log(`[${new Date().toISOString()}] Fetching Prayag MRP feed as of ${asOf}...`);
+  const asOfRows = await fetchCompleteFeed(asOf);
+  // Quirk in the source API: some newly added item codes (e.g. the -D/-DM sink
+  // variants added Mar 2026) are returned by the default (no-asOf) query but are
+  // absent from an explicit future-dated asOf query, even though their effective
+  // date is in the past. Merge in any code the dated snapshot misses, taking its
+  // current price from the default snapshot.
+  const defaultRows = await fetchCompleteFeed(null);
+  const seenCodes = new Set(asOfRows.map((r) => r.itemCode?.trim()));
+  const merged = [...asOfRows];
+  for (const row of defaultRows) {
+    const code = row.itemCode?.trim();
+    if (code && !seenCodes.has(code)) {
+      seenCodes.add(code);
+      merged.push(row);
+      console.log(`merged code missing from asOf snapshot: ${code} (MRP ${row.currentMrp}, effective ${row.effectiveDate})`);
+    }
+  }
+  const feed = validateFeed(merged, asOf);
+
+  const categories = await db.select().from(categoriesTable);
+  const categoryBySlug = new Map(categories.map((category) => [category.slug, category.id]));
+  const fallbackCategory = categoryBySlug.get("bathroom-accessories") ?? categories[0]?.id;
+  if (!fallbackCategory) throw new Error("No product category exists for Prayag catalogue sync");
+
+  const { rows: local } = await pool.query<LocalProduct>(
+    "SELECT id, sku, slug, in_stock FROM products"
+  );
+  const activeCodes = new Set(feed.map((row) => row.itemCode));
+  const missingIds = local.filter((row) => row.in_stock && !activeCodes.has(row.sku)).map((row) => row.id);
+
+  // Refuse a feed that would unexpectedly remove most of the visible catalogue.
+  if (missingIds.length > local.length / 2 && feed.length < local.length / 2) {
+    throw new Error(`Refusing unsafe feed: ${feed.length} active rows versus ${local.length} local rows`);
+  }
+
+  await runCatalogueSyncTransaction({
+    feed,
+    categoryBySlug,
+    fallbackCategory,
+    local,
+  });
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error("Prayag MRP sync failed:", error);
+    process.exit(1);
+  });
+}
