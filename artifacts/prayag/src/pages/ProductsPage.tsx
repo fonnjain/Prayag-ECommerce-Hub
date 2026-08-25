@@ -16,7 +16,7 @@ const pipesRangeHighlights = [
   { name: "Tee", detail: "Three-way connection", image: "tee.webp" },
   { name: "Coupler", detail: "Secure pipe joint", image: "coupler.webp" },
   { name: "Repair Coupler", detail: "Fast maintenance", image: "repair-coupler.webp" },
-  { name: "Vent Cowl", detail: "Drainage ventilation", image: "vent-cowl.webp" },
+  { name: "Reducing Tee", detail: "SWR branch connection", image: "reducing-tee.webp" },
 ];
 
 function useQueryParams() {
