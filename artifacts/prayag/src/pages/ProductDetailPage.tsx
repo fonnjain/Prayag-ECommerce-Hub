@@ -178,26 +178,18 @@ export default function ProductDetailPage() {
             >
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0)_70%)]" />
               <AnimatePresence mode="wait">
-                <motion.div
+                <motion.img
                   key={activeImg}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: imageZoomed ? 1.8 : 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ opacity: { duration: 0.4 }, scale: { duration: 0.25, ease: "easeOut" } }}
-                  style={{
-                    width: "min(500px, 100%)",
-                    height: "min(500px, 100%)",
-                    transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
-                  }}
-                  className="relative z-10 max-h-full max-w-full"
-                >
-                  <img
-                    src={galleryImages[activeImg]}
-                    alt={product.name}
-                    className="h-full w-full object-contain mix-blend-multiply transition-[filter] duration-300"
-                    data-testid="img-product-main"
-                  />
-                </motion.div>
+                  src={galleryImages[activeImg]}
+                  alt={product.name}
+                  style={{ transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%` }}
+                  className="relative z-10 h-full w-full object-contain mix-blend-multiply transition-[filter] duration-300"
+                  data-testid="img-product-main"
+                />
               </AnimatePresence>
 
               <div className={`pointer-events-none absolute bottom-5 left-5 z-20 hidden items-center gap-2 rounded-full border border-black/10 bg-white/85 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[hsl(24,10%,16%)] shadow-sm backdrop-blur-sm transition-opacity duration-300 lg:flex ${imageZoomed ? "opacity-0" : "opacity-100"}`}>
