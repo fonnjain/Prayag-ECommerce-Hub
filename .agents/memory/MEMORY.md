@@ -14,3 +14,5 @@
 - [Product photo approvals](product-photo-approvals.md) — approval overrides are exact SKU→manifest-path sets; sync reconciles only Drive-managed imagery.
 - [Official catalogue content](official-catalogue-content.md) — source-derived SKU details may be curated; direct Prayag image embeds are blocked, so use approved local assets only.
 - [Hero video playback](hero-video-playback.md) — use WebM/VP9 as the primary local hero-video format, with MP4 only as a fallback.
+- [Hero media hierarchy](hero-media-hierarchy.md) — hero reels are full-bleed backgrounds; featured-series cards use synced static posters.
+- [Best Picks slider](best-picks-slider.md) — show four cards in a clipped 2×2 window; additional products loop upward continuously.

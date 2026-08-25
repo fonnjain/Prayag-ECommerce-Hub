@@ -152,6 +152,97 @@ const kitchenSinkRange = [
   },
 ];
 
+interface OfficialRangeCardProps {
+  name: string;
+  imageUrl: string;
+  alt: string;
+  eyebrow: string;
+  description: string;
+  chips: string[];
+  details: string[];
+  badge: string;
+  sourceUrl: string;
+  index: number;
+}
+
+function OfficialRangeCard({
+  name,
+  imageUrl,
+  alt,
+  eyebrow,
+  description,
+  chips,
+  details,
+  badge,
+  sourceUrl,
+  index,
+}: OfficialRangeCardProps) {
+  return (
+    <motion.a
+      href={sourceUrl}
+      target="_blank"
+      rel="noreferrer"
+      whileHover={{ y: -6 }}
+      className="group relative flex min-w-0 flex-col overflow-hidden rounded-[1.35rem] border border-[hsl(24,10%,16%)]/10 bg-white shadow-[0_12px_35px_-24px_rgba(42,28,18,0.75)] transition-all duration-500 hover:-translate-y-1 hover:border-[hsl(38,52%,45%)]/55 hover:shadow-[0_24px_50px_-24px_rgba(42,28,18,0.75)]"
+      data-testid={`card-official-range-${index}`}
+    >
+      <div className="relative aspect-[1.05] overflow-hidden border-b border-[hsl(24,10%,16%)]/8 bg-[#f4f0ea] p-4">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_36%,rgba(255,255,255,0.95),transparent_48%),linear-gradient(145deg,rgba(202,164,104,0.12),transparent_52%)]" />
+        <div className="pointer-events-none absolute inset-3 rounded-[1rem] border border-white/70" />
+        <img
+          src={imageUrl}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          className="relative z-[1] h-full w-full object-contain mix-blend-multiply transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+        />
+        <span className="absolute left-4 top-4 z-10 rounded-full border border-[hsl(38,52%,45%)]/25 bg-white/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-[hsl(24,10%,16%)] backdrop-blur-sm">
+          {badge}
+        </span>
+        <span className="absolute right-4 top-4 z-10 rounded-full border border-[hsl(38,52%,45%)]/20 bg-white/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[hsl(38,52%,40%)] backdrop-blur-sm">
+          Official
+        </span>
+        <span className="absolute inset-0 z-20 flex items-center justify-center bg-[hsl(24,10%,16%)]/45 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[hsl(42,62%,68%)] bg-black/30 text-[hsl(42,62%,68%)] backdrop-blur-sm">
+            <ArrowUpRight className="h-5 w-5" />
+          </span>
+        </span>
+      </div>
+
+      <div className="relative z-10 flex min-h-[19rem] flex-1 flex-col bg-white p-4 sm:p-5">
+        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[hsl(38,52%,45%)]">{eyebrow}</p>
+        <h3 className="mt-1 min-h-[3.5rem] font-serif-lux text-2xl leading-tight text-[hsl(24,10%,16%)] transition-colors group-hover:text-[hsl(38,52%,40%)]">
+          {name}
+        </h3>
+        <p className="mt-2 min-h-[2.5rem] text-xs leading-relaxed text-gray-500">{description}</p>
+        <div className="mt-4 flex min-h-[3.75rem] flex-wrap content-start gap-1.5">
+          {chips.map((chip) => (
+            <span key={chip} className="rounded-full border border-[hsl(24,10%,16%)]/10 bg-[#faf9f7] px-2.5 py-1 text-[9px] font-medium text-gray-600">
+              {chip}
+            </span>
+          ))}
+        </div>
+        <div className="mt-auto flex items-end justify-between gap-3 border-t border-gray-100 pt-4">
+          <div className="min-w-0">
+            {details.map((detail, detailIndex) => (
+              <p
+                key={detail}
+                className={`${detailIndex === 0 ? "font-bold uppercase tracking-[0.16em] text-[hsl(38,52%,45%)]" : "mt-1 text-gray-400"} max-w-[12rem] truncate text-[9px]`}
+              >
+                {detail}
+              </p>
+            ))}
+          </div>
+          <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-gray-500 transition-colors group-hover:text-[hsl(38,52%,40%)]">
+            Details <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </span>
+        </div>
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 h-1 origin-left scale-x-0 bg-[hsl(42,62%,68%)] transition-transform duration-500 group-hover:scale-x-100" />
+    </motion.a>
+  );
+}
+
 function useQueryParams() {
   const search = typeof window !== "undefined" ? window.location.search : "";
   return Object.fromEntries(new URLSearchParams(search).entries());
@@ -374,140 +465,72 @@ export default function ProductsPage() {
             </div>
 
             {filters.category === "water-heaters" && (
-              <section className="relative mb-12 overflow-hidden rounded-[2rem] border border-[hsl(42,62%,68%)]/20 bg-[hsl(24,10%,11%)] text-white shadow-[0_24px_60px_-32px_rgba(42,28,18,0.95)]" data-testid="water-heater-range">
-                <div className="pointer-events-none absolute -right-24 -top-28 h-96 w-96 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.18),transparent_68%)]" />
-                <div className="pointer-events-none absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-[radial-gradient(circle,hsl(30,35%,30%,0.28),transparent_68%)]" />
-                <div className="relative flex flex-col gap-4 border-b border-white/10 px-6 py-8 md:flex-row md:items-end md:justify-between md:px-10 md:py-10">
+              <section className="relative mb-12" data-testid="water-heater-range">
+                <div className="mb-7 flex flex-col gap-3 border-b border-gray-200 pb-6 md:flex-row md:items-end md:justify-between">
                   <div>
-                    <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(42,62%,68%)]">
-                      <span className="h-px w-8 bg-[hsl(42,62%,68%)]" /> Official Prayag Range
+                    <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(38,52%,45%)]">
+                      <span className="h-px w-8 bg-[hsl(38,52%,45%)]" /> Official Prayag Range
                     </p>
-                    <h2 className="font-serif-lux text-3xl md:text-4xl">Heat, engineered beautifully</h2>
-                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60">
+                    <h2 className="font-serif-lux text-3xl text-gray-900 md:text-4xl">Heat, engineered beautifully</h2>
+                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-500">
                       Explore Prayag’s BEE 5 Star water-heater range, designed with durable tanks, heat retention and dependable everyday performance.
                     </p>
                   </div>
-                  <span className="inline-flex items-center gap-2 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
+                  <span className="inline-flex items-center gap-2 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
                     <span className="h-1.5 w-1.5 rounded-full bg-[hsl(42,62%,68%)]" /> 6L–50L capacity
                   </span>
                 </div>
-                <div className="relative grid gap-px bg-white/10 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-4">
                   {waterHeaterRange.map((item, index) => (
-                    <a
+                    <OfficialRangeCard
                       key={item.name}
-                      href={item.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group relative flex min-h-[29rem] flex-col bg-white/[0.045] p-4 transition-colors hover:bg-[hsl(38,52%,52%)]/[0.12] md:p-5"
-                      data-testid={`card-water-heater-${index}`}
-                    >
-                      <div className="relative mb-5 flex aspect-[1.05] items-center justify-center overflow-hidden rounded-[1.4rem] border border-white/10 bg-gradient-to-br from-white via-stone-100 to-stone-300 p-8">
-                        <img
-                          src={`${import.meta.env.BASE_URL}images/drive/geyser/${item.image}`}
-                          alt={item.name}
-                          className="relative z-[1] h-full w-full object-contain transition-transform duration-700 ease-out group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(255,255,255,0.92),transparent_58%)]" />
-                        <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(42,62%,68%)]/70 bg-[hsl(24,10%,16%)] text-[10px] font-black text-[hsl(42,62%,78%)]">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                        <span className="absolute right-3 top-3 rounded-full border border-[hsl(24,10%,16%)]/15 bg-white/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[hsl(24,10%,16%)]">
-                          {item.orientation}
-                        </span>
-                        <span className="absolute inset-0 flex items-center justify-center bg-[hsl(24,10%,10%)]/55 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[hsl(42,62%,68%)] bg-black/30 text-[hsl(42,62%,68%)] backdrop-blur-sm">
-                            <ArrowUpRight className="h-5 w-5" />
-                          </span>
-                        </span>
-                      </div>
-                      <div className="flex flex-1 flex-col">
-                        <h3 className="font-serif-lux text-2xl text-white transition-colors group-hover:text-[hsl(42,62%,78%)]">{item.name}</h3>
-                        <p className="mt-1 text-xs text-white/55">{item.description}</p>
-                        <div className="mt-4 flex flex-wrap gap-1.5">
-                          {item.features.map((feature) => (
-                            <span key={feature} className="rounded-full border border-white/15 bg-white/[0.06] px-2.5 py-1 text-[9px] font-medium text-white/75">{feature}</span>
-                          ))}
-                        </div>
-                        <div className="mt-auto flex items-end justify-between gap-3 border-t border-white/10 pt-4">
-                          <div>
-                            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[hsl(42,62%,68%)]">{item.sizes}</p>
-                            <p className="mt-1 text-[10px] text-white/45">{item.application}</p>
-                          </div>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/60 transition-colors group-hover:text-[hsl(42,62%,68%)]">
-                            Details <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                          </span>
-                        </div>
-                      </div>
-                    </a>
+                      index={index}
+                      name={item.name}
+                      imageUrl={`${import.meta.env.BASE_URL}images/drive/geyser/${item.image}`}
+                      alt={item.name}
+                      eyebrow={item.description}
+                      description={`${item.orientation} water heater · ${item.application}`}
+                      chips={item.features}
+                      details={[item.sizes, item.application]}
+                      badge={item.orientation}
+                      sourceUrl={item.sourceUrl}
+                    />
                   ))}
                 </div>
               </section>
             )}
 
             {filters.category === "kitchen-sinks" && (
-              <section className="relative mb-12 overflow-hidden rounded-[2rem] border border-[hsl(42,62%,68%)]/20 bg-[hsl(24,10%,11%)] text-white shadow-[0_24px_60px_-32px_rgba(42,28,18,0.95)]" data-testid="kitchen-sink-range">
-                <div className="pointer-events-none absolute -right-24 -top-28 h-96 w-96 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.18),transparent_68%)]" />
-                <div className="pointer-events-none absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-[radial-gradient(circle,hsl(30,35%,30%,0.28),transparent_68%)]" />
-                <div className="relative flex flex-col gap-4 border-b border-white/10 px-6 py-8 md:flex-row md:items-end md:justify-between md:px-10 md:py-10">
+              <section className="relative mb-12" data-testid="kitchen-sink-range">
+                <div className="mb-7 flex flex-col gap-3 border-b border-gray-200 pb-6 md:flex-row md:items-end md:justify-between">
                   <div>
-                    <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(42,62%,68%)]">
-                      <span className="h-px w-8 bg-[hsl(42,62%,68%)]" /> Official Prayag Range
+                    <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(38,52%,45%)]">
+                      <span className="h-px w-8 bg-[hsl(38,52%,45%)]" /> Official Prayag Range
                     </p>
-                    <h2 className="font-serif-lux text-3xl md:text-4xl">Built for the heart of home</h2>
-                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60">
+                    <h2 className="font-serif-lux text-3xl text-gray-900 md:text-4xl">Built for the heart of home</h2>
+                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-500">
                       Explore Prayag’s durable kitchen-sink collections, with smooth non-porous surfaces, heat and scratch resistance, and hygienic everyday performance.
                     </p>
                   </div>
-                  <span className="inline-flex items-center gap-2 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
+                  <span className="inline-flex items-center gap-2 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
                     <span className="h-1.5 w-1.5 rounded-full bg-[hsl(42,62%,68%)]" /> Official size & material details
                   </span>
                 </div>
-                <div className="relative grid gap-px bg-white/10 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-4">
                   {kitchenSinkRange.map((item, index) => (
-                    <a
+                    <OfficialRangeCard
                       key={item.sku}
-                      href={item.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group relative flex min-h-[28rem] flex-col bg-white/[0.045] p-4 transition-colors hover:bg-[hsl(38,52%,52%)]/[0.12] md:p-5"
-                      data-testid={`card-kitchen-sink-${item.sku.toLowerCase().replace(/\s+/g, "-")}`}
-                    >
-                      <div className="relative mb-5 flex aspect-[1.25] items-center justify-center overflow-hidden rounded-[1.4rem] border border-white/10 bg-gradient-to-br from-white via-stone-100 to-stone-300 p-5">
-                        <img
-                          src={`${import.meta.env.BASE_URL}images/drive/kitchen-sinks-web/${item.image}`}
-                          alt={`${item.collection} ${item.name}`}
-                          className="relative z-[1] h-full w-full object-contain transition-transform duration-700 ease-out group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(255,255,255,0.92),transparent_58%)]" />
-                        <span className="absolute left-3 top-3 flex h-8 min-w-8 items-center justify-center rounded-full border border-[hsl(42,62%,68%)]/70 bg-[hsl(24,10%,16%)] px-2 text-[9px] font-black text-[hsl(42,62%,78%)]">
-                          {item.sku}
-                        </span>
-                        <span className="absolute inset-0 flex items-center justify-center bg-[hsl(24,10%,10%)]/55 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[hsl(42,62%,68%)] bg-black/30 text-[hsl(42,62%,68%)] backdrop-blur-sm">
-                            <ArrowUpRight className="h-5 w-5" />
-                          </span>
-                        </span>
-                      </div>
-                      <div className="flex flex-1 flex-col">
-                        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[hsl(42,62%,68%)]">{item.collection}</p>
-                        <h3 className="mt-1 font-serif-lux text-2xl text-white transition-colors group-hover:text-[hsl(42,62%,78%)]">{item.name}</h3>
-                        <div className="mt-4 flex flex-wrap gap-1.5">
-                          {["Smooth & non-porous", "Heat & scratch resistant", "Hygienic"].map((feature) => (
-                            <span key={feature} className="rounded-full border border-white/15 bg-white/[0.06] px-2.5 py-1 text-[9px] font-medium text-white/75">{feature}</span>
-                          ))}
-                        </div>
-                        <div className="mt-auto flex items-end justify-between gap-3 border-t border-white/10 pt-4">
-                          <div>
-                            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[hsl(42,62%,68%)]">{item.size}</p>
-                            <p className="mt-1 text-[10px] text-white/45">{item.thickness} · {item.weight}</p>
-                            <p className="mt-1 text-[10px] text-white/45">{item.colors}</p>
-                          </div>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/60 transition-colors group-hover:text-[hsl(42,62%,68%)]">
-                            Details <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                          </span>
-                        </div>
-                      </div>
-                    </a>
+                      index={index}
+                      name={item.name}
+                      imageUrl={`${import.meta.env.BASE_URL}images/drive/kitchen-sinks-web/${item.image}`}
+                      alt={`${item.collection} ${item.name}`}
+                      eyebrow={item.collection}
+                      description="Official Prayag kitchen-sink variant"
+                      chips={["Smooth & non-porous", "Heat & scratch resistant", "Hygienic"]}
+                      details={[item.size, `${item.thickness} · ${item.weight}`, item.colors]}
+                      badge={item.sku}
+                      sourceUrl={item.sourceUrl}
+                    />
                   ))}
                 </div>
               </section>

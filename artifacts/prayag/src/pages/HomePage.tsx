@@ -125,6 +125,66 @@ function SectionHeader({ title, accent, href, icon: Icon }: { title: string; acc
   );
 }
 
+function NewArrivalCard({ product }: { product: {
+  id: number;
+  slug: string;
+  sku?: string | null;
+  name: string;
+  imageUrl?: string | null;
+  categoryName?: string | null;
+  price: number;
+  mrp: number;
+  rating: number;
+} }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const whiteText = isHovered ? { color: "#ffffff" } : undefined;
+  const lightText = isHovered ? { color: "rgba(255,255,255,0.75)" } : undefined;
+
+  return (
+    <Link href={`/products/${product.slug}`}>
+      <div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={isHovered ? {
+          backgroundColor: "hsl(34 42% 34%)",
+          borderColor: "hsl(42 62% 68% / 0.8)",
+          boxShadow: "0 14px 28px -16px rgba(92,58,25,0.65)",
+        } : undefined}
+        className="group flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-2.5 shadow-sm transition-all duration-300 hover:-translate-y-0.5"
+        data-testid={`card-new-arrival-${product.id}`}
+      >
+        <div className="flex h-[74px] w-[74px] flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-stone-50 to-white p-2">
+          <img loading="lazy" decoding="async" src={product.imageUrl!} alt={product.name} className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <SkuBadge
+            sku={product.sku ?? "—"}
+            className="mb-1"
+            style={isHovered ? {
+              borderColor: "rgba(255,255,255,0.4)",
+              backgroundColor: "rgba(255,255,255,0.1)",
+              color: "#ffffff",
+            } : undefined}
+          />
+          <div style={whiteText} className="line-clamp-2 text-sm font-semibold leading-tight text-gray-800 transition-colors">{product.name}</div>
+          <div className="mt-1 flex items-center gap-1.5">
+            <span style={lightText} className="text-[10px] font-semibold text-gray-500 transition-colors">{product.categoryName}</span>
+            <span style={isHovered ? { backgroundColor: "rgba(255,255,255,0.4)" } : undefined} className="h-1 w-1 rounded-full bg-gray-300 transition-colors" />
+            <span className="inline-flex items-center gap-0.5 text-[hsl(38,52%,52%)]">
+              <Star className="h-2.5 w-2.5 fill-current" />
+              <span style={whiteText} className="text-[9px] transition-colors">{product.rating.toFixed(1)}</span>
+            </span>
+          </div>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <div style={whiteText} className="font-black text-sm text-[hsl(24,10%,16%)] transition-colors">₹{Number(product.price).toLocaleString("en-IN")}</div>
+          {product.mrp > product.price && <div style={lightText} className="text-[9px] text-gray-400 transition-colors line-through">₹{Number(product.mrp).toLocaleString("en-IN")}</div>}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function BestSellerSlider({ products }: { products: Array<{
   id: number;
   slug: string;
@@ -137,19 +197,21 @@ function BestSellerSlider({ products }: { products: Array<{
   rating: number;
   reviewCount: number;
 }> }) {
-  const viewportRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
-  const [rowIndex, setRowIndex] = useState(0);
+  const offsetRef = useRef(0);
+  const trackY = useMotionValue(0);
   const [rowHeight, setRowHeight] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const gap = 12;
+  const visibleRows = 2;
   const rows = Array.from({ length: Math.ceil(products.length / 2) }, (_, index) => products.slice(index * 2, index * 2 + 2));
   const loopRows = [...rows, ...rows];
+  const viewportHeight = rowHeight ? rowHeight * visibleRows + gap * (visibleRows - 1) : undefined;
 
   useEffect(() => {
     const row = rowRef.current;
     if (!row) return;
 
-    const measure = () => setRowHeight(row.getBoundingClientRect().height + 12);
+    const measure = () => setRowHeight(row.getBoundingClientRect().height);
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(row);
@@ -157,42 +219,51 @@ function BestSellerSlider({ products }: { products: Array<{
   }, [products.length]);
 
   useEffect(() => {
-    if (paused || rows.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = window.setInterval(() => setRowIndex((index) => index + 1), 4500);
-    return () => window.clearInterval(timer);
-  }, [paused, rows.length]);
+    if (rowHeight === 0 || rows.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-  useEffect(() => {
-    if (rowIndex < rows.length) return;
-    const reset = window.setTimeout(() => setRowIndex((index) => index - rows.length), 750);
-    return () => window.clearTimeout(reset);
-  }, [rowIndex, rows.length]);
+    const loopDistance = rows.length * (rowHeight + gap);
+    offsetRef.current %= loopDistance;
+    trackY.set(-offsetRef.current);
+
+    let frame = 0;
+    let previousTime = performance.now();
+    const tick = (time: number) => {
+      const elapsed = Math.min(time - previousTime, 80);
+      previousTime = time;
+      const nextOffset = offsetRef.current + elapsed * 0.045;
+      offsetRef.current = nextOffset >= loopDistance ? nextOffset - loopDistance : nextOffset;
+      trackY.set(-offsetRef.current);
+      frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [rowHeight, rows.length, trackY]);
 
   function moveRow(direction: "up" | "down") {
-    setRowIndex((index) => {
-      const next = direction === "down" ? index + 1 : index - 1;
-      return next < 0 ? rows.length - 1 : next;
-    });
+    if (rowHeight === 0 || rows.length < 2) return;
+    const loopDistance = rows.length * (rowHeight + gap);
+    const step = rowHeight + gap;
+    const nextOffset = offsetRef.current + (direction === "down" ? step : -step);
+    offsetRef.current = (nextOffset + loopDistance) % loopDistance;
+    trackY.set(-offsetRef.current);
   }
 
   return (
     <div
-      ref={viewportRef}
       className="relative overflow-hidden"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      style={viewportHeight ? { height: viewportHeight } : undefined}
       data-testid="best-seller-vertical-slider"
     >
       <motion.div
-        animate={{ y: rowHeight ? -(rowIndex * rowHeight) : 0 }}
-        transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+        style={{ y: trackY }}
         className="flex flex-col gap-3"
       >
         {loopRows.map((row, index) => (
           <div
             key={`best-seller-row-${index}`}
             ref={index === 0 ? rowRef : undefined}
-            className="grid h-[410px] flex-shrink-0 grid-cols-2 gap-3 md:h-[470px]"
+            className="grid h-[340px] flex-shrink-0 grid-cols-2 gap-3 md:h-[470px]"
           >
             {row.map((p) => (
               <Link key={`${p.id}-${index}`} href={`/products/${p.slug}`} className="min-w-0">
@@ -289,7 +360,7 @@ export default function HomePage() {
   const collectionProducts = collectionQueries.flatMap((query) => query.data?.products ?? []);
   const showcaseLoading = catsLoading || collectionQueries.some((query) => query.isLoading);
   const categoryShowcaseProducts = selectCategoryShowcaseProducts(collectionProducts, 6);
-  const bestSellerProducts = categoryShowcaseProducts.slice(0, 4);
+  const bestSellerProducts = categoryShowcaseProducts;
   const newArrivalProducts = categoryShowcaseProducts.slice(4, 12);
   const collectionCards = section("collections").cards;
   const trustItems = section("trust").items;
@@ -346,10 +417,33 @@ export default function HomePage() {
         {/* animated blobs */}
         <div className="absolute top-[-120px] right-[10%] w-96 h-96 bg-[hsl(38,52%,52%)]/25 blur-3xl animate-blob" />
         <div className="absolute bottom-[-140px] left-[5%] w-[28rem] h-[28rem] bg-[hsl(24,9%,26%)]/20 blur-3xl animate-blob" style={{ animationDelay: "-6s" }} />
-        <img src={hero.backgroundImage || heroFaucet} alt="Luxury Prayag bathroom with gold fixtures" className="absolute inset-0 w-full h-full object-cover opacity-50" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[hsl(24,12%,8%)]/90 via-[hsl(24,12%,8%)]/55 to-transparent" />
+        <img src={hero.backgroundImage || heroFaucet} alt="Luxury Prayag bathroom with gold fixtures" className="absolute inset-0 w-full h-full object-cover opacity-35" />
+        <div className="absolute inset-0 z-0 overflow-hidden bg-[hsl(24,12%,8%)]">
+          <AnimatePresence mode="sync" initial={false}>
+            <motion.video
+              key={`hero-background-${heroCarouselItems[carouselIdx].video}`}
+              poster={`${import.meta.env.BASE_URL}${heroCarouselItems[carouselIdx].poster}`}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              initial={{ opacity: 0, scale: 1.04 }}
+              animate={{ opacity: 0.48, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{ duration: 1.1, ease: "easeOut" }}
+              className="absolute inset-0 h-full w-full object-cover"
+              aria-hidden="true"
+              tabIndex={-1}
+            >
+              <source src={`${import.meta.env.BASE_URL}${heroCarouselItems[carouselIdx].video}`} type="video/webm" />
+              <source src={`${import.meta.env.BASE_URL}${heroCarouselItems[carouselIdx].fallbackVideo}`} type="video/mp4" />
+            </motion.video>
+          </AnimatePresence>
+        </div>
+        <div className="absolute inset-0 z-[1] bg-gradient-to-r from-[hsl(24,12%,8%)]/90 via-[hsl(24,12%,8%)]/60 to-[hsl(24,12%,8%)]/20" />
 
-        <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-20 grid lg:grid-cols-2 gap-10 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 py-16 md:py-20 grid lg:grid-cols-2 gap-10 items-center">
           {/* Left */}
           <div className="text-white">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
@@ -411,24 +505,16 @@ export default function HomePage() {
               </div>
 
               <AnimatePresence mode="sync" initial={false}>
-                <motion.video
-                  key={heroCarouselItems[carouselIdx].video}
-                  poster={`${import.meta.env.BASE_URL}${heroCarouselItems[carouselIdx].poster}`}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
+                <motion.img
+                  key={`featured-poster-${heroCarouselItems[carouselIdx].poster}`}
+                  src={`${import.meta.env.BASE_URL}${heroCarouselItems[carouselIdx].poster}`}
                   initial={{ clipPath: "inset(0 100% 0 0)", scale: 1.08 }}
                   animate={{ clipPath: "inset(0 0% 0 0)", scale: 1 }}
                   exit={{ clipPath: "inset(0 0 0 100%)", scale: 1.04 }}
                   transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                   className="absolute inset-0 h-full w-full object-cover"
-                  aria-label={`${heroCarouselItems[carouselIdx].title} product video`}
-                >
-                  <source src={`${import.meta.env.BASE_URL}${heroCarouselItems[carouselIdx].video}`} type="video/webm" />
-                  <source src={`${import.meta.env.BASE_URL}${heroCarouselItems[carouselIdx].fallbackVideo}`} type="video/mp4" />
-                </motion.video>
+                  alt={`${heroCarouselItems[carouselIdx].title} featured series`}
+                />
               </AnimatePresence>
 
               {/* Overlay Content */}
@@ -700,22 +786,7 @@ export default function HomePage() {
               <div className="space-y-2.5">
                 {newArrivalProducts.map((p, i) => (
                   <motion.div key={p.id} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}>
-                    <Link href={`/products/${p.slug}`}>
-                      <div className="group flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-2.5 shadow-sm transition-all hover:border-[hsl(38,52%,52%)]/60 hover:shadow-md" data-testid={`card-new-arrival-${p.id}`}>
-                        <div className="flex h-[74px] w-[74px] flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-stone-50 to-white p-2">
-                          <img loading="lazy" decoding="async" src={p.imageUrl!} alt={p.name} className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <SkuBadge sku={p.sku} className="mb-1" />
-                          <div className="line-clamp-2 text-sm font-semibold leading-tight text-gray-800 transition-colors group-hover:text-[hsl(24,10%,16%)]">{p.name}</div>
-                          <div className="mt-1 flex items-center gap-1.5"><span className="text-[10px] font-semibold text-gray-500">{p.categoryName}</span><span className="h-1 w-1 rounded-full bg-gray-300" /><span className="inline-flex items-center gap-0.5 text-[hsl(38,52%,52%)]"><Star className="h-2.5 w-2.5 fill-current" /> <span className="text-[9px]">{p.rating.toFixed(1)}</span></span></div>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <div className="font-black text-sm text-[hsl(24,10%,16%)]">₹{Number(p.price).toLocaleString("en-IN")}</div>
-                          {p.mrp > p.price && <div className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</div>}
-                        </div>
-                      </div>
-                    </Link>
+                    <NewArrivalCard product={p} />
                   </motion.div>
                 ))}
               </div>

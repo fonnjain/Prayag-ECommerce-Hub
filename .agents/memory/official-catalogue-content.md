@@ -13,4 +13,4 @@ The official Kitchen Sinks Q-series range (Q748, Q752, Q732, Q740, Q736, and Q74
 
 **Why:** Publishing a guessed price would create an inaccurate purchasable listing.
 
-**How to apply:** Present this range as official, non-priced catalogue content with exact local-image and source-page mappings. Only convert variants into normal purchasable product records when a real MRP source exposes the matching item codes.
+**How to apply:** Present this range in the store’s standard light catalogue-card visual language, but keep it official and non-priced with exact local-image and source-page mappings. Only convert variants into normal purchasable product records when a real MRP source exposes the matching item codes.
