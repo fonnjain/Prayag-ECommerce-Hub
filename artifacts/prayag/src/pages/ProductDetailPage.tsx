@@ -46,7 +46,7 @@ export default function ProductDetailPage() {
       const loopWidth = track.scrollWidth / 2;
 
       if (loopWidth > track.clientWidth) {
-        track.scrollLeft += elapsed * 0.035;
+        track.scrollLeft += elapsed * 0.085;
         if (track.scrollLeft >= loopWidth) track.scrollLeft -= loopWidth;
       }
       frame = requestAnimationFrame(tick);

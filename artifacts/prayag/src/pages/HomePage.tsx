@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView, useMotionValue, useSpring, animate } from "framer-motion";
-import { ArrowRight, ChevronRight, ChevronLeft, Shield, Truck, Award, RefreshCw, BadgeCheck, Headphones, Tag, Star, Droplets, Sparkles, Package } from "lucide-react";
+import { ArrowRight, ChevronRight, ChevronLeft, Shield, Truck, Award, RefreshCw, BadgeCheck, Headphones, Tag, Star, Droplets, Sparkles, Package, Eye } from "lucide-react";
 import { getListProductsQueryOptions, useListCategoriesWithCounts, useListProducts, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart } from "lucide-react";
@@ -149,7 +149,6 @@ export default function HomePage() {
   const heroFeatureReviews = heroFeatureProduct?.reviewCount ?? hero.featured.reviews;
   const heroFeatureLink = heroFeatureProduct ? `/products/${heroFeatureProduct.slug}` : hero.featured.link;
   const collectionCards = section("collections").cards;
-  const roomCards = section("rooms").cards;
   const trustItems = section("trust").items;
   const marqueeWords = section("marquee").words;
 
@@ -175,7 +174,7 @@ export default function HomePage() {
       const loopWidth = track.scrollWidth / 2;
 
       if (loopWidth > track.clientWidth) {
-        track.scrollLeft += elapsed * 0.035;
+        track.scrollLeft += elapsed * 0.085;
         if (track.scrollLeft >= loopWidth) track.scrollLeft -= loopWidth;
       }
       frame = requestAnimationFrame(tick);
@@ -332,7 +331,7 @@ export default function HomePage() {
             </button>
             <div
               ref={showcaseScrollRef}
-              className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 pt-3 scroll-smooth"
+              className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 pt-3"
               aria-label="All-category product carousel"
             >
               {showcaseLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="h-80 w-52 flex-shrink-0 rounded-2xl" />) :
@@ -406,6 +405,11 @@ export default function HomePage() {
                       <div className={`relative aspect-[1.25] overflow-hidden rounded-[1.6rem] border border-white bg-stone-100 shadow-[0_12px_28px_-16px_rgba(28,22,16,0.55)] transition-all duration-500 ${hoveredCategory === cat.slug ? "border-[hsl(38,52%,52%)]/60 shadow-[0_22px_38px_-16px_rgba(28,22,16,0.42)]" : ""}`}>
                         <img loading="lazy" decoding="async" src={categoryImages[cat.slug] || cat.imageUrl || "/images/categories/cp-faucets.webp"} alt={cat.name} className={`absolute inset-0 h-full w-full object-cover transition-transform duration-700 ${hoveredCategory === cat.slug ? "scale-110" : ""}`} />
                         <div className={`absolute inset-0 bg-gradient-to-t from-[hsl(24,12%,8%)]/80 via-[hsl(24,12%,8%)]/5 to-white/15 transition-opacity duration-500 ${hoveredCategory === cat.slug ? "opacity-100" : "opacity-80"}`} />
+                        <div className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-br from-[hsl(24,10%,10%)]/80 via-[hsl(24,10%,16%)]/60 to-[hsl(38,52%,52%)]/70 transition-opacity duration-300 ${hoveredCategory === cat.slug ? "opacity-100" : "opacity-0"}`}>
+                          <span className={`flex h-14 w-14 items-center justify-center rounded-full border border-[hsl(42,62%,68%)]/80 bg-black/30 text-[hsl(42,62%,68%)] shadow-[0_0_0_7px_rgba(255,255,255,0.08)] backdrop-blur-sm transition-transform duration-300 ${hoveredCategory === cat.slug ? "scale-100" : "scale-75"}`}>
+                            <Eye className="h-6 w-6" strokeWidth={1.8} />
+                          </span>
+                        </div>
                         <span className="absolute left-3 top-3 flex h-8 min-w-8 items-center justify-center rounded-full border border-white/70 bg-white/85 px-2 text-[10px] font-black text-[hsl(24,10%,16%)] shadow-sm backdrop-blur-sm">
                           {String(i + 1).padStart(2, "0")}
                         </span>
@@ -432,26 +436,51 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ COLLECTIONS ══════════ */}
-      <section className="bg-white py-10 border-b">
-        <div className="max-w-7xl mx-auto px-4">
-          <Reveal><SectionHeader title="Explore Our" accent="Collections" href="/products" icon={Sparkles} /></Reveal>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <section className="relative overflow-hidden border-b border-white/10 bg-[hsl(24,10%,10%)] py-12 text-white md:py-16">
+        <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full bg-[hsl(38,52%,52%)]/10 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-[hsl(30,35%,30%)]/25 blur-3xl" />
+        <div className="relative mx-auto max-w-7xl px-4">
+          <Reveal>
+            <div className="mb-8 flex items-end justify-between gap-5 md:mb-10">
+              <div>
+                <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-[hsl(42,62%,68%)]">
+                  <Sparkles className="h-3.5 w-3.5" /> Curated for your space
+                </div>
+                <h2 className="font-display text-3xl font-bold tracking-tight text-white md:text-[2.8rem]">
+                  Explore Our <span className="italic text-gradient-gold">Collections</span>
+                </h2>
+                <div className="mt-3 h-px w-24 bg-gradient-to-r from-[hsl(42,62%,68%)] to-transparent" />
+              </div>
+              <Link href="/products" className="group hidden items-center gap-2 pb-1 text-xs font-bold uppercase tracking-[0.18em] text-white/70 transition-colors hover:text-[hsl(42,62%,68%)] sm:flex">
+                View All <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+          </Reveal>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {collectionCards.map((col, i) => (
               <Reveal key={col.slug} delay={i * 0.1}>
                 <Link href={`/products?category=${col.slug}`}>
-                  <motion.div whileHover={{ y: -8 }} className="relative rounded-3xl overflow-hidden h-56 group cursor-pointer shadow-md hover:shadow-2xl transition-shadow" data-testid={`card-collection-${col.slug}`}>
-                    <img loading="lazy" decoding="async" src={col.img} alt={col.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(24,12%,7%)]/90 via-black/30 to-transparent" />
-                    <div className="absolute bottom-0 left-0 p-5 text-white w-full">
-                      <div className="font-black text-lg mb-0.5">{col.title}</div>
-                      <div className="text-xs text-white/70 mb-3">{col.sub}</div>
-                      <div className="flex flex-wrap gap-1.5 mb-3">
+                  <motion.div whileHover={{ y: -8 }} className="group relative h-64 cursor-pointer overflow-hidden rounded-[1.65rem] border border-white/15 bg-black shadow-[0_24px_50px_-28px_rgba(0,0,0,0.95)] transition-all duration-500 hover:border-[hsl(42,62%,68%)]/65 hover:shadow-[0_28px_55px_-24px_rgba(0,0,0,0.95)]" data-testid={`card-collection-${col.slug}`}>
+                    <img loading="lazy" decoding="async" src={col.img} alt={col.title} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/5 opacity-90 transition-opacity duration-500 group-hover:opacity-95" />
+                    <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(42,62%,68%)]/60 bg-black/35 text-[10px] font-black text-[hsl(42,62%,68%)] backdrop-blur-sm">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span className="rounded-full border border-white/20 bg-black/30 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.15em] text-white/70 backdrop-blur-sm">
+                        Prayag Edit
+                      </span>
+                    </div>
+                    <div className="absolute bottom-0 left-0 w-full p-5 text-white">
+                      <div className="mb-1 text-lg font-black leading-tight">{col.title}</div>
+                      <div className="mb-3 text-xs text-white/65">{col.sub}</div>
+                      <div className="mb-4 flex flex-wrap gap-1.5">
                         {col.chips.map(chip => (
-                          <span key={chip} className="text-[10px] font-medium text-white glass px-2 py-0.5 rounded-full">{chip}</span>
+                          <span key={chip} className="glass rounded-full px-2 py-0.5 text-[10px] font-medium text-white/90">{chip}</span>
                         ))}
                       </div>
-                      <div className="inline-flex items-center gap-1.5 text-sm font-bold text-stone-300 group-hover:gap-2.5 transition-all">
-                        Explore Now <ArrowRight className="w-4 h-4" />
+                      <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[hsl(42,62%,68%)] transition-all group-hover:gap-2.5">
+                        Explore Now <ArrowRight className="h-4 w-4" />
                       </div>
                     </div>
                   </motion.div>
@@ -459,6 +488,9 @@ export default function HomePage() {
               </Reveal>
             ))}
           </div>
+          <Link href="/products" className="group mt-6 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-white/70 transition-colors hover:text-[hsl(42,62%,68%)] sm:hidden">
+            View All Collections <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </section>
 
@@ -536,29 +568,6 @@ export default function HomePage() {
             )}
             </div>
           </Reveal>
-        </div>
-      </section>
-
-      {/* ══════════ SHOP BY ROOM ══════════ */}
-      <section className="bg-white py-10 border-b">
-        <div className="max-w-7xl mx-auto px-4">
-          <Reveal><SectionHeader title="Shop By" accent="Room" /></Reveal>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {roomCards.map((room, i) => (
-              <Reveal key={room.label} delay={i * 0.08}>
-                <Link href={`/products?category=${room.slug}`}>
-                  <motion.div whileHover={{ y: -8 }} className="relative rounded-2xl overflow-hidden h-44 group cursor-pointer shadow-md hover:shadow-2xl transition-shadow" data-testid={`card-room-${room.label.toLowerCase().replace(/ /g, "-")}`}>
-                    <img loading="lazy" decoding="async" src={room.img} alt={room.label} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(24,12%,7%)]/85 to-transparent group-hover:from-[hsl(24,10%,13%)]/85 transition-colors" />
-                    <div className="absolute bottom-0 left-0 p-4 text-white">
-                      <div className="font-black text-base">{room.label}</div>
-                      <div className="text-xs text-white/80 flex items-center gap-1 mt-0.5 group-hover:gap-2 transition-all">Explore <ArrowRight className="w-3 h-3" /></div>
-                    </div>
-                  </motion.div>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
         </div>
       </section>
 
