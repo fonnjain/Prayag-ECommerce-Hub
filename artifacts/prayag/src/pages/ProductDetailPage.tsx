@@ -22,8 +22,6 @@ export default function ProductDetailPage() {
   const [imageZoomed, setImageZoomed] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
   const relatedScrollRef = useRef<HTMLDivElement>(null);
-  const relatedResumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [relatedPaused, setRelatedPaused] = useState(false);
 
   const { data: product, isLoading, isError } = useGetProduct(slug!, {
     query: { enabled: !!slug, queryKey: getGetProductQueryKey(slug!) },
@@ -36,31 +34,9 @@ export default function ProductDetailPage() {
   const addToCart = useAddToCart();
   const addToWishlist = useAddToWishlist();
 
-  function pauseRelatedAutoplay() {
-    if (relatedResumeTimer.current) {
-      clearTimeout(relatedResumeTimer.current);
-      relatedResumeTimer.current = null;
-    }
-    setRelatedPaused(true);
-  }
-
-  function resumeRelatedAutoplay() {
-    if (relatedResumeTimer.current) clearTimeout(relatedResumeTimer.current);
-    relatedResumeTimer.current = setTimeout(() => {
-      relatedResumeTimer.current = null;
-      setRelatedPaused(false);
-    }, 1600);
-  }
-
-  useEffect(() => {
-    return () => {
-      if (relatedResumeTimer.current) clearTimeout(relatedResumeTimer.current);
-    };
-  }, []);
-
   useEffect(() => {
     const track = relatedScrollRef.current;
-    if (!track || !related?.length || relatedPaused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!track || !related?.length || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let frame = 0;
     let previousTime = performance.now();
@@ -78,7 +54,7 @@ export default function ProductDetailPage() {
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [related?.length, relatedPaused]);
+  }, [related?.length]);
 
   if (isLoading) return (
     <div className="max-w-[1400px] mx-auto px-6 py-12">
@@ -457,12 +433,6 @@ export default function ProductDetailPage() {
               <div
                 ref={relatedScrollRef}
                 className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide md:gap-6"
-                onMouseEnter={pauseRelatedAutoplay}
-                onMouseLeave={resumeRelatedAutoplay}
-                onFocus={pauseRelatedAutoplay}
-                onBlur={resumeRelatedAutoplay}
-                onTouchStart={pauseRelatedAutoplay}
-                onTouchEnd={resumeRelatedAutoplay}
                 aria-label="Related products carousel"
               >
                 {[...related.slice(0, 8), ...related.slice(0, 8)].map((p, index) => (
