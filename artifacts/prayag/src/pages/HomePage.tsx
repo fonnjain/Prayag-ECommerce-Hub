@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView, useMotionValue, useSpring, animate } from "framer-motion";
 import { ArrowRight, ChevronRight, ChevronLeft, Shield, Truck, Award, RefreshCw, BadgeCheck, Headphones, Tag, Star, Droplets, Sparkles, Package } from "lucide-react";
-import { useListCategoriesWithCounts, useListFeaturedProducts, useListNewArrivals, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useListCategoriesWithCounts, useListFeaturedProducts, useListNewArrivals, useListProducts, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/lib/store";
@@ -51,6 +51,23 @@ const categoryImages: Record<string, string> = {
   "flush-tanks": "/images/categories/flush-tanks.webp",
   "storage-tanks": "/images/categories/storage-tanks.webp",
 };
+
+const categoryImageByName: Record<string, string> = {
+  "cp faucets": categoryImages["cp-faucets"],
+  "ptmt faucets": categoryImages["ptmt-faucets"],
+  sanitaryware: categoryImages.sanitaryware,
+  "kitchen sinks": categoryImages["kitchen-sinks"],
+  "water heaters": categoryImages["water-heaters"],
+  "bathroom accessories": categoryImages["bathroom-accessories"],
+  "pipes & fittings": categoryImages["pipes-fittings"],
+  "flush tanks": categoryImages["flush-tanks"],
+  "storage tanks": categoryImages["storage-tanks"],
+};
+
+function getProductImage(product: { imageUrl?: string | null; categoryName?: string | null }) {
+  if (product.imageUrl) return product.imageUrl;
+  return categoryImageByName[product.categoryName?.trim().toLowerCase() || ""] || categoryImages["cp-faucets"];
+}
 
 const trustIcons = [BadgeCheck, RefreshCw, Shield, Tag, Headphones];
 
@@ -105,9 +122,17 @@ export default function HomePage() {
   const { data: categories, isLoading: catsLoading } = useListCategoriesWithCounts();
   const { data: featured, isLoading: featLoading } = useListFeaturedProducts();
   const { data: newArrivals, isLoading: newLoading } = useListNewArrivals();
+  const { data: cpFaucetFeature } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 1 });
   const faucetScrollRef = useRef<HTMLDivElement>(null);
   const { section } = useSiteContent();
   const hero = section("hero");
+  const heroFeatureProduct = cpFaucetFeature?.products.find((product) => Boolean(product.imageUrl));
+  const heroFeatureName = heroFeatureProduct?.name ?? hero.featured.name;
+  const heroFeatureImage = heroFeatureProduct?.imageUrl ?? hero.featured.image;
+  const heroFeaturePrice = heroFeatureProduct?.price ?? hero.featured.price;
+  const heroFeatureMrp = heroFeatureProduct?.mrp ?? hero.featured.mrp;
+  const heroFeatureReviews = heroFeatureProduct?.reviewCount ?? hero.featured.reviews;
+  const heroFeatureLink = heroFeatureProduct ? `/products/${heroFeatureProduct.slug}` : hero.featured.link;
   const collectionCards = section("collections").cards;
   const roomCards = section("rooms").cards;
   const trustItems = section("trust").items;
@@ -206,21 +231,21 @@ export default function HomePage() {
                 <Sparkles className="w-3 h-3" /> Featured
               </div>
               <div className="rounded-2xl overflow-hidden mb-4 bg-stone-100">
-                <img src={hero.featured.image} alt={hero.featured.name} className="w-full h-40 object-cover" />
+                <img src={heroFeatureImage} alt={heroFeatureName} className="w-full h-40 bg-white object-contain p-3" />
               </div>
-              <div className="text-sm font-black text-gray-900 mb-1">{hero.featured.name}</div>
+              <div className="text-sm font-black text-gray-900 mb-1 line-clamp-2">{heroFeatureName}</div>
               <div className="flex items-center gap-1 mb-3">
                 {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-[hsl(38,52%,52%)] text-[hsl(38,52%,52%)]" />)}
-                <span className="text-[11px] text-gray-400 ml-1">({hero.featured.reviews})</span>
+                <span className="text-[11px] text-gray-400 ml-1">({heroFeatureReviews})</span>
               </div>
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-2xl font-black text-[hsl(24,10%,16%)]">₹{Number(hero.featured.price).toLocaleString("en-IN")}</span>
-                {hero.featured.mrp > hero.featured.price && <>
-                  <span className="text-sm text-gray-400 line-through">₹{Number(hero.featured.mrp).toLocaleString("en-IN")}</span>
-                  <span className="text-[11px] font-bold text-green-600">{Math.round((1 - hero.featured.price / hero.featured.mrp) * 100)}% OFF</span>
+                <span className="text-2xl font-black text-[hsl(24,10%,16%)]">₹{Number(heroFeaturePrice).toLocaleString("en-IN")}</span>
+                {heroFeatureMrp > heroFeaturePrice && <>
+                  <span className="text-sm text-gray-400 line-through">₹{Number(heroFeatureMrp).toLocaleString("en-IN")}</span>
+                  <span className="text-[11px] font-bold text-green-600">{Math.round((1 - heroFeaturePrice / heroFeatureMrp) * 100)}% OFF</span>
                 </>}
               </div>
-              <Link href={hero.featured.link}>
+              <Link href={heroFeatureLink}>
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                   className="gold-sheen w-full bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] text-white text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-1.5">
                   Explore Now <ArrowRight className="w-4 h-4" />
@@ -284,21 +309,38 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ TOP CATEGORIES ══════════ */}
-      <section className="bg-gradient-to-b from-white to-stone-100/60 py-10 border-b">
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#fcfaf7] to-stone-100/60 py-11 md:py-14 border-b">
+        <div className="pointer-events-none absolute -top-24 right-[8%] h-64 w-64 rounded-full bg-[hsl(38,52%,52%)]/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 left-[12%] h-72 w-72 rounded-full bg-stone-200/50 blur-3xl" />
         <div className="max-w-7xl mx-auto px-4">
           <Reveal><SectionHeader title="Shop From" accent="Top Categories" href="/products" icon={Package} /></Reveal>
           {catsLoading ? (
-            <div className="grid grid-cols-4 md:grid-cols-8 gap-4">{[...Array(8)].map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3 md:gap-4">{[...Array(8)].map((_, i) => <Skeleton key={i} className="h-44 md:h-52 rounded-[1.35rem]" />)}</div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
+            <div className="relative grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3 md:gap-4">
               {catList.map((cat, i) => (
                 <motion.div key={cat.id} initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
                   <Link href={`/products?category=${cat.slug}`} data-testid={`card-category-${cat.id}`}>
-                    <motion.div whileHover={{ y: -6 }} className="group bg-white rounded-2xl border border-gray-100 p-3 flex flex-col items-center gap-2 hover:border-[hsl(24,10%,16%)]/40 hover:shadow-lg transition-shadow cursor-pointer">
-                      <div className="w-full aspect-square rounded-xl overflow-hidden bg-stone-100">
-                        <img loading="lazy" decoding="async" src={cat.imageUrl || categoryImages[cat.slug] || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop"} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <motion.div whileHover={{ y: -7 }} className="group cursor-pointer">
+                      <div className="relative aspect-[0.88] overflow-hidden rounded-[1.35rem] border border-white bg-stone-100 shadow-[0_8px_24px_-16px_rgba(28,22,16,0.55)] transition-all duration-500 group-hover:border-[hsl(38,52%,52%)]/50 group-hover:shadow-[0_18px_34px_-16px_rgba(28,22,16,0.42)]">
+                        <img loading="lazy" decoding="async" src={categoryImages[cat.slug] || cat.imageUrl || "/images/categories/cp-faucets.webp"} alt={cat.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(24,12%,8%)]/65 via-transparent to-white/10 opacity-70 transition-opacity duration-500 group-hover:opacity-90" />
+                        <span className="absolute left-2.5 top-2.5 flex h-6 min-w-6 items-center justify-center rounded-full border border-white/70 bg-white/75 px-1.5 text-[10px] font-black text-[hsl(24,10%,16%)] shadow-sm backdrop-blur-sm">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span className="absolute bottom-2.5 left-2.5 right-2.5 translate-y-1 text-[11px] font-bold leading-tight text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                          Explore collection <ArrowRight className="ml-0.5 inline-block h-3 w-3" />
+                        </span>
                       </div>
-                      <span className="text-[11px] font-semibold text-gray-700 text-center leading-tight group-hover:text-[hsl(24,10%,16%)] transition-colors">{cat.name}</span>
+                      <div className="px-1 pt-3">
+                        <div className="flex items-start justify-between gap-1">
+                          <span className="text-[11px] font-bold leading-tight text-gray-800 transition-colors group-hover:text-[hsl(24,10%,16%)]">{cat.name}</span>
+                          <ArrowRight className="mt-0.5 h-3 w-3 flex-shrink-0 text-[hsl(38,52%,52%)] transition-transform group-hover:translate-x-0.5" />
+                        </div>
+                        <span className="mt-1 block text-[9px] font-medium uppercase tracking-[0.12em] text-gray-400">
+                          {cat.productCount.toLocaleString("en-IN")} products
+                        </span>
+                      </div>
                     </motion.div>
                   </Link>
                 </motion.div>
@@ -354,7 +396,7 @@ export default function HomePage() {
                     <motion.div whileHover={{ y: -6 }} className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-bestseller-${p.id}`}>
                       <div className="relative overflow-hidden">
                         <span className="absolute top-2 left-2 bg-gold-gradient text-[hsl(24,14%,8%)] text-[9px] font-bold px-2 py-0.5 rounded-full z-10">Bestseller</span>
-                        <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=160&fit=crop"} alt={p.name} className="w-full aspect-square object-contain bg-white hover:scale-110 transition-transform duration-500" />
+                        <img loading="lazy" decoding="async" src={getProductImage(p)} alt={p.name} className="w-full aspect-square object-contain bg-white hover:scale-110 transition-transform duration-500" />
                       </div>
                       <div className="p-3">
                         <SkuBadge sku={p.sku} />
@@ -381,7 +423,7 @@ export default function HomePage() {
                   <motion.div key={p.id} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}>
                     <Link href={`/products/${p.slug}`}>
                       <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl p-2.5 hover:border-[hsl(24,10%,16%)]/40 hover:shadow-md transition-all group" data-testid={`card-new-arrival-${p.id}`}>
-                        <img loading="lazy" decoding="async" src={p.imageUrl || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=80&h=80&fit=crop"} alt={p.name} className="w-16 h-16 object-contain bg-white rounded-xl flex-shrink-0 group-hover:scale-105 transition-transform" />
+                        <img loading="lazy" decoding="async" src={getProductImage(p)} alt={p.name} className="w-16 h-16 object-contain bg-white rounded-xl flex-shrink-0 group-hover:scale-105 transition-transform" />
                         <div className="flex-1 min-w-0">
                           <SkuBadge sku={p.sku} />
                           <div className="text-sm font-semibold text-gray-800 line-clamp-1 group-hover:text-[hsl(24,10%,16%)] transition-colors">{p.name}</div>

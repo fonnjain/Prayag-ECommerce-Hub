@@ -357,16 +357,17 @@ export default function ProductDetailPage() {
             </AnimatePresence>
           </div>
         </div>
+      </div>
 
-        {/* Related Collection */}
-        {related && related.length > 0 && (
-          <div className="relative overflow-hidden bg-[hsl(24,10%,16%)] py-16 md:py-20">
+      {/* Related Collection */}
+      {related && related.length > 0 && (
+          <section className="relative w-full overflow-hidden bg-[hsl(24,10%,16%)] py-16 md:py-20">
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.14),transparent_65%)]" />
               <div className="absolute -bottom-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.08),transparent_65%)]" />
               <span className="absolute top-6 left-1/2 -translate-x-1/2 font-serif-lux text-[9rem] md:text-[13rem] leading-none text-white/[0.035] select-none whitespace-nowrap">PRAYAG</span>
             </div>
-            <div className="relative max-w-[1400px] mx-auto">
+            <div className="relative mx-auto max-w-[1400px] px-6">
               <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
                 <div>
                   <p className="text-[hsl(42,62%,68%)] text-[11px] font-bold uppercase tracking-[0.3em] mb-3">Curated For You</p>
@@ -378,46 +379,39 @@ export default function ProductDetailPage() {
                   </span>
                 </Link>
               </div>
-              <div className="related-marquee-wrap relative overflow-hidden" style={{ contain: "layout paint", maskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)", WebkitMaskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)" }}>
-                <div className="related-marquee flex gap-4 md:gap-6 w-max">
-                  {[0, 1].map(dup => (
-                    <div key={dup} className="flex gap-4 md:gap-6" aria-hidden={dup === 1}>
-                      {related.slice(0, 8).map((p, i) => (
-                        <Link key={`${dup}-${p.id}`} href={`/products/${p.slug}`} data-testid={dup === 0 ? `card-related-${p.id}` : undefined} tabIndex={dup === 1 ? -1 : undefined}>
-                          <div className="group relative bg-white/[0.05] border border-white/10 hover:border-[hsl(42,62%,68%)]/60 transition-colors duration-500 cursor-pointer h-full flex flex-col overflow-hidden w-[240px] md:w-[300px]">
-                            <div className="relative aspect-square bg-white m-3 mb-0 flex items-center justify-center p-4 overflow-hidden">
-                              {p.imageUrl ? (
-                                <img src={p.imageUrl} alt={p.name} loading="lazy"
-                                  className="relative w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 ease-out" />
-                              ) : (
-                                <Star className="w-10 h-10 text-gray-200" />
-                              )}
-                            </div>
-                            <div className="p-4 md:p-5 flex flex-col flex-1">
-                              <SkuBadge sku={p.sku} className="mb-1.5" />
-                              <h3 className="text-sm md:text-base text-white font-medium leading-snug mb-3 line-clamp-2 group-hover:text-[hsl(42,62%,68%)] transition-colors">{p.name}</h3>
-                              <div className="mt-auto flex items-center justify-between">
-                                <div className="flex items-baseline gap-2">
-                                  <span className="text-[hsl(42,62%,68%)] font-bold">₹{p.price.toLocaleString("en-IN")}</span>
-                                  {p.mrp > p.price && <span className="text-white/30 text-xs line-through">₹{p.mrp.toLocaleString("en-IN")}</span>}
-                                </div>
-                                <span className="w-7 h-7 rounded-full border border-white/20 group-hover:border-[hsl(42,62%,68%)] group-hover:bg-[hsl(42,62%,68%)] flex items-center justify-center transition-all">
-                                  <ChevronRight className="w-3.5 h-3.5 text-white/50 group-hover:text-[hsl(24,10%,16%)]" />
-                                </span>
-                              </div>
-                            </div>
-                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[hsl(42,62%,68%)] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500" />
+              <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 scrollbar-hide md:gap-6">
+                {related.slice(0, 8).map((p) => (
+                  <Link key={p.id} href={`/products/${p.slug}`} className="flex-none snap-start" data-testid={`card-related-${p.id}`}>
+                    <div className="group relative flex h-full w-[240px] flex-col overflow-hidden border border-white/10 bg-white/[0.05] transition-colors duration-500 hover:border-[hsl(42,62%,68%)]/60 md:w-[300px]">
+                      <div className="relative m-3 mb-0 flex aspect-square items-center justify-center overflow-hidden bg-white p-4">
+                        {p.imageUrl ? (
+                          <img src={p.imageUrl} alt={p.name} loading="lazy"
+                            className="relative h-full w-full object-contain transition-transform duration-700 ease-out group-hover:scale-110" />
+                        ) : (
+                          <Star className="h-10 w-10 text-gray-200" />
+                        )}
+                      </div>
+                      <div className="flex flex-1 flex-col p-4 md:p-5">
+                        <SkuBadge sku={p.sku} className="mb-1.5" />
+                        <h3 className="mb-3 line-clamp-2 text-sm font-medium leading-snug text-white transition-colors group-hover:text-[hsl(42,62%,68%)] md:text-base">{p.name}</h3>
+                        <div className="mt-auto flex items-center justify-between">
+                          <div className="flex items-baseline gap-2">
+                            <span className="font-bold text-[hsl(42,62%,68%)]">₹{p.price.toLocaleString("en-IN")}</span>
+                            {p.mrp > p.price && <span className="text-xs text-white/30 line-through">₹{p.mrp.toLocaleString("en-IN")}</span>}
                           </div>
-                        </Link>
-                      ))}
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 transition-all group-hover:border-[hsl(42,62%,68%)] group-hover:bg-[hsl(42,62%,68%)]">
+                            <ChevronRight className="h-3.5 w-3.5 text-white/50 group-hover:text-[hsl(24,10%,16%)]" />
+                          </span>
+                        </div>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 origin-left scale-x-0 bg-[hsl(42,62%,68%)] transition-transform duration-500 group-hover:scale-x-100" />
                     </div>
-                  ))}
-                </div>
+                  </Link>
+                ))}
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          </section>
+      )}
     </div>
   );
 }
