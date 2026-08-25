@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView, useMotionValue, useSpring, animate } from "framer-motion";
 import { ArrowRight, ChevronRight, ChevronLeft, Shield, Truck, Award, RefreshCw, BadgeCheck, Headphones, Tag, Star, Droplets, Sparkles, Package } from "lucide-react";
-import { useListCategoriesWithCounts, useListFeaturedProducts, useListNewArrivals, useListProducts, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useListCategoriesWithCounts, useListProducts, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/lib/store";
@@ -51,23 +51,6 @@ const categoryImages: Record<string, string> = {
   "flush-tanks": "/images/categories/flush-tanks.webp",
   "storage-tanks": "/images/categories/storage-tanks.webp",
 };
-
-const categoryImageByName: Record<string, string> = {
-  "cp faucets": categoryImages["cp-faucets"],
-  "ptmt faucets": categoryImages["ptmt-faucets"],
-  sanitaryware: categoryImages.sanitaryware,
-  "kitchen sinks": categoryImages["kitchen-sinks"],
-  "water heaters": categoryImages["water-heaters"],
-  "bathroom accessories": categoryImages["bathroom-accessories"],
-  "pipes & fittings": categoryImages["pipes-fittings"],
-  "flush tanks": categoryImages["flush-tanks"],
-  "storage tanks": categoryImages["storage-tanks"],
-};
-
-function getProductImage(product: { imageUrl?: string | null; categoryName?: string | null }) {
-  if (product.imageUrl) return product.imageUrl;
-  return categoryImageByName[product.categoryName?.trim().toLowerCase() || ""] || categoryImages["cp-faucets"];
-}
 
 const trustIcons = [BadgeCheck, RefreshCw, Shield, Tag, Headphones];
 
@@ -120,13 +103,14 @@ function SectionHeader({ title, accent, href, icon: Icon }: { title: string; acc
 
 export default function HomePage() {
   const { data: categories, isLoading: catsLoading } = useListCategoriesWithCounts();
-  const { data: featured, isLoading: featLoading } = useListFeaturedProducts();
-  const { data: newArrivals, isLoading: newLoading } = useListNewArrivals();
   const { data: cpFaucetDeals, isLoading: cpDealsLoading } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 10 });
+  const { data: tankShowcase, isLoading: tankShowcaseLoading } = useListProducts({ category: "storage-tanks", sortBy: "photo_ready", limit: 4 });
   const faucetScrollRef = useRef<HTMLDivElement>(null);
   const { section } = useSiteContent();
   const hero = section("hero");
   const heroFeatureProduct = cpFaucetDeals?.products.find((product) => Boolean(product.imageUrl));
+  const verifiedTankProducts = (tankShowcase?.products ?? []).filter((product) => Boolean(product.imageUrl)).slice(0, 4);
+  const verifiedFaucetProducts = (cpFaucetDeals?.products ?? []).filter((product) => Boolean(product.imageUrl)).slice(5, 10);
   const heroFeatureName = heroFeatureProduct?.name ?? hero.featured.name;
   const heroFeatureImage = heroFeatureProduct?.imageUrl ?? hero.featured.image;
   const heroFeaturePrice = heroFeatureProduct?.price ?? hero.featured.price;
@@ -387,57 +371,67 @@ export default function HomePage() {
           {/* Best Sellers */}
           <Reveal>
             <SectionHeader title="Best" accent="Sellers" href="/products" icon={Award} />
-            {featLoading ? (
+            {tankShowcaseLoading ? (
               <div className="grid grid-cols-2 gap-3">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}</div>
-            ) : (
+            ) : verifiedTankProducts.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
-                {(featured || []).slice(0, 4).map(p => (
+                {verifiedTankProducts.map(p => (
                   <Link key={p.id} href={`/products/${p.slug}`}>
-                    <motion.div whileHover={{ y: -6 }} className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-bestseller-${p.id}`}>
-                      <div className="relative overflow-hidden">
-                        <span className="absolute top-2 left-2 bg-gold-gradient text-[hsl(24,14%,8%)] text-[9px] font-bold px-2 py-0.5 rounded-full z-10">Bestseller</span>
-                        <img loading="lazy" decoding="async" src={getProductImage(p)} alt={p.name} className="w-full aspect-square object-contain bg-white hover:scale-110 transition-transform duration-500" />
+                    <motion.div whileHover={{ y: -6 }} className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:border-[hsl(38,52%,52%)]/60 hover:shadow-xl" data-testid={`card-bestseller-${p.id}`}>
+                      <div className="relative aspect-square overflow-hidden bg-gradient-to-b from-stone-50 to-white p-3">
+                        <span className="absolute left-2 top-2 z-10 rounded-full bg-gold-gradient px-2 py-0.5 text-[9px] font-bold text-[hsl(24,14%,8%)]">Bestseller</span>
+                        <img loading="lazy" decoding="async" src={p.imageUrl!} alt={p.name} className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105" />
+                        <span className="absolute bottom-2 left-2 rounded-full bg-[hsl(24,10%,16%)]/85 px-2 py-1 text-[9px] font-semibold text-white backdrop-blur-sm">{p.categoryName}</span>
                       </div>
-                      <div className="p-3">
-                        <SkuBadge sku={p.sku} />
-                        <div className="text-xs font-semibold text-gray-800 leading-tight mt-0.5 mb-1 line-clamp-1">{p.name}</div>
-                        <div className="flex items-center gap-1 mb-1.5">{[...Array(4)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-[hsl(38,52%,52%)] text-[hsl(38,52%,52%)]" />)}<span className="text-[9px] text-gray-400">({Math.floor(Math.random() * 200 + 50)})</span></div>
-                        <div className="flex items-baseline gap-1 mb-2"><span className="font-black text-sm text-[hsl(24,10%,16%)]">₹{Number(p.price).toLocaleString("en-IN")}</span>{p.mrp && <span className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</span>}</div>
+                      <div className="p-3.5">
+                        <SkuBadge sku={p.sku} className="mb-2" />
+                        <div className="mb-2 min-h-9 text-xs font-semibold leading-tight text-gray-800 line-clamp-2">{p.name}</div>
+                        <div className="mb-2 flex items-center gap-1.5">
+                          <span className="inline-flex items-center gap-0.5 text-[hsl(38,52%,52%)]">{[...Array(5)].map((_, i) => <Star key={i} className={`h-2.5 w-2.5 ${i < Math.round(p.rating) ? "fill-current" : ""}`} />)}</span>
+                          <span className="text-[9px] font-semibold text-gray-500">{p.rating.toFixed(1)} · {p.reviewCount} reviews</span>
+                        </div>
+                        <div className="mb-3 flex items-baseline gap-1.5"><span className="text-base font-black text-[hsl(24,10%,16%)]">₹{Number(p.price).toLocaleString("en-IN")}</span>{p.mrp > p.price && <span className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</span>}</div>
                         <AddToCartButton productId={p.id} productName={p.name} />
                       </div>
                     </motion.div>
                   </Link>
                 ))}
               </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">Verified product photos are being added to this collection.</div>
             )}
           </Reveal>
 
           {/* New Arrivals */}
           <Reveal delay={0.15}>
             <SectionHeader title="New" accent="Arrivals" href="/products" icon={Sparkles} />
-            {newLoading ? (
+            {cpDealsLoading ? (
               <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}</div>
-            ) : (
+            ) : verifiedFaucetProducts.length > 0 ? (
               <div className="space-y-2.5">
-                {(newArrivals || []).slice(0, 5).map((p, i) => (
+                {verifiedFaucetProducts.map((p, i) => (
                   <motion.div key={p.id} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}>
                     <Link href={`/products/${p.slug}`}>
-                      <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl p-2.5 hover:border-[hsl(24,10%,16%)]/40 hover:shadow-md transition-all group" data-testid={`card-new-arrival-${p.id}`}>
-                        <img loading="lazy" decoding="async" src={getProductImage(p)} alt={p.name} className="w-16 h-16 object-contain bg-white rounded-xl flex-shrink-0 group-hover:scale-105 transition-transform" />
+                      <div className="group flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-2.5 shadow-sm transition-all hover:border-[hsl(38,52%,52%)]/60 hover:shadow-md" data-testid={`card-new-arrival-${p.id}`}>
+                        <div className="flex h-[74px] w-[74px] flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-stone-50 to-white p-2">
+                          <img loading="lazy" decoding="async" src={p.imageUrl!} alt={p.name} className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105" />
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <SkuBadge sku={p.sku} />
-                          <div className="text-sm font-semibold text-gray-800 line-clamp-1 group-hover:text-[hsl(24,10%,16%)] transition-colors">{p.name}</div>
-                          <div className="flex items-center gap-1 mt-0.5">{[...Array(4)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-[hsl(38,52%,52%)] text-[hsl(38,52%,52%)]" />)}</div>
+                          <SkuBadge sku={p.sku} className="mb-1" />
+                          <div className="line-clamp-2 text-sm font-semibold leading-tight text-gray-800 transition-colors group-hover:text-[hsl(24,10%,16%)]">{p.name}</div>
+                          <div className="mt-1 flex items-center gap-1.5"><span className="text-[10px] font-semibold text-gray-500">{p.categoryName}</span><span className="h-1 w-1 rounded-full bg-gray-300" /><span className="inline-flex items-center gap-0.5 text-[hsl(38,52%,52%)]"><Star className="h-2.5 w-2.5 fill-current" /> <span className="text-[9px]">{p.rating.toFixed(1)}</span></span></div>
                         </div>
                         <div className="text-right flex-shrink-0">
                           <div className="font-black text-sm text-[hsl(24,10%,16%)]">₹{Number(p.price).toLocaleString("en-IN")}</div>
-                          {p.mrp && <div className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</div>}
+                          {p.mrp > p.price && <div className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</div>}
                         </div>
                       </div>
                     </Link>
                   </motion.div>
                 ))}
               </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">Verified product photos are being added to this collection.</div>
             )}
           </Reveal>
         </div>
