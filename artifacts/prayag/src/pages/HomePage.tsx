@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView, useMotionValue, useSpring, animate } from "framer-motion";
 import { ArrowRight, ChevronRight, ChevronLeft, Shield, Truck, Award, RefreshCw, BadgeCheck, Headphones, Tag, Star, Droplets, Sparkles, Package } from "lucide-react";
-import { useListCategoriesWithCounts, useListProducts, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { getListProductsQueryOptions, useListCategoriesWithCounts, useListProducts, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -105,7 +105,7 @@ function selectCategoryShowcaseProducts<T extends { imageUrl?: string | null; ca
   const productsByCategory = new Map<string, T[]>();
   for (const product of products) {
     if (!product.imageUrl || !product.categoryName) continue;
-    const category = product.categoryName.trim();
+    const category = product.categoryName.trim().toLowerCase();
     const categoryProducts = productsByCategory.get(category) ?? [];
     if (categoryProducts.length < perCategory) categoryProducts.push(product);
     productsByCategory.set(category, categoryProducts);
@@ -123,13 +123,23 @@ function selectCategoryShowcaseProducts<T extends { imageUrl?: string | null; ca
 export default function HomePage() {
   const { data: categories, isLoading: catsLoading } = useListCategoriesWithCounts();
   const { data: cpFaucetDeals } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 14 });
-  const { data: showcaseProducts, isLoading: showcaseLoading } = useListProducts({ sortBy: "photo_ready", limit: 100 });
+  const collectionQueries = useQueries({
+    queries: (categories ?? [])
+      .filter((category) => category.productCount > 0)
+      .map((category) => getListProductsQueryOptions({
+        category: category.slug,
+        sortBy: "photo_ready",
+        limit: 6,
+      })),
+  });
   const showcaseScrollRef = useRef<HTMLDivElement>(null);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const { section } = useSiteContent();
   const hero = section("hero");
   const heroFeatureProduct = cpFaucetDeals?.products.find((product) => Boolean(product.imageUrl));
-  const categoryShowcaseProducts = selectCategoryShowcaseProducts(showcaseProducts?.products ?? [], 6);
+  const collectionProducts = collectionQueries.flatMap((query) => query.data?.products ?? []);
+  const showcaseLoading = catsLoading || collectionQueries.some((query) => query.isLoading);
+  const categoryShowcaseProducts = selectCategoryShowcaseProducts(collectionProducts, 6);
   const bestSellerProducts = categoryShowcaseProducts.slice(0, 4);
   const newArrivalProducts = categoryShowcaseProducts.slice(4, 12);
   const heroFeatureName = heroFeatureProduct?.name ?? hero.featured.name;
@@ -329,7 +339,7 @@ export default function HomePage() {
                 categoryShowcaseProducts.length > 0 ? [...categoryShowcaseProducts, ...categoryShowcaseProducts].map((p, idx) => (
                   <motion.div key={`${p.id}-${idx}`} initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: (idx % 18) * 0.05 }} className="w-52 flex-shrink-0 md:w-60">
                     <Link href={`/products/${p.slug}`}>
-                      <motion.div whileHover={{ y: -8 }} className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(28,22,16,0.25)] hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-deal-${p.id}`}>
+                      <motion.div whileHover={{ y: -8 }} className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(28,22,16,0.25)] hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={idx < categoryShowcaseProducts.length ? `card-deal-${p.id}` : `card-deal-loop-${p.id}`}>
                         <div className="relative aspect-[1.08] overflow-hidden bg-gradient-to-b from-stone-50 to-white">
                           {p.discount && p.discount > 0 && (
                             <span className="absolute top-2 left-2 bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,24%)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">-{p.discount}%</span>
