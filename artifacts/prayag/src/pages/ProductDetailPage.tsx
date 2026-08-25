@@ -43,11 +43,12 @@ export default function ProductDetailPage() {
     const tick = (time: number) => {
       const elapsed = Math.min(time - previousTime, 80);
       previousTime = time;
-      const loopWidth = track.scrollWidth / 2;
+      const repeatStart = track.querySelector<HTMLElement>("[data-related-loop-copy='repeat-start']");
+      const loopWidth = repeatStart?.offsetLeft ?? track.scrollWidth / 2;
 
       if (loopWidth > track.clientWidth) {
-        track.scrollLeft += elapsed * 0.085;
-        if (track.scrollLeft >= loopWidth) track.scrollLeft -= loopWidth;
+        const nextScrollLeft = track.scrollLeft + elapsed * 0.085;
+        track.scrollLeft = nextScrollLeft >= loopWidth ? nextScrollLeft % loopWidth : nextScrollLeft;
       }
       frame = requestAnimationFrame(tick);
     };
@@ -96,6 +97,8 @@ export default function ProductDetailPage() {
   const discount = product.mrp > product.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
   const gstPercent = product.gstPercent ?? 18;
   const gstAmount = Math.round(product.price * (gstPercent / 100) * 100) / 100;
+  const relatedItems = (related ?? []).slice(0, 8);
+  const relatedLoopItems = Array.from({ length: 5 }, () => relatedItems).flat();
 
   function handleAddToCart() {
     addToCart.mutate({ data: { productId: product!.id, quantity: qty } }, {
@@ -411,7 +414,7 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Related Collection */}
-      {related && related.length > 0 && (
+      {relatedItems.length > 0 && (
           <section className="relative w-full overflow-hidden bg-[hsl(24,10%,16%)] py-16 md:py-20">
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.14),transparent_65%)]" />
@@ -435,33 +438,43 @@ export default function ProductDetailPage() {
                 className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide md:gap-6"
                 aria-label="Related products carousel"
               >
-                {[...related.slice(0, 8), ...related.slice(0, 8)].map((p, index) => (
-                  <Link key={`${p.id}-${index}`} href={`/products/${p.slug}`} className="flex-none" data-testid={`card-related-${p.id}`}>
-                    <div className="group relative flex h-full w-[240px] flex-col overflow-hidden border border-white/10 bg-white/[0.05] transition-colors duration-500 hover:border-[hsl(42,62%,68%)]/60 md:w-[300px]">
-                      <div className="relative m-3 mb-0 flex aspect-square items-center justify-center overflow-hidden bg-white p-4">
-                        {p.imageUrl ? (
-                          <img src={p.imageUrl} alt={p.name} loading="lazy"
-                            className="relative h-full w-full object-contain transition-transform duration-700 ease-out group-hover:scale-110" />
-                        ) : (
-                          <Star className="h-10 w-10 text-gray-200" />
-                        )}
-                      </div>
-                      <div className="flex flex-1 flex-col p-4 md:p-5">
-                        <SkuBadge sku={p.sku} className="mb-1.5" />
-                        <h3 className="mb-3 line-clamp-2 text-sm font-medium leading-snug text-white transition-colors group-hover:text-[hsl(42,62%,68%)] md:text-base">{p.name}</h3>
-                        <div className="mt-auto flex items-center justify-between">
-                          <div className="flex items-baseline gap-2">
-                            <span className="font-bold text-[hsl(42,62%,68%)]">₹{p.price.toLocaleString("en-IN")}</span>
-                            {p.mrp > p.price && <span className="text-xs text-white/30 line-through">₹{p.mrp.toLocaleString("en-IN")}</span>}
+                {[0, 1].map((copyIndex) => (
+                  <div key={`related-loop-${copyIndex}`} data-related-loop-copy={copyIndex === 1 ? "repeat-start" : undefined} className="flex flex-none gap-4 md:gap-6">
+                    {relatedLoopItems.map((p, index) => (
+                      <Link
+                        key={`${p.id}-${copyIndex}-${index}`}
+                        href={`/products/${p.slug}`}
+                        className="flex-none"
+                        data-testid={`card-related-${p.id}`}
+                        tabIndex={copyIndex === 0 && index < relatedItems.length ? 0 : -1}
+                      >
+                        <div className="group relative flex h-full w-[240px] flex-col overflow-hidden border border-white/10 bg-white/[0.05] transition-colors duration-500 hover:border-[hsl(42,62%,68%)]/60 md:w-[300px]">
+                          <div className="relative m-3 mb-0 flex aspect-square items-center justify-center overflow-hidden bg-white p-4">
+                            {p.imageUrl ? (
+                              <img src={p.imageUrl} alt={p.name} loading="lazy"
+                                className="relative h-full w-full object-contain transition-transform duration-700 ease-out group-hover:scale-110" />
+                            ) : (
+                              <Star className="h-10 w-10 text-gray-200" />
+                            )}
                           </div>
-                          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 transition-all group-hover:border-[hsl(42,62%,68%)] group-hover:bg-[hsl(42,62%,68%)]">
-                            <ChevronRight className="h-3.5 w-3.5 text-white/50 group-hover:text-[hsl(24,10%,16%)]" />
-                          </span>
+                          <div className="flex flex-1 flex-col p-4 md:p-5">
+                            <SkuBadge sku={p.sku} className="mb-1.5" />
+                            <h3 className="mb-3 line-clamp-2 text-sm font-medium leading-snug text-white transition-colors group-hover:text-[hsl(42,62%,68%)] md:text-base">{p.name}</h3>
+                            <div className="mt-auto flex items-center justify-between">
+                              <div className="flex items-baseline gap-2">
+                                <span className="font-bold text-[hsl(42,62%,68%)]">₹{p.price.toLocaleString("en-IN")}</span>
+                                {p.mrp > p.price && <span className="text-xs text-white/30 line-through">₹{p.mrp.toLocaleString("en-IN")}</span>}
+                              </div>
+                              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 transition-all group-hover:border-[hsl(42,62%,68%)] group-hover:bg-[hsl(42,62%,68%)]">
+                                <ChevronRight className="h-3.5 w-3.5 text-white/50 group-hover:text-[hsl(24,10%,16%)]" />
+                              </span>
+                            </div>
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 origin-left scale-x-0 bg-[hsl(42,62%,68%)] transition-transform duration-500 group-hover:scale-x-100" />
                         </div>
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 origin-left scale-x-0 bg-[hsl(42,62%,68%)] transition-transform duration-500 group-hover:scale-x-100" />
-                    </div>
-                  </Link>
+                      </Link>
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>

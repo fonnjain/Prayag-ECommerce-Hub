@@ -145,29 +145,57 @@ router.get("/products/:slug/related", async (req, res): Promise<void> => {
   if (!product) { res.json([]); return; }
 
   const keywords = getRelatedProductKeywords(product.name);
-  if (keywords.length === 0) { res.json([]); return; }
+  let rows = keywords.length > 0
+    ? await db
+      .select({ p: productsTable, catName: categoriesTable.name })
+      .from(productsTable)
+      .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
+      .where(and(
+        eq(productsTable.categoryId, product.categoryId),
+        eq(productsTable.inStock, true),
+        sql`${productsTable.id} != ${product.id}`,
+        or(...keywords.map((keyword) => ilike(productsTable.name, `%${keyword}%`))),
+      ))
+      .orderBy(
+        desc(sql<number>`(${sql.join(
+          keywords.map((keyword) => sql`CASE WHEN lower(${productsTable.name}) LIKE ${`%${keyword}%`} THEN 1 ELSE 0 END`),
+          sql` + `,
+        )})`),
+        sql`ABS(${productsTable.price}::numeric - ${product.price}::numeric) ASC`,
+        asc(productsTable.name),
+      )
+      .limit(8)
+    : [];
 
-  const keywordConditions = keywords.map((keyword) => ilike(productsTable.name, `%${keyword}%`));
-  const matchScore = sql<number>`(${sql.join(
-    keywords.map((keyword) => sql`CASE WHEN lower(${productsTable.name}) LIKE ${`%${keyword}%`} THEN 1 ELSE 0 END`),
-    sql` + `,
-  )})`;
-  const rows = await db
-    .select({ p: productsTable, catName: categoriesTable.name })
-    .from(productsTable)
-    .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
-    .where(and(
-      eq(productsTable.categoryId, product.categoryId),
-      eq(productsTable.inStock, true),
-      sql`${productsTable.id} != ${product.id}`,
-      or(...keywordConditions),
-    ))
-    .orderBy(
-      desc(matchScore),
-      sql`ABS(${productsTable.price}::numeric - ${product.price}::numeric) ASC`,
-      asc(productsTable.name),
-    )
-    .limit(8);
+  // Keep the related rail available even when a product has no meaningful
+  // name-keyword matches in its category.
+  if (rows.length === 0) {
+    rows = await db
+      .select({ p: productsTable, catName: categoriesTable.name })
+      .from(productsTable)
+      .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
+      .where(and(
+        eq(productsTable.categoryId, product.categoryId),
+        eq(productsTable.inStock, true),
+        sql`${productsTable.id} != ${product.id}`,
+      ))
+      .orderBy(desc(productsTable.createdAt), asc(productsTable.name))
+      .limit(8);
+  }
+
+  if (rows.length === 0) {
+    rows = await db
+      .select({ p: productsTable, catName: categoriesTable.name })
+      .from(productsTable)
+      .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
+      .where(and(
+        eq(productsTable.inStock, true),
+        sql`${productsTable.id} != ${product.id}`,
+      ))
+      .orderBy(desc(productsTable.createdAt), asc(productsTable.name))
+      .limit(8);
+  }
+
   res.json(rows.map(r => buildProductRow(r.p, r.catName)));
 });
 
