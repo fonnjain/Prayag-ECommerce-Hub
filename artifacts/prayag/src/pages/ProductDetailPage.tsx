@@ -113,10 +113,10 @@ export default function ProductDetailPage() {
           <span className="text-[hsl(24,10%,16%)] truncate max-w-[200px]">{product.name}</span>
         </nav>
 
-        <div className="grid xl:grid-cols-12 gap-12 lg:gap-16 mb-20">
+        <div className="grid items-stretch xl:grid-cols-12 gap-12 lg:gap-16 mb-8">
           
           {/* Majestic Gallery Stage */}
-          <div className="xl:col-span-7 flex flex-col-reverse lg:flex-row gap-6">
+          <div className="xl:col-span-7 flex xl:h-[760px] flex-col-reverse lg:flex-row gap-6">
             {/* Thumbnail Column */}
             <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-y-auto lg:w-24 flex-shrink-0 scrollbar-hide pb-2 lg:pb-0">
               {images.map((img, i) => (
@@ -129,7 +129,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Main Stage */}
-            <div className="flex-1 bg-white border border-gray-100 aspect-square lg:aspect-auto lg:h-[700px] flex items-center justify-center p-10 relative group overflow-hidden">
+            <div className="flex-1 bg-white border border-gray-100 aspect-square lg:aspect-auto lg:h-[700px] xl:h-full min-h-0 flex items-center justify-center p-10 relative group overflow-hidden">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0)_70%)]" />
               <AnimatePresence mode="wait">
                 <motion.img
@@ -154,7 +154,7 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Product Info Console */}
-          <div className="xl:col-span-5 flex flex-col py-4 lg:py-8">
+          <div className="xl:col-span-5 flex xl:h-[760px] flex-col">
             <SkuBadge sku={product.sku} className="mb-4" data-testid="text-sku" />
             
             <h1 className="text-3xl lg:text-[48px] font-bold tracking-tight text-gray-900 mb-6 leading-[1.15]" data-testid="text-product-name">
@@ -226,27 +226,28 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Premium Guarantees */}
-            <div className="relative mt-2 grid grid-cols-1 overflow-hidden rounded-2xl bg-[hsl(24,10%,16%)] shadow-[0_18px_45px_-24px_rgba(42,28,18,0.85)] sm:grid-cols-3">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(202,164,104,0.18),transparent_32%),linear-gradient(115deg,rgba(255,255,255,0.04),transparent_42%,rgba(202,164,104,0.07))]" />
-              {[
-                { icon: Shield, title: "Authentic", desc: "100% Genuine" },
-                { icon: Truck, title: "Delivery", desc: "Free over ₹5000" },
-                { icon: RotateCcw, title: "Returns", desc: "7-day policy" },
-              ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="group relative flex items-center gap-3 border-b border-white/10 px-4 py-4 transition-colors duration-300 last:border-b-0 hover:bg-white/[0.045] sm:border-b-0 sm:border-r sm:px-5 sm:py-5 sm:last:border-r-0">
-                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-[hsl(42,62%,68%)]/35 bg-[hsl(42,62%,68%)]/10 transition-all duration-300 group-hover:border-[hsl(42,62%,68%)]/75 group-hover:bg-[hsl(42,62%,68%)]/20 group-hover:shadow-[0_0_22px_rgba(202,164,104,0.2)]">
-                    <Icon className="h-4 w-4 text-[hsl(42,62%,68%)]" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-[11px] font-bold uppercase tracking-[0.16em] text-white">{title}</h4>
-                    <p className="mt-1 text-[11px] text-white/55">{desc}</p>
-                  </div>
-                  <span className="ml-auto hidden text-[10px] font-mono tracking-widest text-[hsl(42,62%,68%)]/55 sm:block">0{title === "Authentic" ? 1 : title === "Delivery" ? 2 : 3}</span>
-                </div>
-              ))}
-            </div>
           </div>
+        </div>
+
+        {/* Premium Guarantees */}
+        <div className="relative mb-20 grid w-full grid-cols-1 overflow-hidden rounded-2xl bg-[hsl(24,10%,16%)] shadow-[0_18px_45px_-24px_rgba(42,28,18,0.85)] sm:grid-cols-3">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(202,164,104,0.18),transparent_32%),linear-gradient(115deg,rgba(255,255,255,0.04),transparent_42%,rgba(202,164,104,0.07))]" />
+          {[
+            { icon: Shield, title: "Authentic", desc: "100% Genuine" },
+            { icon: Truck, title: "Delivery", desc: "Free over ₹5000" },
+            { icon: RotateCcw, title: "Returns", desc: "7-day policy" },
+          ].map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="group relative flex items-center gap-3 border-b border-white/10 px-4 py-4 transition-colors duration-300 last:border-b-0 hover:bg-white/[0.045] sm:border-b-0 sm:border-r sm:px-5 sm:py-5 sm:last:border-r-0">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-[hsl(42,62%,68%)]/35 bg-[hsl(42,62%,68%)]/10 transition-all duration-300 group-hover:border-[hsl(42,62%,68%)]/75 group-hover:bg-[hsl(42,62%,68%)]/20 group-hover:shadow-[0_0_22px_rgba(202,164,104,0.2)]">
+                <Icon className="h-4 w-4 text-[hsl(42,62%,68%)]" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-bold uppercase tracking-[0.16em] text-white">{title}</h4>
+                <p className="mt-1 text-[11px] text-white/55">{desc}</p>
+              </div>
+              <span className="ml-auto hidden text-[10px] font-mono tracking-widest text-[hsl(42,62%,68%)]/55 sm:block">0{title === "Authentic" ? 1 : title === "Delivery" ? 2 : 3}</span>
+            </div>
+          ))}
         </div>
 
         {/* Detailed Information Tabs */}
