@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Package, Users, Building2, ShoppingBag, IndianRupee, LayoutDashboard, Truck, RotateCcw, Palette, FolderTree, Pencil } from "lucide-react";
+import { Package, Users, Building2, ShoppingBag, IndianRupee, LayoutDashboard, Truck, RotateCcw, Palette, FolderTree, Pencil, Images } from "lucide-react";
 import SiteContentManager from "@/components/admin/SiteContentManager";
 import CategoryManager from "@/components/admin/CategoryManager";
 import ProductEditModal from "@/components/admin/ProductEditModal";
+import ProductImageReview from "@/components/admin/ProductImageReview";
 import type { Product } from "@workspace/api-client-react";
 import { useGetAdminDashboard, useGetRevenueStats, useListAdminOrders, useListAdminProducts, useListAdminCustomers, useListAdminDealers, useUpdateOrderStatus, getListAdminOrdersQueryKey, useListAdminOrderRequests, getListAdminOrderRequestsQueryKey, useUpdateOrderRequest } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
@@ -16,6 +17,7 @@ import { authenticatedFetch } from "@/lib/authenticated-fetch";
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "products", label: "Products", icon: ShoppingBag },
+  { id: "photo-review", label: "Photo Review", icon: Images },
   { id: "categories", label: "Categories", icon: FolderTree },
   { id: "site-content", label: "Site Content", icon: Palette },
   { id: "orders", label: "Orders", icon: Package },
@@ -226,6 +228,8 @@ export default function AdminPage() {
             <CategoryManager />
           </div>
         )}
+
+        {active === "photo-review" && <ProductImageReview />}
 
         {active === "site-content" && (
           <div>

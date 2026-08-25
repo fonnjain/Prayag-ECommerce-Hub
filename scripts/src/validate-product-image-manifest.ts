@@ -5,19 +5,17 @@
  * only use filename-derived SKU candidates that occur exactly once, so repeated
  * codes are reported for manual review rather than being guessed.
  */
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-
-type ProductImageManifest = Record<string, string[]>;
-
-const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const DRIVE_IMAGE_ROOT = resolve(PROJECT_ROOT, "artifacts/prayag/public/images/drive");
-const MANIFEST_PATH = resolve(DRIVE_IMAGE_ROOT, "manifest.json");
-
-function normalizedItemCode(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
+import { existsSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+import {
+  buildImageCandidates,
+  buildImageReviewGroups,
+  DRIVE_IMAGE_ROOT,
+  PRODUCT_IMAGE_REVIEW_PATH,
+  readProductImageManifest,
+  readProductImageOverrides,
+  validateProductImageOverrides,
+} from "./product-image-manifest.js";
 
 function isSafeFolder(folder: string): boolean {
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(folder);
@@ -28,8 +26,9 @@ function isSafeWebpFile(file: string): boolean {
 }
 
 function main(): void {
-  const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8")) as ProductImageManifest;
-  const candidates = new Map<string, string[]>();
+  const manifest = readProductImageManifest();
+  const overrides = readProductImageOverrides();
+  const candidates = buildImageCandidates(manifest);
   const seenPaths = new Set<string>();
   let images = 0;
 
@@ -48,14 +47,21 @@ function main(): void {
         throw new Error(`Manifest asset is missing: ${assetPath}`);
       }
 
-      const key = normalizedItemCode(file.replace(/\.webp$/i, ""));
-      if (key) candidates.set(key, [...(candidates.get(key) ?? []), assetPath]);
       images++;
     }
   }
 
+  validateProductImageOverrides(overrides, candidates);
   const ambiguous = [...candidates.entries()].filter(([, paths]) => paths.length > 1);
   const unambiguous = candidates.size - ambiguous.length;
+  const reviewGroups = buildImageReviewGroups(manifest, overrides);
+  if (process.argv.includes("--write-review")) {
+    writeFileSync(
+      PRODUCT_IMAGE_REVIEW_PATH,
+      `${JSON.stringify({ version: 1, groups: reviewGroups }, null, 2)}\n`,
+    );
+    console.log(`Wrote ${reviewGroups.length} ambiguous image groups to ${PRODUCT_IMAGE_REVIEW_PATH}`);
+  }
   console.log(
     `Validated ${images} Drive WebP assets in ${Object.keys(manifest).length} folders; ` +
     `${unambiguous} unambiguous SKU candidates and ${ambiguous.length} ambiguous codes held for review.`

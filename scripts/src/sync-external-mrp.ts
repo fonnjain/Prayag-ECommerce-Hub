@@ -15,17 +15,19 @@
  * creates variant item codes, as it does for sink variants such as -D/-DM.
  */
 import { db, pool, productsTable, categoriesTable } from "@workspace/db";
-import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { buildShortProductName } from "./product-name.js";
+import {
+  buildImageCandidates,
+  normalizedItemCode,
+  readProductImageManifest,
+  readProductImageOverrides,
+  validateProductImageOverrides,
+} from "./product-image-manifest.js";
 
 const API_BASE = "https://prayag-competition-analysis.replit.app/api/v1";
 const KEY = process.env.PRAYAG_COMP_KEY;
 const APPROVED_ROLLOUT_DATE = "2026-09-01";
 const PAGE_SIZE = 200;
-const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const PRODUCT_IMAGE_MANIFEST_PATH = resolve(PROJECT_ROOT, "artifacts/prayag/public/images/drive/manifest.json");
 
 if (!KEY) throw new Error("PRAYAG_COMP_KEY is required");
 
@@ -43,8 +45,6 @@ interface PrayagProduct {
   currentBasis: string | null;
   effectiveDate: string | null;
 }
-
-type ProductImageManifest = Record<string, string[]>;
 
 const DIVISION_TO_CATEGORY_SLUG: Record<string, string> = {
   "PTMT & Plastic Fittings": "ptmt-faucets",
@@ -85,37 +85,37 @@ function slugify(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }
 
-function normalizedItemCode(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
 function loadProductImageIndex(): Map<string, string[]> {
-  const manifest = JSON.parse(readFileSync(PRODUCT_IMAGE_MANIFEST_PATH, "utf8")) as ProductImageManifest;
-  const candidates = new Map<string, string[]>();
-
-  for (const [folder, files] of Object.entries(manifest)) {
-    for (const file of files) {
-      const itemCode = file.replace(/\.[^.]+$/, "");
-      const key = normalizedItemCode(itemCode);
-      const path = `/images/drive/${folder}/${file}`;
-      candidates.set(key, [...(candidates.get(key) ?? []), path]);
-    }
-  }
+  const manifest = readProductImageManifest();
+  const overrides = readProductImageOverrides();
+  const candidates = buildImageCandidates(manifest);
+  validateProductImageOverrides(overrides, candidates);
 
   const index = new Map<string, string[]>();
   let ambiguousCodes = 0;
-  for (const [key, paths] of candidates) {
+  for (const [key, paths] of candidates.entries()) {
     // A repeated filename can be a colour variation, but it can also be an
     // unrelated asset from a different range. Without an explicit reviewed
     // association, only a one-to-one SKU/file match is safe to publish.
     if (paths.length === 1) {
-      index.set(key, paths);
+      index.set(key, [`/images/drive/${paths[0].path}`]);
     } else {
       ambiguousCodes++;
     }
   }
 
-  console.log(`Loaded ${index.size} unambiguous product-photo codes; skipped ${ambiguousCodes} ambiguous manifest codes.`);
+  let reviewedCodes = 0;
+  for (const [sku, paths] of Object.entries(overrides)) {
+    const key = normalizedItemCode(sku);
+    if (!key) continue;
+    index.set(key, paths.map((path) => `/images/drive/${path}`));
+    reviewedCodes++;
+  }
+
+  console.log(
+    `Loaded ${index.size} product-photo codes; skipped ${ambiguousCodes} ambiguous manifest codes; ` +
+    `applied ${reviewedCodes} explicit reviewed overrides.`,
+  );
   return index;
 }
 
@@ -338,6 +338,12 @@ async function main() {
         "UPDATE products SET image_url = $1, updated_at = now() WHERE id = $2 AND image_url IS NULL",
         [imageUrls[0], product.id]
       );
+      for (const [sortOrder, imageUrl] of imageUrls.slice(1).entries()) {
+        await client.query(
+          "INSERT INTO product_images (product_id, image_url, sort_order) VALUES ($1, $2, $3)",
+          [product.id, imageUrl, sortOrder + 1],
+        );
+      }
       productsWithMappedImages++;
     }
 

@@ -119,7 +119,10 @@ router.get("/products/:slug", async (req, res): Promise<void> => {
     .where(and(eq(productsTable.slug, rawSlug), eq(productsTable.inStock, true)));
   if (!row) { res.status(404).json({ error: "Product not found" }); return; }
   const imgs = await db.select().from(productImagesTable).where(eq(productImagesTable.productId, row.p.id)).orderBy(productImagesTable.sortOrder);
-  res.json(buildProductRow(row.p, row.catName, imgs.map(i => i.imageUrl)));
+  const images = [row.p.imageUrl, ...imgs.map((image) => image.imageUrl)]
+    .filter((image): image is string => Boolean(image))
+    .filter((image, index, values) => values.indexOf(image) === index);
+  res.json(buildProductRow(row.p, row.catName, images));
 });
 
 router.get("/products/:slug/related", async (req, res): Promise<void> => {
