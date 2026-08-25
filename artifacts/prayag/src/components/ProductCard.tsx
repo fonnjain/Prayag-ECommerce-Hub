@@ -2,9 +2,9 @@ import { Heart, ShoppingCart, Star, Eye } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { useAddToCart, useAddToWishlist, getGetCartQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
+import { useAddToWishlist, getGetWishlistQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuthStore, useCartStore } from "@/lib/store";
+import { useAuthStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import SkuBadge from "./SkuBadge";
 
@@ -30,26 +30,11 @@ interface Props {
 
 export default function ProductCard({ product, index = 0 }: Props) {
   const { toast } = useToast();
-  const { setItemCount } = useCartStore();
   const user = useAuthStore((state) => state.user);
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const addToCart = useAddToCart();
   const addToWishlist = useAddToWishlist();
   const [isCardHovered, setIsCardHovered] = useState(false);
-  const [isAddButtonHovered, setIsAddButtonHovered] = useState(false);
-
-  function handleAddToCart(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    addToCart.mutate({ data: { productId: product.id, quantity: 1 } }, {
-      onSuccess: (cart) => {
-        setItemCount(cart.itemCount);
-        queryClient.setQueryData(getGetCartQueryKey(), cart);
-        toast({ title: "Added to cart", description: product.name });
-      },
-    });
-  }
 
   function handleWishlist(e: React.MouseEvent) {
     e.preventDefault();
@@ -163,23 +148,6 @@ export default function ProductCard({ product, index = 0 }: Props) {
                 </span>
               )}
             </div>
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={handleAddToCart} disabled={!product.inStock || addToCart.isPending}
-              onMouseEnter={() => setIsAddButtonHovered(true)}
-              onMouseLeave={() => setIsAddButtonHovered(false)}
-              className={`relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl border py-3 text-xs font-bold uppercase tracking-[0.14em] transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50 ${
-                isAddButtonHovered
-                  ? "border-[hsl(24,10%,16%)] bg-[hsl(24,10%,16%)] text-white shadow-[0_10px_22px_-14px_rgba(42,28,18,0.9)]"
-                  : "border-[hsl(24,10%,16%)]/15 bg-white text-[hsl(24,10%,16%)]"
-              }`}
-              data-testid={`button-add-cart-${product.id}`}>
-              <div className={`absolute inset-y-0 left-0 w-10 -skew-x-12 bg-[hsl(42,62%,68%)]/20 blur-sm transition-transform duration-500 ${isAddButtonHovered ? "translate-x-[500%]" : "-translate-x-[180%]"}`} />
-              <ShoppingCart className={`relative z-10 h-3.5 w-3.5 transition-colors duration-300 ${isAddButtonHovered ? "text-[hsl(42,62%,68%)]" : ""}`} />
-              <span className="relative z-10">
-                {addToCart.isPending ? "Adding..." : "Add to Cart"}
-              </span>
-            </motion.button>
           </div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-1 origin-left scale-x-0 bg-[hsl(42,62%,68%)] transition-transform duration-500 group-hover:scale-x-100" />

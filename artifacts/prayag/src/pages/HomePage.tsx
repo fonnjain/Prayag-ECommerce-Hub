@@ -2,43 +2,12 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView, useMotionValue, useSpring, animate, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Shield, Truck, Award, RefreshCw, BadgeCheck, Headphones, Tag, Star, Droplets, Sparkles, Package, Eye } from "lucide-react";
-import { getListProductsQueryOptions, useListCategoriesWithCounts, useListProducts, useAddToCart, getGetCartQueryKey } from "@workspace/api-client-react";
-import { useQueries, useQueryClient } from "@tanstack/react-query";
-import { ShoppingCart } from "lucide-react";
-import { useCartStore } from "@/lib/store";
-import { useToast } from "@/hooks/use-toast";
+import { getListProductsQueryOptions, useListCategoriesWithCounts, useListProducts } from "@workspace/api-client-react";
+import { useQueries } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import SkuBadge from "@/components/SkuBadge";
 import { useSiteContent } from "@/lib/siteContent";
 import heroFaucet from "@assets/generated_images/prayag_hero_luxury.png";
-
-function AddToCartButton({ productId, productName }: { productId: number; productName: string }) {
-  const { toast } = useToast();
-  const { setItemCount } = useCartStore();
-  const queryClient = useQueryClient();
-  const addToCart = useAddToCart();
-
-  function handleClick(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    addToCart.mutate({ data: { productId, quantity: 1 } }, {
-      onSuccess: (cart) => {
-        setItemCount(cart.itemCount);
-        queryClient.setQueryData(getGetCartQueryKey(), cart);
-        toast({ title: "Added to cart", description: productName });
-      },
-    });
-  }
-
-  return (
-    <button onClick={handleClick} disabled={addToCart.isPending}
-      className="shimmer-hover w-full bg-gradient-to-r from-[hsl(24,10%,16%)] to-[hsl(24,9%,26%)] text-white text-[10px] font-bold py-2 rounded-lg text-center flex items-center justify-center gap-1 disabled:opacity-60"
-      data-testid={`button-home-add-cart-${productId}`}>
-      <ShoppingCart className="w-3 h-3" />
-      {addToCart.isPending ? "Adding..." : "Add to Cart"}
-    </button>
-  );
-}
 
 const categoryImages: Record<string, string> = {
   "cp-faucets": "/images/categories/cp-faucets.webp",
@@ -281,7 +250,6 @@ function BestSellerSlider({ products }: { products: Array<{
                       <span className="text-[9px] font-semibold text-gray-500">{p.rating.toFixed(1)} · {p.reviewCount} reviews</span>
                     </div>
                     <div className="mb-3 flex items-baseline gap-1.5"><span className="text-base font-black text-[hsl(24,10%,16%)]">₹{Number(p.price).toLocaleString("en-IN")}</span>{p.mrp > p.price && <span className="text-[9px] text-gray-400 line-through">₹{Number(p.mrp).toLocaleString("en-IN")}</span>}</div>
-                    <div className="mt-auto"><AddToCartButton productId={p.id} productName={p.name} /></div>
                   </div>
                 </motion.div>
               </Link>

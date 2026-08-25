@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useLocation } from "wouter";
-import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, Minus, Plus, ArrowLeft, CheckCircle2, ZoomIn } from "lucide-react";
-import { useGetProduct, useGetRelatedProducts, useListCategories, useAddToCart, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey, getGetCartQueryKey } from "@workspace/api-client-react";
+import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, ArrowLeft, CheckCircle2, ZoomIn } from "lucide-react";
+import { useGetProduct, useGetRelatedProducts, useListCategories, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuthStore, useCartStore } from "@/lib/store";
+import { useAuthStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/ProductCard";
 import SkuBadge from "@/components/SkuBadge";
@@ -13,10 +13,8 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { toast } = useToast();
-  const { setItemCount } = useCartStore();
   const user = useAuthStore((state) => state.user);
   const [, setLocation] = useLocation();
-  const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
   const [imageZoomed, setImageZoomed] = useState(false);
@@ -31,7 +29,6 @@ export default function ProductDetailPage() {
   });
   const { data: categories } = useListCategories();
   const queryClient = useQueryClient();
-  const addToCart = useAddToCart();
   const addToWishlist = useAddToWishlist();
 
   useEffect(() => {
@@ -101,16 +98,6 @@ export default function ProductDetailPage() {
   const gstAmount = Math.round(product.price * (gstPercent / 100) * 100) / 100;
   const relatedItems = (related ?? []).slice(0, 8);
   const relatedLoopItems = Array.from({ length: 5 }, () => relatedItems).flat();
-
-  function handleAddToCart() {
-    addToCart.mutate({ data: { productId: product!.id, quantity: qty } }, {
-      onSuccess: (cart) => {
-        queryClient.setQueryData(getGetCartQueryKey(), cart);
-        setItemCount(cart.itemCount);
-        toast({ title: "Added to cart!", description: `${qty} × ${product!.name}` });
-      },
-    });
-  }
 
   function handleWishlist() {
     if (!user) {
@@ -263,25 +250,6 @@ export default function ProductDetailPage() {
 
             {/* Action Area */}
             <div className="bg-white border border-gray-200 p-6 md:p-8 mb-8 shadow-sm">
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <div className="flex items-center border border-gray-300 h-14 md:w-32 flex-shrink-0">
-                  <button onClick={() => setQty(q => Math.max(1, q - 1))} className="w-10 h-full flex items-center justify-center hover:bg-gray-50 text-gray-600 transition-colors" data-testid="button-qty-dec"><Minus className="w-4 h-4" /></button>
-                  <span className="flex-1 text-center font-bold text-gray-900" data-testid="text-qty">{qty}</span>
-                  <button onClick={() => setQty(q => q + 1)} className="w-10 h-full flex items-center justify-center hover:bg-gray-50 text-gray-600 transition-colors" data-testid="button-qty-inc"><Plus className="w-4 h-4" /></button>
-                </div>
-                
-                <motion.button 
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleAddToCart} 
-                  disabled={!product.inStock || addToCart.isPending}
-                  className="flex-1 h-14 bg-[hsl(24,10%,16%)] text-white font-bold uppercase tracking-widest text-xs hover:bg-[hsl(38,52%,42%)] disabled:opacity-50 transition-colors flex items-center justify-center gap-3 relative overflow-hidden group"
-                  data-testid="button-add-to-cart">
-                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                  <ShoppingCart className="w-4 h-4 relative z-10" />
-                  <span className="relative z-10">{addToCart.isPending ? "Processing..." : "Add to Cart"}</span>
-                </motion.button>
-              </div>
-
               <div className="flex gap-4">
                 <button onClick={handleWishlist}
                   className="flex-1 h-12 border border-gray-300 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-700 hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all"
