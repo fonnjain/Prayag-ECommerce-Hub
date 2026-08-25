@@ -810,6 +810,45 @@ export const GetAdminDashboardResponse = zod.object({
 
 
 /**
+ * @summary Review duplicate product image candidates
+ */
+export const GetAdminProductImageReviewResponse = zod.object({
+  "version": zod.number(),
+  "groups": zod.array(zod.object({
+  "normalizedCode": zod.string(),
+  "sku": zod.string().nullable(),
+  "candidates": zod.array(zod.object({
+  "folder": zod.string(),
+  "file": zod.string(),
+  "path": zod.string()
+})),
+  "reviewedPaths": zod.array(zod.string())
+}))
+})
+
+
+/**
+ * @summary Replace or clear a product image approval
+ */
+export const UpdateAdminProductImageOverrideParams = zod.object({
+  "sku": zod.coerce.string()
+})
+
+export const updateAdminProductImageOverrideBodyPathsMax = 20;
+
+
+
+export const UpdateAdminProductImageOverrideBody = zod.object({
+  "paths": zod.array(zod.string()).max(updateAdminProductImageOverrideBodyPathsMax)
+})
+
+export const UpdateAdminProductImageOverrideResponse = zod.object({
+  "sku": zod.string(),
+  "paths": zod.array(zod.string())
+})
+
+
+/**
  * @summary Admin product list
  */
 export const ListAdminProductsQueryParams = zod.object({

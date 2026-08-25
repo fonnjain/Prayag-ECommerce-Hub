@@ -1,8 +1,10 @@
 import { Router, type IRouter } from "express";
+import { GetAdminProductImageReviewResponse, UpdateAdminProductImageOverrideBody, UpdateAdminProductImageOverrideParams, UpdateAdminProductImageOverrideResponse } from "@workspace/api-zod";
 import { db, ordersTable, productsTable, usersTable, dealersTable, categoriesTable, productImagesTable, orderRequestsTable, siteContentTable } from "@workspace/db";
 import { eq, ilike, sql, and, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAdmin } from "../middleware/auth";
+import { readProductImageReview, saveProductImageOverride, normalizedItemCode } from "../lib/product-image-review";
 
 const router: IRouter = Router();
 
@@ -33,6 +35,43 @@ router.get("/admin/dashboard", async (_req, res): Promise<void> => {
     })),
     topCategories,
   });
+});
+
+router.get("/admin/product-image-review", async (_req, res): Promise<void> => {
+  const products = await db.select({ sku: productsTable.sku }).from(productsTable);
+  res.json(GetAdminProductImageReviewResponse.parse(readProductImageReview(products.map((product) => product.sku))));
+});
+
+router.put("/admin/product-image-review/:sku", async (req, res): Promise<void> => {
+  const rawSku = Array.isArray(req.params.sku) ? req.params.sku[0] : req.params.sku;
+  const sku = UpdateAdminProductImageOverrideParams.safeParse({ sku: rawSku });
+  const body = UpdateAdminProductImageOverrideBody.safeParse(req.body);
+  if (!sku.success || !body.success) {
+    res.status(400).json({ error: "SKU and an array of exact candidate paths are required" });
+    return;
+  }
+
+  const [product] = await db
+    .select({ sku: productsTable.sku })
+    .from(productsTable)
+    .where(eq(productsTable.sku, sku.data.sku));
+  if (!product || !normalizedItemCode(product.sku)) {
+    res.status(404).json({ error: "Catalogue SKU not found" });
+    return;
+  }
+  const matchingProducts = await db.select({ sku: productsTable.sku }).from(productsTable);
+  if (matchingProducts.filter((candidate) => normalizedItemCode(candidate.sku) === normalizedItemCode(product.sku)).length !== 1) {
+    res.status(409).json({ error: "This duplicate image group does not have a unique catalogue SKU" });
+    return;
+  }
+
+  try {
+    const paths = await saveProductImageOverride(product.sku, body.data.paths);
+    req.log.info({ sku: product.sku, pathCount: paths.length }, "Product image approval updated");
+    res.json(UpdateAdminProductImageOverrideResponse.parse({ sku: product.sku, paths }));
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Could not save image approval" });
+  }
 });
 
 router.get("/admin/revenue-stats", async (_req, res): Promise<void> => {

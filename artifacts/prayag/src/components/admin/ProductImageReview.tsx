@@ -1,41 +1,28 @@
 import { useMemo, useState } from "react";
-import { CheckCircle2, ImageOff, Search } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-
-interface Candidate {
-  folder: string;
-  file: string;
-  path: string;
-}
-
-interface ReviewGroup {
-  normalizedCode: string;
-  candidates: Candidate[];
-  reviewedPaths: string[];
-}
-
-interface ReviewDocument {
-  version: number;
-  groups: ReviewGroup[];
-}
+import { CheckCircle2, ImageOff, LoaderCircle, Save, Search } from "lucide-react";
+import {
+  getGetAdminProductImageReviewQueryKey,
+  useGetAdminProductImageReview,
+  useUpdateAdminProductImageOverride,
+  type ProductImageReviewGroup,
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 const basePath = import.meta.env.BASE_URL || "/";
-const reviewUrl = `${basePath}images/drive/ambiguous-image-review.json`;
 const imageUrl = (path: string) => `${basePath}images/drive/${path}`;
 
-async function loadReview(): Promise<ReviewDocument> {
-  const response = await fetch(reviewUrl);
-  if (!response.ok) throw new Error(`Could not load image review list (${response.status})`);
-  return response.json() as Promise<ReviewDocument>;
+function samePaths(left: string[], right: string[]): boolean {
+  return left.length === right.length && left.every((path, index) => path === right[index]);
 }
 
 export default function ProductImageReview() {
   const [search, setSearch] = useState("");
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["product-image-review"],
-    queryFn: loadReview,
-    staleTime: Infinity,
-  });
+  const [selections, setSelections] = useState<Record<string, string[]>>({});
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { data, isLoading, error } = useGetAdminProductImageReview();
+  const saveApproval = useUpdateAdminProductImageOverride();
 
   const groups = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -50,15 +37,52 @@ export default function ProductImageReview() {
 
   const reviewedCount = data?.groups.filter((group) => group.reviewedPaths.length > 0).length ?? 0;
 
+  function selectedPaths(group: ProductImageReviewGroup): string[] {
+    return selections[group.normalizedCode] ?? group.reviewedPaths;
+  }
+
+  function updateSelection(group: ProductImageReviewGroup, path: string): void {
+    setSelections((current) => {
+      const selected = new Set(current[group.normalizedCode] ?? group.reviewedPaths);
+      if (selected.has(path)) selected.delete(path);
+      else selected.add(path);
+      return {
+        ...current,
+        [group.normalizedCode]: group.candidates
+          .filter((candidate) => selected.has(candidate.path))
+          .map((candidate) => candidate.path),
+      };
+    });
+  }
+
+  function saveSelection(group: ProductImageReviewGroup, paths = selectedPaths(group)): void {
+    if (!group.sku) return;
+    saveApproval.mutate(
+      { sku: group.sku, data: { paths } },
+      {
+        onSuccess: (approval) => {
+          setSelections((current) => ({ ...current, [group.normalizedCode]: approval.paths }));
+          queryClient.invalidateQueries({ queryKey: getGetAdminProductImageReviewQueryKey() });
+          toast({
+            title: approval.paths.length ? "Photo approval saved" : "Photo approval removed",
+            description: approval.paths.length
+              ? `${approval.paths.length} exact image${approval.paths.length === 1 ? "" : "s"} approved for ${approval.sku}.`
+              : `${approval.sku} will stay excluded from the next catalogue sync.`,
+          });
+        },
+        onError: () => toast({ title: "Could not save photo approval", variant: "destructive" }),
+      },
+    );
+  }
+
   return (
     <section>
       <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Duplicate Photo Review</h1>
           <p className="mt-1 max-w-3xl text-sm text-gray-500">
-            Duplicate filename matches are never published automatically. Review each exact Drive asset here, then add only approved paths to
-            <code className="mx-1 rounded bg-gray-100 px-1 py-0.5 text-xs text-gray-700">product-image-overrides.json</code>,
-            regenerate this review list, and validate before the next catalogue sync.
+            Duplicate filename matches are never published automatically. Select the exact Drive assets to approve for a catalogue SKU; only saved
+            paths will be used by the next catalogue sync.
           </p>
         </div>
         <div className="flex gap-2 text-xs font-semibold">
@@ -91,8 +115,13 @@ export default function ProductImageReview() {
               <div>
                 <div className="text-xs font-semibold uppercase tracking-wider text-gray-400">Ambiguous SKU code</div>
                 <h2 className="font-mono text-lg font-bold text-gray-900">{group.normalizedCode}</h2>
+                {group.sku ? (
+                  <div className="mt-1 text-xs text-gray-500">Catalogue SKU: <span className="font-mono font-semibold text-gray-700">{group.sku}</span></div>
+                ) : (
+                  <div className="mt-1 text-xs font-medium text-amber-700">No unique catalogue SKU is available for approval.</div>
+                )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-600">{group.candidates.length} Drive candidates</span>
                 {group.reviewedPaths.length > 0 ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
@@ -103,24 +132,59 @@ export default function ProductImageReview() {
                     <ImageOff className="h-3.5 w-3.5" /> Excluded from sync
                   </span>
                 )}
+                {group.sku && (
+                  <>
+                    {group.reviewedPaths.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => saveSelection(group, [])}
+                        disabled={saveApproval.isPending}
+                        className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        data-testid={`button-remove-photo-approval-${group.normalizedCode}`}
+                      >
+                        Remove approval
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => saveSelection(group)}
+                      disabled={saveApproval.isPending || samePaths(selectedPaths(group), group.reviewedPaths)}
+                      className="inline-flex items-center gap-1 rounded-lg bg-[hsl(38,52%,40%)] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                      data-testid={`button-save-photo-approval-${group.normalizedCode}`}
+                    >
+                      {saveApproval.isPending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                      Save selection
+                    </button>
+                  </>
+                )}
               </div>
             </header>
             <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
               {group.candidates.map((candidate) => {
-                const approved = group.reviewedPaths.includes(candidate.path);
+                const approved = selectedPaths(group).includes(candidate.path);
                 return (
-                  <div key={candidate.path} className={`overflow-hidden rounded-lg border ${approved ? "border-green-300 ring-1 ring-green-100" : "border-gray-200"}`}>
+                  <label key={candidate.path} className={`block overflow-hidden rounded-lg border transition-colors ${approved ? "border-green-300 ring-1 ring-green-100" : "border-gray-200"} ${group.sku ? "cursor-pointer" : "cursor-not-allowed opacity-75"}`}>
                     <div className="aspect-square bg-[#f7f4ee] p-3">
                       <img src={imageUrl(candidate.path)} alt={candidate.file} loading="lazy" className="h-full w-full object-contain mix-blend-multiply" />
                     </div>
                     <div className="border-t border-gray-100 p-3">
-                      <div className="truncate font-mono text-xs font-semibold text-gray-800" title={candidate.file}>{candidate.file}</div>
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          checked={approved}
+                          disabled={!group.sku || saveApproval.isPending}
+                          onChange={() => updateSelection(group, candidate.path)}
+                          className="mt-0.5 h-4 w-4 accent-[hsl(38,52%,40%)]"
+                          data-testid={`checkbox-photo-candidate-${candidate.path}`}
+                        />
+                        <div className="min-w-0 truncate font-mono text-xs font-semibold text-gray-800" title={candidate.file}>{candidate.file}</div>
+                      </div>
                       <div className="mt-1 truncate text-xs text-gray-500" title={candidate.folder}>Drive folder / series: {candidate.folder}</div>
                       <div className={`mt-2 text-xs font-semibold ${approved ? "text-green-700" : "text-gray-400"}`}>
-                        {approved ? "Approved exact path" : "Not approved"}
+                        {approved ? "Selected exact path" : "Not selected"}
                       </div>
                     </div>
-                  </div>
+                  </label>
                 );
               })}
             </div>

@@ -691,6 +691,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/AdminDashboard"
 
+  /admin/product-image-review:
+    get:
+      operationId: getAdminProductImageReview
+      tags: [admin]
+      summary: Review duplicate product image candidates
+      responses:
+        "200":
+          description: Duplicate product image candidates and current approvals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductImageReview"
+
+  /admin/product-image-review/{sku}:
+    put:
+      operationId: updateAdminProductImageOverride
+      tags: [admin]
+      summary: Replace or clear a product image approval
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductImageOverrideInput"
+      responses:
+        "200":
+          description: Saved product image approval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductImageOverride"
+
   /admin/products:
     get:
       operationId: listAdminProducts
@@ -1943,6 +1981,66 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CategoryWithCount"
+
+    ProductImageCandidate:
+      type: object
+      required: [folder, file, path]
+      properties:
+        folder:
+          type: string
+        file:
+          type: string
+        path:
+          type: string
+
+    ProductImageReviewGroup:
+      type: object
+      required: [normalizedCode, sku, candidates, reviewedPaths]
+      properties:
+        normalizedCode:
+          type: string
+        sku:
+          type: ["string", "null"]
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductImageCandidate"
+        reviewedPaths:
+          type: array
+          items:
+            type: string
+
+    ProductImageReview:
+      type: object
+      required: [version, groups]
+      properties:
+        version:
+          type: integer
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductImageReviewGroup"
+
+    ProductImageOverrideInput:
+      type: object
+      required: [paths]
+      properties:
+        paths:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+
+    ProductImageOverride:
+      type: object
+      required: [sku, paths]
+      properties:
+        sku:
+          type: string
+        paths:
+          type: array
+          items:
+            type: string
 
     RevenueStat:
       type: object

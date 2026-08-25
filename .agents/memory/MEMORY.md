@@ -11,3 +11,4 @@
 - [Image-first catalogue browsing](image-first-catalogue-browsing.md) — when coverage is partial, show verified product photos first but retain the complete catalogue and a Latest Arrivals sort.
 - [Water tank category override](water-tank-category-override.md) — the external feed labels water tanks as Pipes & Fittings; classify WT/water-tank products under Storage Tanks.
 - [Mobile product page overflow](mobile-product-page-overflow.md) — header action widths and tab labels can expand mobile layouts; verify document width at 390px.
+- [Product photo approvals](product-photo-approvals.md) — approval overrides are exact SKU→manifest-path sets; sync reconciles only Drive-managed imagery.

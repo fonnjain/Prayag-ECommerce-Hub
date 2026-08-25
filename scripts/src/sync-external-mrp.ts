@@ -85,44 +85,43 @@ function slugify(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }
 
-function loadProductImageIndex(): Map<string, string[]> {
+function loadProductImageIndex(): { unambiguous: Map<string, string[]>; reviewed: Map<string, string[]> } {
   const manifest = readProductImageManifest();
   const overrides = readProductImageOverrides();
   const candidates = buildImageCandidates(manifest);
   validateProductImageOverrides(overrides, candidates);
 
-  const index = new Map<string, string[]>();
+  const unambiguous = new Map<string, string[]>();
   let ambiguousCodes = 0;
   for (const [key, paths] of candidates.entries()) {
     // A repeated filename can be a colour variation, but it can also be an
     // unrelated asset from a different range. Without an explicit reviewed
     // association, only a one-to-one SKU/file match is safe to publish.
     if (paths.length === 1) {
-      index.set(key, [`/images/drive/${paths[0].path}`]);
+      unambiguous.set(key, [`/images/drive/${paths[0].path}`]);
     } else {
       ambiguousCodes++;
     }
   }
 
-  let reviewedCodes = 0;
+  const reviewed = new Map<string, string[]>();
   for (const [sku, paths] of Object.entries(overrides)) {
-    const key = normalizedItemCode(sku);
-    if (!key) continue;
-    index.set(key, paths.map((path) => `/images/drive/${path}`));
-    reviewedCodes++;
+    reviewed.set(sku, paths.map((path) => `/images/drive/${path}`));
   }
 
   console.log(
-    `Loaded ${index.size} product-photo codes; skipped ${ambiguousCodes} ambiguous manifest codes; ` +
-    `applied ${reviewedCodes} explicit reviewed overrides.`,
+    `Loaded ${unambiguous.size} unambiguous product-photo codes; skipped ${ambiguousCodes} ambiguous manifest codes; ` +
+    `applied ${reviewed.size} exact-SKU reviewed overrides.`,
   );
-  return index;
+  return { unambiguous, reviewed };
 }
 
 const PRODUCT_IMAGE_INDEX = loadProductImageIndex();
 
 function productImageUrls(itemCode: string): string[] {
-  return PRODUCT_IMAGE_INDEX.get(normalizedItemCode(itemCode)) ?? [];
+  return PRODUCT_IMAGE_INDEX.reviewed.get(itemCode)
+    ?? PRODUCT_IMAGE_INDEX.unambiguous.get(normalizedItemCode(itemCode))
+    ?? [];
 }
 
 function buildName(row: PrayagProduct): string | null {
@@ -318,33 +317,61 @@ async function main() {
     // item code. Product pages use these exact matches; the public Gallery is
     // reserved for a separate curated photoshoot collection.
     //
-    // Do not replace manually managed product imagery. Only fill products that
-    // currently have neither a primary image nor detail-image rows.
-    const { rows: productsNeedingImages } = await client.query<{ id: number; sku: string }>(
-      `SELECT p.id, p.sku
-       FROM products p
-       WHERE p.in_stock = true
-         AND p.image_url IS NULL
-         AND NOT EXISTS (
-           SELECT 1 FROM product_images pi WHERE pi.product_id = p.id
-         )`
+    // Do not replace manually managed product imagery. Drive-managed images
+    // are reconciled on every sync, so a later approval replacement/removal
+    // changes only the images this sync previously published.
+    const { rows: productsForImages } = await client.query<{ id: number; sku: string; image_url: string | null }>(
+      "SELECT id, sku, image_url FROM products WHERE in_stock = true",
     );
-    let productsWithMappedImages = 0;
-    for (const product of productsNeedingImages) {
-      const imageUrls = productImageUrls(product.sku);
-      if (imageUrls.length === 0) continue;
+    const imageProductIds = productsForImages.map((product) => product.id);
+    const { rows: currentDetailImages } = imageProductIds.length > 0
+      ? await client.query<{ product_id: number; image_url: string; sort_order: number }>(
+          `SELECT product_id, image_url, sort_order
+           FROM product_images
+           WHERE product_id = ANY($1::int[])
+           ORDER BY product_id, sort_order, id`,
+          [imageProductIds],
+        )
+      : { rows: [] };
+    const detailImagesByProduct = new Map<number, Array<{ imageUrl: string; sortOrder: number }>>();
+    for (const image of currentDetailImages) {
+      detailImagesByProduct.set(image.product_id, [
+        ...(detailImagesByProduct.get(image.product_id) ?? []),
+        { imageUrl: image.image_url, sortOrder: image.sort_order },
+      ]);
+    }
+
+    let productsWithReconciledImages = 0;
+    for (const product of productsForImages) {
+      const desired = productImageUrls(product.sku);
+      const currentDetails = detailImagesByProduct.get(product.id) ?? [];
+      const driveDetails = currentDetails.filter((image) => image.imageUrl.startsWith("/images/drive/"));
+      const manualDetails = currentDetails.filter((image) => !image.imageUrl.startsWith("/images/drive/"));
+      const hasDrivePrimary = product.image_url?.startsWith("/images/drive/") ?? false;
+      const nextPrimary = product.image_url === null || hasDrivePrimary ? desired[0] ?? null : product.image_url;
+      const nextDriveDetails = product.image_url === null || hasDrivePrimary ? desired.slice(1) : desired;
+      if (
+        product.image_url === nextPrimary &&
+        driveDetails.length === nextDriveDetails.length &&
+        driveDetails.every((image, index) => image.imageUrl === nextDriveDetails[index])
+      ) continue;
 
       await client.query(
-        "UPDATE products SET image_url = $1, updated_at = now() WHERE id = $2 AND image_url IS NULL",
-        [imageUrls[0], product.id]
+        "UPDATE products SET image_url = $1, updated_at = now() WHERE id = $2",
+        [nextPrimary, product.id],
       );
-      for (const [sortOrder, imageUrl] of imageUrls.slice(1).entries()) {
+      await client.query(
+        "DELETE FROM product_images WHERE product_id = $1 AND image_url LIKE '/images/drive/%'",
+        [product.id],
+      );
+      const nextSortOrder = Math.max(0, ...manualDetails.map((image) => image.sortOrder));
+      for (const [sortOrder, imageUrl] of nextDriveDetails.entries()) {
         await client.query(
           "INSERT INTO product_images (product_id, image_url, sort_order) VALUES ($1, $2, $3)",
-          [product.id, imageUrl, sortOrder + 1],
+          [product.id, imageUrl, nextSortOrder + sortOrder + 1],
         );
       }
-      productsWithMappedImages++;
+      productsWithReconciledImages++;
     }
 
     await client.query("UPDATE products SET is_featured = false, is_new = false WHERE in_stock = true");
@@ -358,7 +385,7 @@ async function main() {
       throw new Error(`Post-sync verification failed: expected ${feed.length} active products, got ${summary.active}`);
     }
     await client.query("COMMIT");
-    console.log(`Sync complete: ${updated} updated, ${inserted} inserted, ${missingIds.length} hidden; ${productsWithMappedImages} unambiguous product photos mapped; ${summary.active} active Prayag products (${summary.total} stored including order-safe history).`);
+    console.log(`Sync complete: ${updated} updated, ${inserted} inserted, ${missingIds.length} hidden; ${productsWithReconciledImages} Drive-managed product photo sets reconciled; ${summary.active} active Prayag products (${summary.total} stored including order-safe history).`);
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});
     throw error;

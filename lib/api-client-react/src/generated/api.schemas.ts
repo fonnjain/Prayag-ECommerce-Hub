@@ -484,6 +484,35 @@ export interface AdminDashboard {
   topCategories: CategoryWithCount[];
 }
 
+export interface ProductImageCandidate {
+  folder: string;
+  file: string;
+  path: string;
+}
+
+export interface ProductImageReviewGroup {
+  normalizedCode: string;
+  /** @nullable */
+  sku: string | null;
+  candidates: ProductImageCandidate[];
+  reviewedPaths: string[];
+}
+
+export interface ProductImageReview {
+  version: number;
+  groups: ProductImageReviewGroup[];
+}
+
+export interface ProductImageOverrideInput {
+  /** @maxItems 20 */
+  paths: string[];
+}
+
+export interface ProductImageOverride {
+  sku: string;
+  paths: string[];
+}
+
 export interface RevenueStat {
   month: string;
   revenue: number;

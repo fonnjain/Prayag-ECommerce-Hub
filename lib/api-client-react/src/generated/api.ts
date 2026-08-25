@@ -57,6 +57,9 @@ import type {
   OrderTracking,
   Product,
   ProductDetail,
+  ProductImageOverride,
+  ProductImageOverrideInput,
+  ProductImageReview,
   ProductInput,
   ProductListResponse,
   ProductUpdate,
@@ -2706,6 +2709,155 @@ export function useGetAdminDashboard<TData = Awaited<ReturnType<typeof getAdminD
 
 
 
+
+export const getGetAdminProductImageReviewUrl = () => {
+
+
+
+
+  return `/api/admin/product-image-review`
+}
+
+/**
+ * @summary Review duplicate product image candidates
+ */
+export const getAdminProductImageReview = async ( options?: RequestInit): Promise<ProductImageReview> => {
+
+  return customFetch<ProductImageReview>(getGetAdminProductImageReviewUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminProductImageReviewQueryKey = () => {
+    return [
+    `/api/admin/product-image-review`
+    ] as const;
+    }
+
+
+export const getGetAdminProductImageReviewQueryOptions = <TData = Awaited<ReturnType<typeof getAdminProductImageReview>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminProductImageReview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminProductImageReviewQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminProductImageReview>>> = ({ signal }) => getAdminProductImageReview({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminProductImageReview>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminProductImageReviewQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminProductImageReview>>>
+export type GetAdminProductImageReviewQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Review duplicate product image candidates
+ */
+
+export function useGetAdminProductImageReview<TData = Awaited<ReturnType<typeof getAdminProductImageReview>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminProductImageReview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminProductImageReviewQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateAdminProductImageOverrideUrl = (sku: string,) => {
+
+
+
+
+  return `/api/admin/product-image-review/${sku}`
+}
+
+/**
+ * @summary Replace or clear a product image approval
+ */
+export const updateAdminProductImageOverride = async (sku: string,
+    productImageOverrideInput: ProductImageOverrideInput, options?: RequestInit): Promise<ProductImageOverride> => {
+
+  return customFetch<ProductImageOverride>(getUpdateAdminProductImageOverrideUrl(sku),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      productImageOverrideInput,)
+  }
+);}
+
+
+
+
+export const getUpdateAdminProductImageOverrideMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminProductImageOverride>>, TError,{sku: string;data: BodyType<ProductImageOverrideInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminProductImageOverride>>, TError,{sku: string;data: BodyType<ProductImageOverrideInput>}, TContext> => {
+
+const mutationKey = ['updateAdminProductImageOverride'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminProductImageOverride>>, {sku: string;data: BodyType<ProductImageOverrideInput>}> = (props) => {
+          const {sku,data} = props ?? {};
+
+          return  updateAdminProductImageOverride(sku,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminProductImageOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminProductImageOverride>>>
+    export type UpdateAdminProductImageOverrideMutationBody = BodyType<ProductImageOverrideInput>
+    export type UpdateAdminProductImageOverrideMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Replace or clear a product image approval
+ */
+export const useUpdateAdminProductImageOverride = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminProductImageOverride>>, TError,{sku: string;data: BodyType<ProductImageOverrideInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminProductImageOverride>>,
+        TError,
+        {sku: string;data: BodyType<ProductImageOverrideInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminProductImageOverrideMutationOptions(options));
+    }
 
 export const getListAdminProductsUrl = (params?: ListAdminProductsParams,) => {
   const normalizedParams = new URLSearchParams();
