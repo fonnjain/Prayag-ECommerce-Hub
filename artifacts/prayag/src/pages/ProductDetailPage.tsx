@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, Minus, Plus, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useGetProduct, useGetRelatedProducts, useListCategories, useAddToCart, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey, getGetCartQueryKey } from "@workspace/api-client-react";
@@ -19,6 +19,9 @@ export default function ProductDetailPage() {
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
+  const relatedScrollRef = useRef<HTMLDivElement>(null);
+  const relatedResumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [relatedPaused, setRelatedPaused] = useState(false);
 
   const { data: product, isLoading, isError } = useGetProduct(slug!, {
     query: { enabled: !!slug, queryKey: getGetProductQueryKey(slug!) },
@@ -30,6 +33,50 @@ export default function ProductDetailPage() {
   const queryClient = useQueryClient();
   const addToCart = useAddToCart();
   const addToWishlist = useAddToWishlist();
+
+  function pauseRelatedAutoplay() {
+    if (relatedResumeTimer.current) {
+      clearTimeout(relatedResumeTimer.current);
+      relatedResumeTimer.current = null;
+    }
+    setRelatedPaused(true);
+  }
+
+  function resumeRelatedAutoplay() {
+    if (relatedResumeTimer.current) clearTimeout(relatedResumeTimer.current);
+    relatedResumeTimer.current = setTimeout(() => {
+      relatedResumeTimer.current = null;
+      setRelatedPaused(false);
+    }, 1600);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (relatedResumeTimer.current) clearTimeout(relatedResumeTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const track = relatedScrollRef.current;
+    if (!track || !related?.length || relatedPaused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let frame = 0;
+    let previousTime = performance.now();
+    const tick = (time: number) => {
+      const elapsed = Math.min(time - previousTime, 80);
+      previousTime = time;
+      const loopWidth = track.scrollWidth / 2;
+
+      if (loopWidth > track.clientWidth) {
+        track.scrollLeft += elapsed * 0.035;
+        if (track.scrollLeft >= loopWidth) track.scrollLeft -= loopWidth;
+      }
+      frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [related?.length, relatedPaused]);
 
   if (isLoading) return (
     <div className="max-w-[1400px] mx-auto px-6 py-12">
@@ -379,9 +426,19 @@ export default function ProductDetailPage() {
                   </span>
                 </Link>
               </div>
-              <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 scrollbar-hide md:gap-6">
-                {related.slice(0, 8).map((p) => (
-                  <Link key={p.id} href={`/products/${p.slug}`} className="flex-none snap-start" data-testid={`card-related-${p.id}`}>
+              <div
+                ref={relatedScrollRef}
+                className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide md:gap-6"
+                onMouseEnter={pauseRelatedAutoplay}
+                onMouseLeave={resumeRelatedAutoplay}
+                onFocus={pauseRelatedAutoplay}
+                onBlur={resumeRelatedAutoplay}
+                onTouchStart={pauseRelatedAutoplay}
+                onTouchEnd={resumeRelatedAutoplay}
+                aria-label="Related products carousel"
+              >
+                {[...related.slice(0, 8), ...related.slice(0, 8)].map((p, index) => (
+                  <Link key={`${p.id}-${index}`} href={`/products/${p.slug}`} className="flex-none" data-testid={`card-related-${p.id}`}>
                     <div className="group relative flex h-full w-[240px] flex-col overflow-hidden border border-white/10 bg-white/[0.05] transition-colors duration-500 hover:border-[hsl(42,62%,68%)]/60 md:w-[300px]">
                       <div className="relative m-3 mb-0 flex aspect-square items-center justify-center overflow-hidden bg-white p-4">
                         {p.imageUrl ? (
