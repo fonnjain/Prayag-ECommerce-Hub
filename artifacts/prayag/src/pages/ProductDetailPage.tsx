@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useLocation } from "wouter";
-import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, Minus, Plus, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, Minus, Plus, ArrowLeft, CheckCircle2, ZoomIn } from "lucide-react";
 import { useGetProduct, useGetRelatedProducts, useListCategories, useAddToCart, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore, useCartStore } from "@/lib/store";
@@ -19,6 +19,8 @@ export default function ProductDetailPage() {
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
+  const [imageZoomed, setImageZoomed] = useState(false);
+  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
   const relatedScrollRef = useRef<HTMLDivElement>(null);
   const relatedResumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [relatedPaused, setRelatedPaused] = useState(false);
@@ -184,21 +186,39 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Main Stage */}
-            <div className="flex-1 bg-white border border-gray-100 aspect-square lg:aspect-auto lg:h-[700px] xl:h-full min-h-0 flex items-center justify-center p-10 relative group overflow-hidden">
+            <div
+              className="group relative flex min-h-0 flex-1 cursor-zoom-in items-center justify-center overflow-hidden border border-gray-100 bg-white p-10 [touch-action:pan-y] lg:aspect-auto lg:h-[700px] xl:h-full"
+              onMouseEnter={() => setImageZoomed(true)}
+              onMouseLeave={() => setImageZoomed(false)}
+              onMouseMove={(event) => {
+                const bounds = event.currentTarget.getBoundingClientRect();
+                setZoomOrigin({
+                  x: Math.max(0, Math.min(100, ((event.clientX - bounds.left) / bounds.width) * 100)),
+                  y: Math.max(0, Math.min(100, ((event.clientY - bounds.top) / bounds.height) * 100)),
+                });
+              }}
+              onMouseDown={() => setImageZoomed(false)}
+              data-testid="product-image-zoom-stage"
+            >
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0)_70%)]" />
               <AnimatePresence mode="wait">
                 <motion.img
                   key={activeImg}
                   initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  animate={{ opacity: 1, scale: imageZoomed ? 1.8 : 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  transition={{ opacity: { duration: 0.4 }, scale: { duration: 0.25, ease: "easeOut" } }}
                   src={galleryImages[activeImg]}
                   alt={product.name}
-                  className="w-full h-full object-contain mix-blend-multiply relative z-10"
+                  style={{ transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%` }}
+                  className="relative z-10 h-full w-full object-contain mix-blend-multiply transition-[filter] duration-300"
                   data-testid="img-product-main"
                 />
               </AnimatePresence>
+
+              <div className={`pointer-events-none absolute bottom-5 left-5 z-20 hidden items-center gap-2 rounded-full border border-black/10 bg-white/85 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[hsl(24,10%,16%)] shadow-sm backdrop-blur-sm transition-opacity duration-300 lg:flex ${imageZoomed ? "opacity-0" : "opacity-100"}`}>
+                <ZoomIn className="h-3.5 w-3.5 text-[hsl(38,52%,52%)]" /> Hover to zoom
+              </div>
               
               {product.discount && product.discount > 0 && (
                 <div className="absolute top-6 right-6 bg-[hsl(24,10%,16%)] text-white text-xs font-bold tracking-widest uppercase px-4 py-2 z-20">

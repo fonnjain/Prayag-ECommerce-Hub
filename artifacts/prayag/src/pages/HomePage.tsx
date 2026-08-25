@@ -126,6 +126,8 @@ export default function HomePage() {
   const { data: cpFaucetDeals, isLoading: cpDealsLoading } = useListProducts({ category: "cp-faucets", sortBy: "photo_ready", limit: 14 });
   const { data: showcaseProducts, isLoading: showcaseLoading } = useListProducts({ sortBy: "photo_ready", limit: 100 });
   const faucetScrollRef = useRef<HTMLDivElement>(null);
+  const faucetResumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [faucetPaused, setFaucetPaused] = useState(false);
   const { section } = useSiteContent();
   const hero = section("hero");
   const heroFeatureProduct = cpFaucetDeals?.products.find((product) => Boolean(product.imageUrl));
@@ -149,8 +151,55 @@ export default function HomePage() {
   const ry = useSpring(mx, { stiffness: 120, damping: 15 });
 
   function scrollFaucets(dir: "left" | "right") {
+    pauseFaucetAutoplay();
     faucetScrollRef.current?.scrollBy({ left: dir === "left" ? -340 : 340, behavior: "smooth" });
+    resumeFaucetAutoplay();
   }
+
+  function pauseFaucetAutoplay() {
+    if (faucetResumeTimer.current) {
+      clearTimeout(faucetResumeTimer.current);
+      faucetResumeTimer.current = null;
+    }
+    setFaucetPaused(true);
+  }
+
+  function resumeFaucetAutoplay() {
+    if (faucetResumeTimer.current) clearTimeout(faucetResumeTimer.current);
+    faucetResumeTimer.current = setTimeout(() => {
+      faucetResumeTimer.current = null;
+      setFaucetPaused(false);
+    }, 1600);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (faucetResumeTimer.current) clearTimeout(faucetResumeTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const track = faucetScrollRef.current;
+    const dealCount = cpFaucetDeals?.products.length ?? 0;
+    if (!track || dealCount < 2 || faucetPaused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let frame = 0;
+    let previousTime = performance.now();
+    const tick = (time: number) => {
+      const elapsed = Math.min(time - previousTime, 80);
+      previousTime = time;
+      const loopWidth = track.scrollWidth / 2;
+
+      if (loopWidth > track.clientWidth) {
+        track.scrollLeft += elapsed * 0.035;
+        if (track.scrollLeft >= loopWidth) track.scrollLeft -= loopWidth;
+      }
+      frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [cpFaucetDeals?.products.length, faucetPaused]);
 
   const catList = (categories && categories.length > 0) ? categories : [
     { id: 1, name: "CP Faucets", slug: "cp-faucets", productCount: 12 },
@@ -280,10 +329,20 @@ export default function HomePage() {
             <button onClick={() => scrollFaucets("left")} aria-label="Scroll deals left" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white shadow-lg border border-gray-100 rounded-full flex items-center justify-center hover:bg-[hsl(24,10%,16%)] hover:text-white transition-colors">
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <div ref={faucetScrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide pt-3 -mt-3 pb-2 scroll-smooth">
+            <div
+              ref={faucetScrollRef}
+              onMouseEnter={pauseFaucetAutoplay}
+              onMouseLeave={resumeFaucetAutoplay}
+              onTouchStart={pauseFaucetAutoplay}
+              onTouchEnd={resumeFaucetAutoplay}
+              onFocus={pauseFaucetAutoplay}
+              onBlur={resumeFaucetAutoplay}
+              className="flex gap-4 overflow-x-auto scrollbar-hide pt-3 -mt-3 pb-2 scroll-smooth"
+              aria-label="Faucet deals carousel"
+            >
               {cpDealsLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="w-44 h-72 flex-shrink-0 rounded-2xl" />) :
-                (cpFaucetDeals?.products || []).map((p, idx) => (
-                  <motion.div key={p.id} initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} className="flex-shrink-0 w-44">
+                [...(cpFaucetDeals?.products || []), ...(cpFaucetDeals?.products || [])].map((p, idx) => (
+                  <motion.div key={`${p.id}-${idx}`} initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: (idx % 14) * 0.05 }} className="flex-shrink-0 w-44">
                     <Link href={`/products/${p.slug}`}>
                       <motion.div whileHover={{ y: -8 }} className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(28,22,16,0.25)] hover:border-[hsl(24,10%,16%)]/40 transition-shadow" data-testid={`card-deal-${p.id}`}>
                         <div className="relative overflow-hidden">
