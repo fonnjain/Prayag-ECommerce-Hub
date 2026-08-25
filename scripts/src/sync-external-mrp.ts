@@ -17,12 +17,15 @@
 import { db, pool, productsTable, categoriesTable } from "@workspace/db";
 import { buildShortProductName } from "./product-name.js";
 import {
-  buildImageCandidates,
-  normalizedItemCode,
   readProductImageManifest,
   readProductImageOverrides,
-  validateProductImageOverrides,
 } from "./product-image-manifest.js";
+import {
+  buildProductImageIndex,
+  productImageUrls,
+  reconcileProductImages,
+  type ProductImageIndex,
+} from "./product-image-sync.js";
 
 const API_BASE = "https://prayag-competition-analysis.replit.app/api/v1";
 const KEY = process.env.PRAYAG_COMP_KEY;
@@ -85,44 +88,18 @@ function slugify(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }
 
-function loadProductImageIndex(): { unambiguous: Map<string, string[]>; reviewed: Map<string, string[]> } {
+function loadProductImageIndex(): ProductImageIndex {
   const manifest = readProductImageManifest();
   const overrides = readProductImageOverrides();
-  const candidates = buildImageCandidates(manifest);
-  validateProductImageOverrides(overrides, candidates);
-
-  const unambiguous = new Map<string, string[]>();
-  let ambiguousCodes = 0;
-  for (const [key, paths] of candidates.entries()) {
-    // A repeated filename can be a colour variation, but it can also be an
-    // unrelated asset from a different range. Without an explicit reviewed
-    // association, only a one-to-one SKU/file match is safe to publish.
-    if (paths.length === 1) {
-      unambiguous.set(key, [`/images/drive/${paths[0].path}`]);
-    } else {
-      ambiguousCodes++;
-    }
-  }
-
-  const reviewed = new Map<string, string[]>();
-  for (const [sku, paths] of Object.entries(overrides)) {
-    reviewed.set(sku, paths.map((path) => `/images/drive/${path}`));
-  }
-
+  const index = buildProductImageIndex(manifest, overrides);
   console.log(
-    `Loaded ${unambiguous.size} unambiguous product-photo codes; skipped ${ambiguousCodes} ambiguous manifest codes; ` +
-    `applied ${reviewed.size} exact-SKU reviewed overrides.`,
+    `Loaded ${index.unambiguous.size} unambiguous product-photo codes; skipped ${index.ambiguousCodes} ambiguous manifest codes; ` +
+    `applied ${index.reviewed.size} exact-SKU reviewed overrides.`,
   );
-  return { unambiguous, reviewed };
+  return index;
 }
 
 const PRODUCT_IMAGE_INDEX = loadProductImageIndex();
-
-function productImageUrls(itemCode: string): string[] {
-  return PRODUCT_IMAGE_INDEX.reviewed.get(itemCode)
-    ?? PRODUCT_IMAGE_INDEX.unambiguous.get(normalizedItemCode(itemCode))
-    ?? [];
-}
 
 function buildName(row: PrayagProduct): string | null {
   return buildShortProductName(row);
@@ -343,29 +320,26 @@ async function main() {
 
     let productsWithReconciledImages = 0;
     for (const product of productsForImages) {
-      const desired = productImageUrls(product.sku);
+      const desired = productImageUrls(product.sku, PRODUCT_IMAGE_INDEX);
       const currentDetails = detailImagesByProduct.get(product.id) ?? [];
-      const driveDetails = currentDetails.filter((image) => image.imageUrl.startsWith("/images/drive/"));
-      const manualDetails = currentDetails.filter((image) => !image.imageUrl.startsWith("/images/drive/"));
-      const hasDrivePrimary = product.image_url?.startsWith("/images/drive/") ?? false;
-      const nextPrimary = product.image_url === null || hasDrivePrimary ? desired[0] ?? null : product.image_url;
-      const nextDriveDetails = product.image_url === null || hasDrivePrimary ? desired.slice(1) : desired;
+      const reconciliation = reconcileProductImages(product.image_url, currentDetails, desired);
+      const currentDriveDetails = currentDetails.filter((image) => image.imageUrl.startsWith("/images/drive/"));
       if (
-        product.image_url === nextPrimary &&
-        driveDetails.length === nextDriveDetails.length &&
-        driveDetails.every((image, index) => image.imageUrl === nextDriveDetails[index])
+        product.image_url === reconciliation.primaryImageUrl &&
+        currentDriveDetails.length === reconciliation.driveImageUrls.length &&
+        currentDriveDetails.every((image, index) => image.imageUrl === reconciliation.driveImageUrls[index])
       ) continue;
 
       await client.query(
         "UPDATE products SET image_url = $1, updated_at = now() WHERE id = $2",
-        [nextPrimary, product.id],
+        [reconciliation.primaryImageUrl, product.id],
       );
       await client.query(
         "DELETE FROM product_images WHERE product_id = $1 AND image_url LIKE '/images/drive/%'",
         [product.id],
       );
-      const nextSortOrder = Math.max(0, ...manualDetails.map((image) => image.sortOrder));
-      for (const [sortOrder, imageUrl] of nextDriveDetails.entries()) {
+      const nextSortOrder = Math.max(0, ...reconciliation.preservedDetailImages.map((image) => image.sortOrder));
+      for (const [sortOrder, imageUrl] of reconciliation.driveImageUrls.entries()) {
         await client.query(
           "INSERT INTO product_images (product_id, image_url, sort_order) VALUES ($1, $2, $3)",
           [product.id, imageUrl, nextSortOrder + sortOrder + 1],
