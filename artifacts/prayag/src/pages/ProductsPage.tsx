@@ -380,7 +380,7 @@ export default function ProductsPage() {
                           <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-[hsl(42,62%,68%)]">{group.title}</h4>
                           <div className={`space-y-2.5 ${group.key === "ptmtType" ? "max-h-64 overflow-y-auto pr-1" : ""}`}>
                             {group.options.map((option) => {
-                              const isUnavailable = option === "Shower";
+                              const isUnavailable = false;
                               const isSelected = selected.includes(option);
                               return (
                                 <label
