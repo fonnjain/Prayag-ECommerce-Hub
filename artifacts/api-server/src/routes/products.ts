@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, productsTable, categoriesTable, productImagesTable } from "@workspace/db";
-import { eq, ilike, and, or, gte, lte, sql, desc, asc } from "drizzle-orm";
+import { eq, ilike, and, or, gte, lte, sql, desc, asc, inArray } from "drizzle-orm";
+import { selectedPtmtFilterSkus } from "../lib/ptmtOfficialFilters";
 
 const router: IRouter = Router();
 
@@ -44,7 +45,9 @@ function buildProductRow(p: typeof productsTable.$inferSelect, catName?: string 
 }
 
 router.get("/products", async (req, res): Promise<void> => {
-  const { category, minPrice, maxPrice, sortBy, search, page = "1", limit = "20" } = req.query as Record<string, string>;
+  const {
+    category, minPrice, maxPrice, sortBy, search, ptmtSeries, ptmtCollection, ptmtType, page = "1", limit = "20",
+  } = req.query as Record<string, string>;
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
   const pageLimit = Math.min(100, parseInt(limit, 10) || 20);
 
@@ -56,6 +59,17 @@ router.get("/products", async (req, res): Promise<void> => {
   if (search) conditions.push(ilike(productsTable.name, `%${search}%`));
   if (minPrice) conditions.push(gte(productsTable.price, minPrice));
   if (maxPrice) conditions.push(lte(productsTable.price, maxPrice));
+  if (category === "ptmt-faucets") {
+    for (const [kind, rawValue] of [
+      ["series", ptmtSeries],
+      ["collection", ptmtCollection],
+      ["type", ptmtType],
+    ] as const) {
+      const skus = selectedPtmtFilterSkus(kind, rawValue);
+      if (skus === undefined) continue;
+      conditions.push(skus.length > 0 ? inArray(productsTable.sku, skus) : sql`FALSE`);
+    }
+  }
   // The public catalogue never shows retired products; admin tooling uses the
   // authenticated /admin/products endpoints for the full inventory.
   conditions.push(eq(productsTable.inStock, true));

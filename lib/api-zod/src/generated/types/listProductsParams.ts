@@ -14,6 +14,18 @@ rating?: number;
 inStock?: boolean;
 sortBy?: string;
 search?: string;
+/**
+ * Comma-separated official PTMT series labels
+ */
+ptmtSeries?: string;
+/**
+ * Comma-separated official PTMT collection labels
+ */
+ptmtCollection?: string;
+/**
+ * Comma-separated official PTMT product type labels
+ */
+ptmtType?: string;
 page?: number;
 limit?: number;
 };

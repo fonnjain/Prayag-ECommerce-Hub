@@ -202,6 +202,21 @@ paths:
           in: query
           schema:
             type: string
+        - name: ptmtSeries
+          in: query
+          description: Comma-separated official PTMT series labels
+          schema:
+            type: string
+        - name: ptmtCollection
+          in: query
+          description: Comma-separated official PTMT collection labels
+          schema:
+            type: string
+        - name: ptmtType
+          in: query
+          description: Comma-separated official PTMT product type labels
+          schema:
+            type: string
         - name: page
           in: query
           schema:

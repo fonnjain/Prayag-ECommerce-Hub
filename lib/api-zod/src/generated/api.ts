@@ -129,6 +129,9 @@ export const ListProductsQueryParams = zod.object({
   "inStock": zod.coerce.boolean().optional(),
   "sortBy": zod.coerce.string().optional(),
   "search": zod.coerce.string().optional(),
+  "ptmtSeries": zod.coerce.string().optional().describe('Comma-separated official PTMT series labels'),
+  "ptmtCollection": zod.coerce.string().optional().describe('Comma-separated official PTMT collection labels'),
+  "ptmtType": zod.coerce.string().optional().describe('Comma-separated official PTMT product type labels'),
   "page": zod.coerce.number().optional(),
   "limit": zod.coerce.number().optional()
 })

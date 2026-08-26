@@ -154,6 +154,31 @@ const sortOptions = [
   { value: "rating", label: "Highest Rated", note: "Top customer ratings" },
 ];
 
+const ptmtFilterGroups = [
+  {
+    key: "ptmtSeries",
+    title: "Filter by Series",
+    options: ["Delta Series", "Helix Series", "Lagoona Series", "Ovian Series", "Quadra Series", "Standard Series", "Ultra Series"],
+  },
+  {
+    key: "ptmtCollection",
+    title: "Filter by Collection",
+    options: ["Marbel Series", "Premia"],
+  },
+  {
+    key: "ptmtType",
+    title: "Filter by Type",
+    options: ["Angle Cock", "Basin Mixer", "Bib Cock", "Bottle Trap", "Cockroach Trap with Water Seal", "Grating Doom Waste Hole", "Hand Shower", "Pillar Cock", "Shower", "Sink Cock", "Sink Mixer", "Stop Cock", "Toilet Paper Holder", "Tooth Brush Holder", "Towel Rack", "Towel Rail", "Towel Ring", "Urinal Fish 32mm", "Urinal Spreader 15mm", "Wall Mixer", "Washing Machine Tap with Flange", "Waste Coupling"],
+  },
+] as const;
+
+type PtmtFilterKey = (typeof ptmtFilterGroups)[number]["key"];
+const ptmtFilterKeys: PtmtFilterKey[] = ["ptmtSeries", "ptmtCollection", "ptmtType"];
+
+function readSelectedFilters(value?: string) {
+  return value?.split(",").map((item) => item.trim()).filter(Boolean) ?? [];
+}
+
 export default function ProductsPage() {
   const params = useQueryParams();
   const searchString = useSearch();
@@ -173,13 +198,24 @@ export default function ProductsPage() {
     maxPrice: "",
     inStock: false,
     sortBy: "photo_ready",
+    ptmtSeries: readSelectedFilters(params.ptmtSeries),
+    ptmtCollection: readSelectedFilters(params.ptmtCollection),
+    ptmtType: readSelectedFilters(params.ptmtType),
     page: Math.max(1, parseInt(params.page || "1", 10) || 1),
   });
 
   useEffect(() => {
     const p = Object.fromEntries(new URLSearchParams(searchString).entries());
     const page = Math.max(1, parseInt(p.page || "1", 10) || 1);
-    setFilters(f => ({ ...f, category: p.category || "", search: p.search || "", page }));
+    setFilters(f => ({
+      ...f,
+      category: p.category || "",
+      search: p.search || "",
+      ptmtSeries: readSelectedFilters(p.ptmtSeries),
+      ptmtCollection: readSelectedFilters(p.ptmtCollection),
+      ptmtType: readSelectedFilters(p.ptmtType),
+      page,
+    }));
   }, [searchString]);
 
   useEffect(() => {
@@ -197,6 +233,9 @@ export default function ProductsPage() {
     ...(filters.minPrice && { minPrice: parseFloat(filters.minPrice) }),
     ...(filters.maxPrice && { maxPrice: parseFloat(filters.maxPrice) }),
     ...(filters.inStock && { inStock: true }),
+    ...(filters.category === "ptmt-faucets" && filters.ptmtSeries.length > 0 && { ptmtSeries: filters.ptmtSeries.join(",") }),
+    ...(filters.category === "ptmt-faucets" && filters.ptmtCollection.length > 0 && { ptmtCollection: filters.ptmtCollection.join(",") }),
+    ...(filters.category === "ptmt-faucets" && filters.ptmtType.length > 0 && { ptmtType: filters.ptmtType.join(",") }),
     sortBy: filters.sortBy,
     page: filters.page,
     limit: 20,
@@ -209,12 +248,19 @@ export default function ProductsPage() {
 
   function updateFilter(key: string, value: any) {
     setFilters(f => ({ ...f, [key]: value, ...(key !== "page" && { page: 1 }) }));
-    if (key === "page" || key === "category") {
+    if (key === "page" || key === "category" || ptmtFilterKeys.includes(key as PtmtFilterKey)) {
       const sp = new URLSearchParams(searchString);
       const newPage = key === "page" ? value : 1;
       const newCategory = key === "category" ? value : sp.get("category") || "";
       if (newPage > 1) sp.set("page", String(newPage)); else sp.delete("page");
       if (newCategory) sp.set("category", newCategory); else sp.delete("category");
+      if (ptmtFilterKeys.includes(key as PtmtFilterKey)) {
+        const selected = value as string[];
+        if (selected.length > 0) sp.set(key, selected.join(",")); else sp.delete(key);
+      }
+      if (key === "category" && value !== "ptmt-faucets") {
+        ptmtFilterKeys.forEach((filterKey) => sp.delete(filterKey));
+      }
       const qs = sp.toString();
       setLocation(`/products${qs ? `?${qs}` : ""}`);
     }
@@ -222,11 +268,24 @@ export default function ProductsPage() {
   }
 
   function clearFilters() {
-    setFilters({ category: "", search: "", minPrice: "", maxPrice: "", inStock: false, sortBy: "photo_ready", page: 1 });
-    setLocation("/products");
+    const keepPtmtCategory = filters.category === "ptmt-faucets";
+    setFilters({
+      category: keepPtmtCategory ? "ptmt-faucets" : "",
+      search: "",
+      minPrice: "",
+      maxPrice: "",
+      inStock: false,
+      sortBy: "photo_ready",
+      ptmtSeries: [],
+      ptmtCollection: [],
+      ptmtType: [],
+      page: 1,
+    });
+    setLocation(keepPtmtCategory ? "/products?category=ptmt-faucets" : "/products");
   }
 
   const totalPages = data?.totalPages || 1;
+  const isPtmtCategory = filters.category === "ptmt-faucets";
 
   return (
     <div className="bg-[#FAF9F7] min-h-screen pb-20">
@@ -279,7 +338,7 @@ export default function ProductsPage() {
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Elegant Sidebar */}
           <aside className={`w-full flex-shrink-0 lg:w-64 ${showFilters ? "block" : "hidden"} lg:block`}>
-            <div className="sticky top-28 overflow-hidden rounded-[1.5rem] border border-[hsl(38,52%,52%)]/30 bg-[linear-gradient(165deg,#3a2a1d_0%,#261d17_58%,#1d1814_100%)] p-5 text-white shadow-[0_20px_45px_-28px_rgba(42,28,18,0.95)]">
+            <div className={`sticky top-28 overflow-hidden rounded-[1.5rem] border border-[hsl(38,52%,52%)]/30 bg-[linear-gradient(165deg,#3a2a1d_0%,#261d17_58%,#1d1814_100%)] p-5 text-white shadow-[0_20px_45px_-28px_rgba(42,28,18,0.95)] ${isPtmtCategory ? "lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto" : ""}`}>
               <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.2),transparent_68%)]" />
               <div className="relative space-y-8">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -309,6 +368,55 @@ export default function ProductsPage() {
                   ))}
                 </div>
               </div>
+
+              {isPtmtCategory && (
+                <div className="border-t border-white/10 pt-6" data-testid="ptmt-official-filters">
+                  <p className="mb-5 text-[9px] font-bold uppercase tracking-[0.22em] text-[hsl(42,62%,68%)]">Official PTMT Filters</p>
+                  <div className="space-y-6">
+                    {ptmtFilterGroups.map((group) => {
+                      const selected = filters[group.key];
+                      return (
+                        <div key={group.key}>
+                          <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-[hsl(42,62%,68%)]">{group.title}</h4>
+                          <div className={`space-y-2.5 ${group.key === "ptmtType" ? "max-h-64 overflow-y-auto pr-1" : ""}`}>
+                            {group.options.map((option) => {
+                              const isUnavailable = option === "Shower";
+                              const isSelected = selected.includes(option);
+                              return (
+                                <label
+                                  key={option}
+                                  className={`flex items-start gap-3 ${isUnavailable ? "cursor-not-allowed opacity-45" : "cursor-pointer group"}`}
+                                >
+                                  <div className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center border transition-colors ${
+                                    isSelected ? "border-[hsl(42,62%,68%)] bg-[hsl(42,62%,68%)]" : "border-white/30 group-hover:border-[hsl(42,62%,68%)]"
+                                  }`}>
+                                    {isSelected && <Check className="h-3 w-3 text-[hsl(24,10%,16%)]" />}
+                                  </div>
+                                  <span className={`min-w-0 flex-1 text-sm leading-snug transition-colors ${
+                                    isSelected ? "font-semibold text-white" : "text-white/60 group-hover:text-white"
+                                  }`}>{option}</span>
+                                  {isUnavailable && <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-white/45">Not listed</span>}
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    disabled={isUnavailable}
+                                    onChange={() => updateFilter(
+                                      group.key,
+                                      isSelected ? selected.filter((item) => item !== option) : [...selected, option],
+                                    )}
+                                    className="hidden"
+                                    data-testid={`filter-${group.key}-${option.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                                  />
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Price */}
               <div className="border-t border-white/10 pt-6">
