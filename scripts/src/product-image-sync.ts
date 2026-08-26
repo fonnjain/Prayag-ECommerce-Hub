@@ -49,15 +49,16 @@ export function buildProductImageIndex(
 
   const reviewed = new Map<string, string[]>();
   for (const [sku, paths] of Object.entries(overrides)) {
-    reviewed.set(sku, paths.map((path) => `/images/drive/${path}`));
+    reviewed.set(normalizedItemCode(sku), paths.map((path) => `/images/drive/${path}`));
   }
 
   return { unambiguous, reviewed, ambiguousCodes };
 }
 
 export function productImageUrls(itemCode: string, index: ProductImageIndex): string[] {
-  return index.reviewed.get(itemCode)
-    ?? index.unambiguous.get(normalizedItemCode(itemCode))
+  const normalizedCode = normalizedItemCode(itemCode);
+  return index.reviewed.get(normalizedCode)
+    ?? index.unambiguous.get(normalizedCode)
     ?? [];
 }
 

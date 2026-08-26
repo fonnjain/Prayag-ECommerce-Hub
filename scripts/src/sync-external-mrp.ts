@@ -17,6 +17,7 @@
 import { db, pool, productsTable, categoriesTable, type PoolClient } from "@workspace/db";
 import { pathToFileURL } from "node:url";
 import { buildShortProductName } from "./product-name.js";
+import { compactSku } from "./sku.js";
 import {
   readProductImageManifest,
   readProductImageOverrides,
@@ -74,9 +75,13 @@ const DIVISION_TO_CATEGORY_SLUG: Record<string, string> = {
   "Pipes & Fittings": "pipes-fittings",
   "Hardware": "bathroom-accessories",
 };
+const KITCHEN_SINK_PRODUCT_CODES = new Set(["FT-31", "FT-31M", "FT-32", "FT-32M"]);
 
 function categorySlugForProduct(product: PrayagProduct): string | undefined {
   const productText = [product.productName, product.category, product.seriesRange].filter(Boolean).join(" ");
+  if (KITCHEN_SINK_PRODUCT_CODES.has(product.itemCode.trim().toUpperCase())) {
+    return "kitchen-sinks";
+  }
   if (/\bcockroach\s+trap\b/i.test(productText)) {
     return "kitchen-sinks";
   }
@@ -177,7 +182,7 @@ function validateFeed(rows: PrayagProduct[], asOf: string): PrayagProduct[] {
   const active: PrayagProduct[] = [];
 
   for (const row of rows) {
-    const code = row.itemCode?.trim();
+    const code = compactSku(row.itemCode ?? "");
     if (!code || seen.has(code)) {
       invalid.push(`duplicate/missing item code: ${code || "(blank)"}`);
       continue;
@@ -355,10 +360,10 @@ async function main() {
   // date is in the past. Merge in any code the dated snapshot misses, taking its
   // current price from the default snapshot.
   const defaultRows = await fetchCompleteFeed(null);
-  const seenCodes = new Set(asOfRows.map((r) => r.itemCode?.trim()));
+  const seenCodes = new Set(asOfRows.map((r) => compactSku(r.itemCode ?? "")));
   const merged = [...asOfRows];
   for (const row of defaultRows) {
-    const code = row.itemCode?.trim();
+    const code = compactSku(row.itemCode ?? "");
     if (code && !seenCodes.has(code)) {
       seenCodes.add(code);
       merged.push(row);

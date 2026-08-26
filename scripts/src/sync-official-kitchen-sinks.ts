@@ -51,6 +51,7 @@ export async function syncOfficialKitchenSinks() {
   try {
     await client.query("BEGIN");
     for (const item of OFFICIAL_KITCHEN_SINKS) {
+      const sku = item.sku.replace(/\s+/g, "");
       const description = `Official Prayag ${item.collection} quartz kitchen sink. Pricing is available on request.`;
       await client.query(
         `INSERT INTO products (
@@ -74,7 +75,7 @@ export async function syncOfficialKitchenSinks() {
            image_url = EXCLUDED.image_url,
            in_stock = true,
            updated_at = now()`,
-        [item.name, item.slug, item.sku, description, specifications(item), item.imageUrl],
+        [item.name, item.slug, sku, description, specifications(item), item.imageUrl],
       );
     }
     await client.query("COMMIT");

@@ -7,6 +7,7 @@
  */
 import { db, pool, productsTable, productImagesTable, categoriesTable } from "@workspace/db";
 import { buildShortProductName } from "./product-name.js";
+import { compactSku } from "./sku.js";
 
 const API_BASE = "https://prayag-competition-analysis.replit.app/api/v1";
 const KEY = process.env.PRAYAG_COMP_KEY;
@@ -31,9 +32,13 @@ const DIVISION_TO_CATEGORY_SLUG: Record<string, string> = {
   "Pipes & Fittings": "pipes-fittings",
   "Hardware": "bathroom-accessories",
 };
+const KITCHEN_SINK_PRODUCT_CODES = new Set(["FT-31", "FT-31M", "FT-32", "FT-32M"]);
 
 function categorySlugForProduct(product: ExtProduct): string | undefined {
   const productText = [product.productName, product.category].filter(Boolean).join(" ");
+  if (KITCHEN_SINK_PRODUCT_CODES.has(product.itemCode.trim().toUpperCase())) {
+    return "kitchen-sinks";
+  }
   if (/\bcockroach\s+trap\b/i.test(productText)) {
     return "kitchen-sinks";
   }
@@ -69,7 +74,9 @@ async function main() {
   const ext = await fetchAll();
   console.log(`Fetched ${ext.length} products`);
 
-  const withMrp = ext.filter((r) => r.currentMrp != null && r.currentMrp > 0 && r.itemCode && r.productName);
+  const withMrp = ext
+    .filter((r) => r.currentMrp != null && r.currentMrp > 0 && r.itemCode && r.productName)
+    .map((r) => ({ ...r, itemCode: compactSku(r.itemCode) }));
   console.log(`${withMrp.length} products have a real MRP — importing those`);
 
   const cats = await db.select().from(categoriesTable);
