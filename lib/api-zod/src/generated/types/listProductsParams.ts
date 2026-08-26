@@ -15,6 +15,22 @@ inStock?: boolean;
 sortBy?: string;
 search?: string;
 /**
+ * Comma-separated product type labels
+ */
+subCategory?: string;
+/**
+ * Comma-separated product series labels
+ */
+series?: string;
+/**
+ * Comma-separated product collection labels
+ */
+collection?: string;
+/**
+ * Comma-separated product size labels
+ */
+size?: string;
+/**
  * Comma-separated official PTMT series labels
  */
 ptmtSeries?: string;

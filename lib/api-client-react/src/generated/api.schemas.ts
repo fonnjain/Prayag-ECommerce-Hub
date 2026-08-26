@@ -130,6 +130,27 @@ export interface ProductListResponse {
   totalPages: number;
 }
 
+export interface ProductFacetValue {
+  value: string;
+  count: number;
+}
+
+export type ProductFacetGroupKey = typeof ProductFacetGroupKey[keyof typeof ProductFacetGroupKey];
+
+
+export const ProductFacetGroupKey = {
+  subCategory: 'subCategory',
+  series: 'series',
+  collection: 'collection',
+  size: 'size',
+} as const;
+
+export interface ProductFacetGroup {
+  key: ProductFacetGroupKey;
+  title: string;
+  values: ProductFacetValue[];
+}
+
 export interface ProductInput {
   name: string;
   sku: string;
@@ -543,6 +564,22 @@ inStock?: boolean;
 sortBy?: string;
 search?: string;
 /**
+ * Comma-separated product type labels
+ */
+subCategory?: string;
+/**
+ * Comma-separated product series labels
+ */
+series?: string;
+/**
+ * Comma-separated product collection labels
+ */
+collection?: string;
+/**
+ * Comma-separated product size labels
+ */
+size?: string;
+/**
  * Comma-separated official PTMT series labels
  */
 ptmtSeries?: string;
@@ -556,6 +593,13 @@ ptmtCollection?: string;
 ptmtType?: string;
 page?: number;
 limit?: number;
+};
+
+export type ListProductFacetsParams = {
+/**
+ * Optional category slug; omit for the full public catalogue.
+ */
+category?: string;
 };
 
 export type GetSearchSuggestionsParams = {

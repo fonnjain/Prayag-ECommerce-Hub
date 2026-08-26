@@ -46,6 +46,7 @@ import type {
   ListAdminDealersParams,
   ListAdminOrdersParams,
   ListAdminProductsParams,
+  ListProductFacetsParams,
   ListProductsParams,
   LoginInput,
   Order,
@@ -57,6 +58,7 @@ import type {
   OrderTracking,
   Product,
   ProductDetail,
+  ProductFacetGroup,
   ProductImageOverride,
   ProductImageOverrideInput,
   ProductImageReview,
@@ -754,6 +756,90 @@ export function useListProducts<TData = Awaited<ReturnType<typeof listProducts>>
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListProductsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListProductFacetsUrl = (params?: ListProductFacetsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/products/facets?${stringifiedParams}` : `/api/products/facets`
+}
+
+/**
+ * @summary List available product facets and counts
+ */
+export const listProductFacets = async (params?: ListProductFacetsParams, options?: RequestInit): Promise<ProductFacetGroup[]> => {
+
+  return customFetch<ProductFacetGroup[]>(getListProductFacetsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListProductFacetsQueryKey = (params?: ListProductFacetsParams,) => {
+    return [
+    `/api/products/facets`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListProductFacetsQueryOptions = <TData = Awaited<ReturnType<typeof listProductFacets>>, TError = ErrorType<unknown>>(params?: ListProductFacetsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProductFacets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProductFacetsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProductFacets>>> = ({ signal }) => listProductFacets(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listProductFacets>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListProductFacetsQueryResult = NonNullable<Awaited<ReturnType<typeof listProductFacets>>>
+export type ListProductFacetsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List available product facets and counts
+ */
+
+export function useListProductFacets<TData = Awaited<ReturnType<typeof listProductFacets>>, TError = ErrorType<unknown>>(
+ params?: ListProductFacetsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProductFacets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListProductFacetsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

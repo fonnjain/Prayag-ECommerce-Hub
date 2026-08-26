@@ -5,6 +5,17 @@ import { selectedPtmtFilterSkus } from "../lib/ptmtOfficialFilters";
 
 const router: IRouter = Router();
 
+const facetDefinitions = [
+  { key: "subCategory", title: "Filter by Type", column: productsTable.subCategory },
+  { key: "series", title: "Filter by Series", column: productsTable.series },
+  { key: "collection", title: "Filter by Collection", column: productsTable.collection },
+  { key: "size", title: "Filter by Size", column: productsTable.sizeLabel },
+] as const;
+
+function selectedValues(value?: string): string[] {
+  return value?.split(",").map((item) => item.trim()).filter(Boolean) ?? [];
+}
+
 const RELATED_NAME_STOP_WORDS = new Set([
   "and", "with", "without", "for", "the", "from", "wall", "table", "mounted",
   "mount", "body", "long", "short", "handle", "flange", "regular", "single",
@@ -46,7 +57,8 @@ function buildProductRow(p: typeof productsTable.$inferSelect, catName?: string 
 
 router.get("/products", async (req, res): Promise<void> => {
   const {
-    category, minPrice, maxPrice, sortBy, search, ptmtSeries, ptmtCollection, ptmtType, page = "1", limit = "20",
+    category, minPrice, maxPrice, sortBy, search, subCategory, series, collection, size,
+    ptmtSeries, ptmtCollection, ptmtType, page = "1", limit = "20",
   } = req.query as Record<string, string>;
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
   const pageLimit = Math.min(100, parseInt(limit, 10) || 20);
@@ -64,7 +76,18 @@ router.get("/products", async (req, res): Promise<void> => {
   }
   if (minPrice) conditions.push(gte(productsTable.price, minPrice));
   if (maxPrice) conditions.push(lte(productsTable.price, maxPrice));
+  for (const [column, rawValue] of [
+    [productsTable.subCategory, subCategory],
+    [productsTable.series, series],
+    [productsTable.collection, collection],
+    [productsTable.sizeLabel, size],
+  ] as const) {
+    const values = selectedValues(rawValue);
+    if (values.length > 0) conditions.push(inArray(column, values));
+  }
   if (category === "ptmt-faucets") {
+    // Retain existing shared PTMT URLs while the structured facet fields
+    // become the source for the dynamic sidebar.
     for (const [kind, rawValue] of [
       ["series", ptmtSeries],
       ["collection", ptmtCollection],
@@ -145,6 +168,49 @@ router.get("/products/search-suggestions", async (req, res): Promise<void> => {
     .where(and(ilike(productsTable.name, `%${q}%`), eq(productsTable.inStock, true)))
     .limit(8);
   res.json(rows.map(r => r.name));
+});
+
+router.get("/products/facets", async (req, res): Promise<void> => {
+  const category = typeof req.query.category === "string" ? req.query.category.trim() : "";
+  const conditions = [eq(productsTable.inStock, true)];
+
+  if (category) {
+    const [cat] = await db.select().from(categoriesTable).where(eq(categoriesTable.slug, category));
+    if (!cat) {
+      res.json([]);
+      return;
+    }
+    conditions.push(eq(productsTable.categoryId, cat.id));
+  }
+
+  const whereClause = and(...conditions);
+  const groups = await Promise.all(facetDefinitions.map(async (definition) => {
+    const values = await db
+      .select({
+        value: definition.column,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(productsTable)
+      .where(and(
+        whereClause,
+        sql`${definition.column} IS NOT NULL AND btrim(${definition.column}) <> ''`,
+      ))
+      .groupBy(definition.column)
+      .orderBy(asc(definition.column));
+
+    const availableValues = values
+      .filter((item): item is { value: string; count: number } => Boolean(item.value))
+      .map((item) => ({ value: item.value, count: item.count }));
+
+    return {
+      key: definition.key,
+      title: definition.title,
+      values: availableValues,
+    };
+  }));
+
+  // A one-option group cannot help customers narrow a category, so omit it.
+  res.json(groups.filter((group) => group.values.length >= 2));
 });
 
 router.get("/products/:slug", async (req, res): Promise<void> => {

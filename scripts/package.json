@@ -11,6 +11,7 @@
     "sync-prod-products": "tsx ./src/sync-prod-products.ts",
     "import-external-products": "tsx ./src/import-external-products.ts",
     "sync-external-mrp": "tsx ./src/sync-external-mrp.ts",
+    "backfill-product-facets": "tsx ./src/backfill-product-facets.ts",
     "sync-product-images": "tsx ./src/sync-product-images.ts",
     "sync-official-kitchen-sinks": "tsx ./src/sync-official-kitchen-sinks.ts",
     "sync-bathroom-accessories-content": "tsx ./src/sync-bathroom-accessories-content.ts",

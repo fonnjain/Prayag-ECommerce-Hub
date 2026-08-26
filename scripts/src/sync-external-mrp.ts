@@ -18,6 +18,8 @@ import { db, pool, productsTable, categoriesTable, type PoolClient } from "@work
 import { pathToFileURL } from "node:url";
 import { buildShortProductName } from "./product-name.js";
 import { compactSku } from "./sku.js";
+import { sourceProductFacets } from "./product-facets.js";
+import { loadOfficialPtmtFacetLookup } from "./ptmt-official-facets.js";
 import {
   readProductImageManifest,
   readProductImageOverrides,
@@ -51,10 +53,13 @@ export interface PrayagProduct {
 
 interface LocalProduct {
   id: number;
+  name: string;
   sku: string;
   slug: string;
   in_stock: boolean;
   specifications?: string | null;
+  series?: string | null;
+  collection?: string | null;
 }
 
 export interface CatalogueSyncTransactionOptions {
@@ -212,6 +217,7 @@ export async function runCatalogueSyncTransaction({
   failAfterImageSync,
   client: providedClient,
 }: CatalogueSyncTransactionOptions): Promise<void> {
+  const officialPtmtFacetForSku = await loadOfficialPtmtFacetLookup();
   const localBySku = new Map(local.map((row) => [row.sku, row]));
   const activeCodes = new Set(feed.map((row) => row.itemCode));
   const missingIds = local
@@ -254,26 +260,44 @@ export async function runCatalogueSyncTransaction({
       const mrp = row.currentMrp!.toFixed(2);
       const categoryId = categoryBySlug.get(categorySlugForProduct(row) ?? "") ?? fallbackCategory;
       const existing = localBySku.get(row.itemCode);
+      const nameFacets = sourceProductFacets({
+        category: row.category,
+        size: row.size,
+        productName: row.productName ?? existing?.name ?? name,
+      });
+      const isPtmt = categorySlugForProduct(row) === "ptmt-faucets";
+      const officialPtmt = isPtmt ? officialPtmtFacetForSku(row.itemCode) : null;
+      const facets = {
+        ...nameFacets,
+        subCategory: isPtmt ? officialPtmt?.subCategory ?? null : nameFacets.subCategory,
+        // Retain an already verified structured PTMT value when the upstream
+        // feed does not expose that series/collection in its product name.
+        series: officialPtmt?.series ?? nameFacets.series ?? existing?.series ?? null,
+        collection: officialPtmt?.collection ?? nameFacets.collection ?? existing?.collection ?? null,
+      };
 
       if (existing) {
         if (apiName) {
-          const slug = claimSlug(`${slugify(name)}-${slugify(row.itemCode)}`);
           await client.query(
             `UPDATE products
-             SET name = $1, slug = $2,
-                 description = CASE
-                   WHEN COALESCE(specifications::text, '') LIKE '%"contentSource"%prayagindia.com%'
-                     THEN description
-                   ELSE $3
-                 END,
+             SET description = CASE
+                    WHEN COALESCE(specifications::text, '') LIKE '%"contentSource"%prayagindia.com%'
+                      THEN description
+                    ELSE $1
+                  END,
                  specifications = CASE
                    WHEN COALESCE(specifications::text, '') LIKE '%"contentSource"%prayagindia.com%'
                      THEN specifications
-                   ELSE $4
+                    ELSE $2
                  END,
-                 price = $5, mrp = $5, category_id = $6, in_stock = true, updated_at = now()
-             WHERE id = $7`,
-            [name, slug, `${name} — genuine PRAYAG product.`, specifications(row), mrp, categoryId, existing.id]
+                  price = $3, mrp = $3, category_id = $4,
+                  sub_category = $5, size_label = $6, series = $7, collection = $8,
+                  in_stock = true, updated_at = now()
+              WHERE id = $9`,
+             [
+               `${name} — genuine PRAYAG product.`, specifications(row), mrp, categoryId,
+               facets.subCategory, facets.sizeLabel, facets.series, facets.collection, existing.id,
+             ]
           );
         } else {
           // Feed has no name for this code — refresh price/category but keep
@@ -286,18 +310,29 @@ export async function runCatalogueSyncTransaction({
                      THEN specifications
                    ELSE $1
                  END,
-                 price = $2, mrp = $2, category_id = $3, in_stock = true, updated_at = now()
-             WHERE id = $4`,
-            [specifications(row), mrp, categoryId, existing.id]
+                  price = $2, mrp = $2, category_id = $3,
+                  sub_category = $4, size_label = $5, series = $6, collection = $7,
+                  in_stock = true, updated_at = now()
+              WHERE id = $8`,
+             [
+               specifications(row), mrp, categoryId,
+               facets.subCategory, facets.sizeLabel, facets.series, facets.collection, existing.id,
+             ]
           );
         }
         updated++;
       } else {
         const slug = claimSlug(`${slugify(name)}-${slugify(row.itemCode)}`);
         await client.query(
-          `INSERT INTO products (name, slug, sku, description, specifications, price, mrp, category_id, image_url, in_stock)
-           VALUES ($1, $2, $3, $4, $5, $6, $6, $7, NULL, true)`,
-          [name, slug, row.itemCode, `${name} — genuine PRAYAG product.`, specifications(row), mrp, categoryId]
+          `INSERT INTO products (
+             name, slug, sku, description, specifications, price, mrp, category_id,
+             sub_category, size_label, series, collection, image_url, in_stock
+           )
+           VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $8, $9, $10, $11, NULL, true)`,
+          [
+            name, slug, row.itemCode, `${name} — genuine PRAYAG product.`, specifications(row), mrp, categoryId,
+            facets.subCategory, facets.sizeLabel, facets.series, facets.collection,
+          ]
         );
         inserted++;
       }
@@ -386,7 +421,7 @@ async function main() {
   if (!fallbackCategory) throw new Error("No product category exists for Prayag catalogue sync");
 
   const { rows: local } = await pool.query<LocalProduct>(
-    "SELECT id, sku, slug, in_stock, specifications FROM products"
+    "SELECT id, name, sku, slug, in_stock, specifications, series, collection FROM products"
   );
   const activeCodes = new Set(feed.map((row) => row.itemCode));
   const missingIds = local.filter((row) => row.in_stock && !activeCodes.has(row.sku)).map((row) => row.id);

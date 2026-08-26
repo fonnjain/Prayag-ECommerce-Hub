@@ -56,12 +56,13 @@ export async function syncOfficialKitchenSinks() {
       await client.query(
         `INSERT INTO products (
            name, slug, sku, description, specifications, warranty, price, mrp,
-           category_id, image_url, rating, review_count, in_stock, is_featured, is_new
+            category_id, sub_category, size_label, series, collection,
+            image_url, rating, review_count, in_stock, is_featured, is_new
          )
          VALUES (
            $1, $2, $3, $4, $5, NULL, 0, 0,
            (SELECT id FROM categories WHERE slug = 'kitchen-sinks'),
-           $6, 0, 0, true, false, false
+            'Kitchen Sink', $6, NULL, $7, $8, 0, 0, true, false, false
          )
          ON CONFLICT (sku) DO UPDATE SET
            name = EXCLUDED.name,
@@ -72,10 +73,14 @@ export async function syncOfficialKitchenSinks() {
            price = CASE WHEN products.price > 0 THEN products.price ELSE EXCLUDED.price END,
            mrp = CASE WHEN products.mrp > 0 THEN products.mrp ELSE EXCLUDED.mrp END,
            category_id = EXCLUDED.category_id,
+            sub_category = EXCLUDED.sub_category,
+            size_label = EXCLUDED.size_label,
+            series = EXCLUDED.series,
+            collection = EXCLUDED.collection,
            image_url = EXCLUDED.image_url,
            in_stock = true,
            updated_at = now()`,
-        [item.name, item.slug, sku, description, specifications(item), item.imageUrl],
+         [item.name, item.slug, sku, description, specifications(item), item.size ?? null, item.collection, item.imageUrl],
       );
     }
     await client.query("COMMIT");

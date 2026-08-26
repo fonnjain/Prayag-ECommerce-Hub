@@ -8,6 +8,7 @@
 import { db, pool, productsTable, productImagesTable, categoriesTable } from "@workspace/db";
 import { buildShortProductName } from "./product-name.js";
 import { compactSku } from "./sku.js";
+import { sourceProductFacets } from "./product-facets.js";
 
 const API_BASE = "https://prayag-competition-analysis.replit.app/api/v1";
 const KEY = process.env.PRAYAG_COMP_KEY;
@@ -102,9 +103,10 @@ async function main() {
       const name = buildShortProductName(r);
       if (!name) throw new Error(`Missing product name for ${r.itemCode}`);
       const mrp = r.currentMrp!.toFixed(2);
+      const facets = sourceProductFacets({ category: r.category, size: r.size, productName: r.productName });
       const specs = [
         r.division ? `Division: ${r.division}` : null,
-        r.category ? `Series: ${r.category}` : null,
+        r.category ? `Category: ${r.category}` : null,
         r.size ? `Size: ${r.size}` : null,
         `Item Code: ${r.itemCode}`,
       ].filter(Boolean).join("\n");
@@ -117,6 +119,10 @@ async function main() {
         price: mrp,
         mrp,
         categoryId: catBySlug.get(categorySlugForProduct(r) ?? "") ?? fallbackCat,
+        subCategory: facets.subCategory,
+        sizeLabel: facets.sizeLabel,
+        series: facets.series,
+        collection: facets.collection,
         imageUrl: null as string | null,
         inStock: r.isActive,
       };

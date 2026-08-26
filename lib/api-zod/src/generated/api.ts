@@ -129,6 +129,10 @@ export const ListProductsQueryParams = zod.object({
   "inStock": zod.coerce.boolean().optional(),
   "sortBy": zod.coerce.string().optional(),
   "search": zod.coerce.string().optional(),
+  "subCategory": zod.coerce.string().optional().describe('Comma-separated product type labels'),
+  "series": zod.coerce.string().optional().describe('Comma-separated product series labels'),
+  "collection": zod.coerce.string().optional().describe('Comma-separated product collection labels'),
+  "size": zod.coerce.string().optional().describe('Comma-separated product size labels'),
   "ptmtSeries": zod.coerce.string().optional().describe('Comma-separated official PTMT series labels'),
   "ptmtCollection": zod.coerce.string().optional().describe('Comma-separated official PTMT collection labels'),
   "ptmtType": zod.coerce.string().optional().describe('Comma-separated official PTMT product type labels'),
@@ -158,6 +162,24 @@ export const ListProductsResponse = zod.object({
   "page": zod.number(),
   "totalPages": zod.number()
 })
+
+
+/**
+ * @summary List available product facets and counts
+ */
+export const ListProductFacetsQueryParams = zod.object({
+  "category": zod.coerce.string().optional().describe('Optional category slug; omit for the full public catalogue.')
+})
+
+export const ListProductFacetsResponseItem = zod.object({
+  "key": zod.enum(['subCategory', 'series', 'collection', 'size']),
+  "title": zod.string(),
+  "values": zod.array(zod.object({
+  "value": zod.string(),
+  "count": zod.number()
+}))
+})
+export const ListProductFacetsResponse = zod.array(ListProductFacetsResponseItem)
 
 
 /**

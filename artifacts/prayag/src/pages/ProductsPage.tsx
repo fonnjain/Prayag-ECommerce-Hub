@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Grid3X3, List, SlidersHorizontal, X, ChevronDown, Check, ArrowUpRight } from "lucide-react";
-import { useListProducts, useListCategories, getListProductsQueryKey } from "@workspace/api-client-react";
+import { useListProducts, useListProductFacets, useListCategories, getListProductsQueryKey } from "@workspace/api-client-react";
 import ProductCard from "@/components/ProductCard";
 import { useSiteContent } from "@/lib/siteContent";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -154,26 +154,8 @@ const sortOptions = [
   { value: "rating", label: "Highest Rated", note: "Top customer ratings" },
 ];
 
-const ptmtFilterGroups = [
-  {
-    key: "ptmtSeries",
-    title: "Filter by Series",
-    options: ["Delta Series", "Helix Series", "Lagoona Series", "Ovian Series", "Quadra Series", "Standard Series", "Ultra Series"],
-  },
-  {
-    key: "ptmtCollection",
-    title: "Filter by Collection",
-    options: ["Marbel Series", "Premia"],
-  },
-  {
-    key: "ptmtType",
-    title: "Filter by Type",
-    options: ["Angle Cock", "Basin Mixer", "Bib Cock", "Bottle Trap", "Grating Doom Waste Hole", "Hand Shower", "Pillar Cock", "Shower", "Sink Cock", "Sink Mixer", "Stop Cock", "Toilet Paper Holder", "Tooth Brush Holder", "Towel Rack", "Towel Rail", "Towel Ring", "Urinal Fish 32mm", "Urinal Spreader 15mm", "Wall Mixer", "Washing Machine Tap with Flange", "Waste Coupling"],
-  },
-] as const;
-
-type PtmtFilterKey = (typeof ptmtFilterGroups)[number]["key"];
-const ptmtFilterKeys: PtmtFilterKey[] = ["ptmtSeries", "ptmtCollection", "ptmtType"];
+type FacetKey = "subCategory" | "series" | "collection" | "size";
+const facetKeys: FacetKey[] = ["subCategory", "series", "collection", "size"];
 
 function readSelectedFilters(value?: string) {
   return value?.split(",").map((item) => item.trim()).filter(Boolean) ?? [];
@@ -198,9 +180,10 @@ export default function ProductsPage() {
     maxPrice: "",
     inStock: false,
     sortBy: "photo_ready",
-    ptmtSeries: readSelectedFilters(params.ptmtSeries),
-    ptmtCollection: readSelectedFilters(params.ptmtCollection),
-    ptmtType: readSelectedFilters(params.ptmtType),
+    subCategory: readSelectedFilters(params.subCategory),
+    series: readSelectedFilters(params.series),
+    collection: readSelectedFilters(params.collection),
+    size: readSelectedFilters(params.size),
     page: Math.max(1, parseInt(params.page || "1", 10) || 1),
   });
 
@@ -211,9 +194,10 @@ export default function ProductsPage() {
       ...f,
       category: p.category || "",
       search: p.search || "",
-      ptmtSeries: readSelectedFilters(p.ptmtSeries),
-      ptmtCollection: readSelectedFilters(p.ptmtCollection),
-      ptmtType: readSelectedFilters(p.ptmtType),
+      subCategory: readSelectedFilters(p.subCategory),
+      series: readSelectedFilters(p.series),
+      collection: readSelectedFilters(p.collection),
+      size: readSelectedFilters(p.size),
       page,
     }));
   }, [searchString]);
@@ -233,9 +217,10 @@ export default function ProductsPage() {
     ...(filters.minPrice && { minPrice: parseFloat(filters.minPrice) }),
     ...(filters.maxPrice && { maxPrice: parseFloat(filters.maxPrice) }),
     ...(filters.inStock && { inStock: true }),
-    ...(filters.category === "ptmt-faucets" && filters.ptmtSeries.length > 0 && { ptmtSeries: filters.ptmtSeries.join(",") }),
-    ...(filters.category === "ptmt-faucets" && filters.ptmtCollection.length > 0 && { ptmtCollection: filters.ptmtCollection.join(",") }),
-    ...(filters.category === "ptmt-faucets" && filters.ptmtType.length > 0 && { ptmtType: filters.ptmtType.join(",") }),
+    ...(filters.subCategory.length > 0 && { subCategory: filters.subCategory.join(",") }),
+    ...(filters.series.length > 0 && { series: filters.series.join(",") }),
+    ...(filters.collection.length > 0 && { collection: filters.collection.join(",") }),
+    ...(filters.size.length > 0 && { size: filters.size.join(",") }),
     sortBy: filters.sortBy,
     page: filters.page,
     limit: 20,
@@ -245,21 +230,30 @@ export default function ProductsPage() {
     query: { queryKey: getListProductsQueryKey(queryParams) },
   });
   const { data: categories } = useListCategories();
+  const { data: facetGroups = [] } = useListProductFacets(
+    filters.category ? { category: filters.category } : undefined,
+  );
 
   function updateFilter(key: string, value: any) {
-    setFilters(f => ({ ...f, [key]: value, ...(key !== "page" && { page: 1 }) }));
-    if (key === "page" || key === "category" || ptmtFilterKeys.includes(key as PtmtFilterKey)) {
+    setFilters(f => {
+      const next = { ...f, [key]: value, ...(key !== "page" && { page: 1 }) };
+      if (key === "category") facetKeys.forEach((facetKey) => { next[facetKey] = []; });
+      return next;
+    });
+    if (key === "page" || key === "category" || facetKeys.includes(key as FacetKey)) {
       const sp = new URLSearchParams(searchString);
       const newPage = key === "page" ? value : 1;
       const newCategory = key === "category" ? value : sp.get("category") || "";
       if (newPage > 1) sp.set("page", String(newPage)); else sp.delete("page");
       if (newCategory) sp.set("category", newCategory); else sp.delete("category");
-      if (ptmtFilterKeys.includes(key as PtmtFilterKey)) {
+      if (facetKeys.includes(key as FacetKey)) {
         const selected = value as string[];
         if (selected.length > 0) sp.set(key, selected.join(",")); else sp.delete(key);
       }
-      if (key === "category" && value !== "ptmt-faucets") {
-        ptmtFilterKeys.forEach((filterKey) => sp.delete(filterKey));
+      if (key === "category") {
+        facetKeys.forEach((facetKey) => sp.delete(facetKey));
+        // Legacy PTMT filter links no longer control the dynamic sidebar.
+        ["ptmtSeries", "ptmtCollection", "ptmtType"].forEach((legacyKey) => sp.delete(legacyKey));
       }
       const qs = sp.toString();
       setLocation(`/products${qs ? `?${qs}` : ""}`);
@@ -268,20 +262,21 @@ export default function ProductsPage() {
   }
 
   function clearFilters() {
-    const keepPtmtCategory = filters.category === "ptmt-faucets";
+    const keepCategory = filters.category;
     setFilters({
-      category: keepPtmtCategory ? "ptmt-faucets" : "",
+      category: keepCategory,
       search: "",
       minPrice: "",
       maxPrice: "",
       inStock: false,
       sortBy: "photo_ready",
-      ptmtSeries: [],
-      ptmtCollection: [],
-      ptmtType: [],
+      subCategory: [],
+      series: [],
+      collection: [],
+      size: [],
       page: 1,
     });
-    setLocation(keepPtmtCategory ? "/products?category=ptmt-faucets" : "/products");
+    setLocation(keepCategory ? `/products?category=${encodeURIComponent(keepCategory)}` : "/products");
   }
 
   const totalPages = data?.totalPages || 1;
@@ -373,23 +368,27 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              {isPtmtCategory && (
-                <div className="border-t border-white/10 pt-6" data-testid="ptmt-official-filters">
-                  <p className="mb-5 text-[9px] font-bold uppercase tracking-[0.22em] text-[hsl(42,62%,68%)]">Official PTMT Filters</p>
+              {facetGroups.length > 0 && (
+                <div
+                  className="border-t border-white/10 pt-6"
+                  data-testid={isPtmtCategory ? "ptmt-official-filters" : "product-facet-filters"}
+                >
+                  <p className="mb-5 text-[9px] font-bold uppercase tracking-[0.22em] text-[hsl(42,62%,68%)]">
+                    {isPtmtCategory ? "Official PTMT Filters" : "Shop by details"}
+                  </p>
                   <div className="space-y-6">
-                    {ptmtFilterGroups.map((group) => {
+                    {facetGroups.map((group) => {
                       const selected = filters[group.key];
                       return (
                         <div key={group.key}>
                           <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-[hsl(42,62%,68%)]">{group.title}</h4>
-                          <div className={`space-y-2.5 ${group.key === "ptmtType" ? "max-h-64 overflow-y-auto pr-1" : ""}`}>
-                            {group.options.map((option) => {
-                              const isUnavailable = false;
-                              const isSelected = selected.includes(option);
+                          <div className={`space-y-2.5 ${group.values.length > 12 ? "max-h-64 overflow-y-auto pr-1" : ""}`}>
+                            {group.values.map((option) => {
+                              const isSelected = selected.includes(option.value);
                               return (
                                 <label
-                                  key={option}
-                                  className={`flex items-start gap-3 ${isUnavailable ? "cursor-not-allowed opacity-45" : "cursor-pointer group"}`}
+                                  key={option.value}
+                                  className="flex items-start gap-3 cursor-pointer group"
                                 >
                                   <div className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center border transition-colors ${
                                     isSelected ? "border-[hsl(42,62%,68%)] bg-[hsl(42,62%,68%)]" : "border-white/30 group-hover:border-[hsl(42,62%,68%)]"
@@ -398,18 +397,17 @@ export default function ProductsPage() {
                                   </div>
                                   <span className={`min-w-0 flex-1 text-sm leading-snug transition-colors ${
                                     isSelected ? "font-semibold text-white" : "text-white/60 group-hover:text-white"
-                                  }`}>{option}</span>
-                                  {isUnavailable && <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-white/45">Not listed</span>}
+                                  }`}>{option.value}</span>
+                                  <span className="mt-0.5 text-[10px] font-semibold tabular-nums text-white/45">{option.count}</span>
                                   <input
                                     type="checkbox"
                                     checked={isSelected}
-                                    disabled={isUnavailable}
                                     onChange={() => updateFilter(
                                       group.key,
-                                      isSelected ? selected.filter((item) => item !== option) : [...selected, option],
+                                      isSelected ? selected.filter((item) => item !== option.value) : [...selected, option.value],
                                     )}
                                     className="hidden"
-                                    data-testid={`filter-${group.key}-${option.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                                    data-testid={`filter-${group.key}-${option.value.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
                                   />
                                 </label>
                               );

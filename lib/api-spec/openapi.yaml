@@ -202,6 +202,26 @@ paths:
           in: query
           schema:
             type: string
+        - name: subCategory
+          in: query
+          description: Comma-separated product type labels
+          schema:
+            type: string
+        - name: series
+          in: query
+          description: Comma-separated product series labels
+          schema:
+            type: string
+        - name: collection
+          in: query
+          description: Comma-separated product collection labels
+          schema:
+            type: string
+        - name: size
+          in: query
+          description: Comma-separated product size labels
+          schema:
+            type: string
         - name: ptmtSeries
           in: query
           description: Comma-separated official PTMT series labels
@@ -232,6 +252,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProductListResponse"
+
+  /products/facets:
+    get:
+      operationId: listProductFacets
+      tags: [products]
+      summary: List available product facets and counts
+      parameters:
+        - name: category
+          in: query
+          description: Optional category slug; omit for the full public catalogue.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Facet groups with at least two available values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductFacetGroup"
 
   /products/featured:
     get:
@@ -1457,6 +1498,29 @@ components:
           type: integer
         totalPages:
           type: integer
+
+    ProductFacetValue:
+      type: object
+      required: [value, count]
+      properties:
+        value:
+          type: string
+        count:
+          type: integer
+
+    ProductFacetGroup:
+      type: object
+      required: [key, title, values]
+      properties:
+        key:
+          type: string
+          enum: [subCategory, series, collection, size]
+        title:
+          type: string
+        values:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductFacetValue"
 
     ProductInput:
       type: object
