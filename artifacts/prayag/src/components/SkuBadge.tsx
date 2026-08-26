@@ -12,7 +12,7 @@ export default function SkuBadge({ sku, className = "", style, "data-testid": te
 
   return (
     <span
-      className={`inline-flex w-fit whitespace-nowrap items-center rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] shadow-sm transition-all duration-300 ${isHovered
+      className={`inline-flex w-fit min-w-0 max-w-full items-center overflow-hidden rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] leading-tight [overflow-wrap:anywhere] shadow-sm transition-all duration-300 ${isHovered
         ? "-translate-y-0.5 border-[#9a6a2e] bg-[#9a6a2e] text-white shadow-[0_8px_18px_rgba(154,106,46,0.25)]"
         : "border-[#c99b58]/35 bg-[#fbf1e3] text-[#9a6a2e]"
       } ${className}`}

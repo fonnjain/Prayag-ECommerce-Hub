@@ -123,8 +123,8 @@ export default function ProductCard({ product, index = 0, view = "grid" }: Props
         </div>
 
         <div className={`relative z-10 flex min-w-0 flex-1 flex-col bg-white ${isListView ? "p-3 sm:p-5" : "p-4 sm:p-5"}`}>
-          <div className="mb-3 flex min-w-0 items-start justify-between gap-2">
-            <SkuBadge sku={product.sku} className="px-2.5 py-0.5 text-[10px] tracking-[0.12em]" data-testid={`text-sku-${product.id}`} />
+          <div className="mb-3 flex min-w-0 flex-wrap items-start justify-between gap-2">
+            <SkuBadge sku={product.sku} className="max-w-full whitespace-normal px-2.5 py-0.5 text-[10px] tracking-[0.12em]" data-testid={`text-sku-${product.id}`} />
             {product.categoryName && (
               <span className="max-w-[45%] truncate pt-1 text-right text-[9px] font-semibold uppercase tracking-[0.12em] text-[hsl(38,52%,45%)]">
                 {product.categoryName}
