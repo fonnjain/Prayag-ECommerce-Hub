@@ -1,0 +1,36 @@
+Production catalogue facets are still empty — all four facet columns are 0-filled
+for 6,239 active products, and /api/products/facets still returns [] on
+https://prayag-store.com. The site has no filter sidebar at all, including the
+PTMT filters that used to work.
+
+Do these in order:
+
+1. FIRST, resolve an ambiguity before changing anything. Report:
+   - The DATABASE_URL (host/database name only, NOT the password) that the
+     "Daily MRP Sync" workflow actually connects to.
+   - The DATABASE_URL (host/database name only) that the published deployment at
+     prayag-store.com serves from.
+   - Whether these are the same database or two different ones.
+   This matters: the backfill was previously run against a "development"
+   database, yet dev and production both report 6,459 stored products. If the
+   workflow runs against a database that production does not serve from, adding
+   backfill to that workflow will never fix the live site.
+
+2. Restart the Daily MRP Sync workflow (stop it, then start it). The running
+   bash loop is still executing the OLD command text and is currently sleeping,
+   so the newly saved command has not taken effect. Restarting makes it run
+   sync-external-mrp followed by backfill-product-facets immediately. Report the
+   backfill's actual output: how many products were updated.
+
+3. Verify against PRODUCTION only — not a development database:
+   - Re-run the per-category facet count query and confirm sub_category, series
+     and collection are non-zero for ptmt-faucets.
+   - curl https://prayag-store.com/api/products/facets?category=ptmt-faucets and
+     confirm it returns the official Series, Collection and Type groups.
+   - curl the same endpoint for at least one non-PTMT category and confirm it
+     returns groups too.
+   Paste the actual command output for each. Do not report success based on a
+   development database or a local server.
+
+Do not change application code. The code is correct; only production data is
+missing.
