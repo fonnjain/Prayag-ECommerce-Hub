@@ -6,6 +6,7 @@
 - [Catalogue sync and order history](catalogue-sync-order-history.md) — production catalogue replacement must preserve products still referenced by historical order items.
 - [Catalogue mobile toolbar](catalogue-mobile-toolbar.md) — filter, sort, and view controls must wrap on narrow screens to avoid page-level overflow.
 - [Production sync authentication](prod-sync-auth.md) — prod sync logs in via service-login with SESSION_SECRET bearer, not ADMIN_PASSWORD (which drifted from live).
+- [Catalogue SKU normalization](catalogue-sku-normalization.md) — remove all SKU whitespace before matching; merge only unreferenced inactive spaced duplicates into active compact records.
 - [Workspace typecheck references](workspace-typecheck-references.md) — artifact checks that reference workspace TypeScript projects must build references, not only typecheck their own config.
 - [Manifest photo matching](manifest-photo-matching.md) — map a Drive photo only when its filename normalizes uniquely to one SKU; duplicate codes need reviewed mapping.
 - [Image-first catalogue browsing](image-first-catalogue-browsing.md) — when coverage is partial, show verified product photos first but retain the complete catalogue and a Latest Arrivals sort.

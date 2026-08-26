@@ -56,7 +56,12 @@ router.get("/products", async (req, res): Promise<void> => {
     const [cat] = await db.select().from(categoriesTable).where(eq(categoriesTable.slug, category));
     if (cat) conditions.push(eq(productsTable.categoryId, cat.id));
   }
-  if (search) conditions.push(ilike(productsTable.name, `%${search}%`));
+  if (search) {
+    conditions.push(or(
+      ilike(productsTable.name, `%${search}%`),
+      ilike(productsTable.sku, `%${search}%`),
+    ));
+  }
   if (minPrice) conditions.push(gte(productsTable.price, minPrice));
   if (maxPrice) conditions.push(lte(productsTable.price, maxPrice));
   if (category === "ptmt-faucets") {

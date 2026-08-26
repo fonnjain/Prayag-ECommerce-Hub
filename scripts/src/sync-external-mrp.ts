@@ -334,14 +334,22 @@ export async function runCatalogueSyncTransaction({
     await client.query("UPDATE products SET is_featured = true WHERE id IN (SELECT id FROM products WHERE in_stock = true ORDER BY mrp::numeric DESC LIMIT 12)");
     await client.query("UPDATE products SET is_new = true WHERE id IN (SELECT id FROM products WHERE in_stock = true ORDER BY updated_at DESC, id DESC LIMIT 12)");
 
-    const { rows: [summary] } = await client.query<{ total: string; active: string }>(
-      "SELECT count(*)::text AS total, count(*) FILTER (WHERE in_stock)::text AS active FROM products"
+    const { rows: [summary] } = await client.query<{ total: string; active: string; supplierActive: string }>(
+      `SELECT
+         count(*)::text AS total,
+         count(*) FILTER (WHERE in_stock)::text AS active,
+         count(*) FILTER (
+           WHERE in_stock
+             AND COALESCE(specifications, '') NOT LIKE $1
+         )::text AS "supplierActive"
+       FROM products`,
+      [`%${OFFICIAL_KITCHEN_SINK_MARKER}%`],
     );
-    if (Number(summary.active) !== feed.length) {
-      throw new Error(`Post-sync verification failed: expected ${feed.length} active products, got ${summary.active}`);
+    if (Number(summary.supplierActive) !== feed.length) {
+      throw new Error(`Post-sync verification failed: expected ${feed.length} active supplier products, got ${summary.supplierActive}`);
     }
     await client.query("COMMIT");
-    console.log(`Sync complete: ${updated} updated, ${inserted} inserted, ${missingIds.length} hidden; ${productsWithReconciledImages} Drive-managed product photo sets reconciled; ${summary.active} active Prayag products (${summary.total} stored including order-safe history).`);
+    console.log(`Sync complete: ${updated} updated, ${inserted} inserted, ${missingIds.length} hidden; ${productsWithReconciledImages} Drive-managed product photo sets reconciled; ${summary.supplierActive} active supplier products and ${summary.active} active products overall (${summary.total} stored including order-safe history).`);
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});
     throw error;
