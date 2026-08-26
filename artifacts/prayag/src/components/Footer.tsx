@@ -1,4 +1,3 @@
-import { Link } from "wouter";
 import { SiInstagram, SiX, SiFacebook, SiYoutube } from "react-icons/si";
 import { Phone, Mail, Clock } from "lucide-react";
 import logoWhite from "@assets/Prayag_logo_W_1783664087488.png";
@@ -108,7 +107,7 @@ function FooterCol({ title, links }: { title: string; links: { label: string; hr
       <ul className="space-y-2.5 text-sm">
         {links.map(l => (
           <li key={l.label}>
-            <Link href={l.href} className="text-gray-400 hover:text-[hsl(42,62%,68%)] hover:pl-1 transition-all inline-block">{l.label}</Link>
+            <span className="text-gray-500 inline-block cursor-not-allowed select-none" aria-disabled="true">{l.label}</span>
           </li>
         ))}
       </ul>
