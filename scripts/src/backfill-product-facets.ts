@@ -38,8 +38,11 @@ async function main() {
   );
 
   const changes = rows.map((product) => {
-    const nameFacets = knownNameFacets(product.name);
-    const officialPtmt = product.categorySlug === "ptmt-faucets"
+    const isPtmt = product.categorySlug === "ptmt-faucets";
+    const nameFacets = isPtmt
+      ? knownNameFacets(product.name)
+      : { series: null, collection: null };
+    const officialPtmt = isPtmt
       ? officialPtmtFacetForSku(product.sku)
       : null;
     return {

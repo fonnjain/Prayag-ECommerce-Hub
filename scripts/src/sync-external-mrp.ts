@@ -258,22 +258,24 @@ export async function runCatalogueSyncTransaction({
       const apiName = buildName(row);
       const name = apiName ?? fallbackName(row);
       const mrp = row.currentMrp!.toFixed(2);
-      const categoryId = categoryBySlug.get(categorySlugForProduct(row) ?? "") ?? fallbackCategory;
+      const categorySlug = categorySlugForProduct(row);
+      const categoryId = categoryBySlug.get(categorySlug ?? "") ?? fallbackCategory;
       const existing = localBySku.get(row.itemCode);
+      const isPtmt = categorySlug === "ptmt-faucets";
       const nameFacets = sourceProductFacets({
         category: row.category,
         size: row.size,
         productName: row.productName ?? existing?.name ?? name,
+        deriveKnownPtmtNameFacets: isPtmt,
       });
-      const isPtmt = categorySlugForProduct(row) === "ptmt-faucets";
       const officialPtmt = isPtmt ? officialPtmtFacetForSku(row.itemCode) : null;
       const facets = {
         ...nameFacets,
         subCategory: isPtmt ? officialPtmt?.subCategory ?? null : nameFacets.subCategory,
         // Retain an already verified structured PTMT value when the upstream
         // feed does not expose that series/collection in its product name.
-        series: officialPtmt?.series ?? nameFacets.series ?? existing?.series ?? null,
-        collection: officialPtmt?.collection ?? nameFacets.collection ?? existing?.collection ?? null,
+        series: officialPtmt?.series ?? nameFacets.series ?? (isPtmt ? existing?.series : null) ?? null,
+        collection: officialPtmt?.collection ?? nameFacets.collection ?? (isPtmt ? existing?.collection : null) ?? null,
       };
 
       if (existing) {

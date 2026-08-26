@@ -14,3 +14,9 @@ Use the official Prayag PTMT filter taxonomy only when every source product can 
 **Why:** The official markup HTML-encodes pagination and can reuse generic or derivative image alt text. Treating either as a product identifier produces false removals and ambiguous entries, which hides real catalogue drift.
 
 **How to apply:** Review any reported exact code or `(filter kind, label, code)` membership change against the official product page before updating the approved mapping; never let the audit edit customer-facing filters automatically.
+
+**Scope rule:** Only derive name-based PTMT Series/Collection labels for products already classified under `ptmt-faucets`; never apply generic label-word matching across the whole catalogue.
+
+**Why:** Common product words such as “Ultra” and “Standard” occur in Bathroom Accessories and can look like PTMT series names while having no official PTMT membership.
+
+**How to apply:** Prefer the official exact-SKU lookup for PTMT products. A fallback name match may only fill an otherwise unknown PTMT facet, and non-PTMT categories must leave those PTMT-only fields empty.

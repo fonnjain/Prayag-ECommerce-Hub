@@ -103,7 +103,13 @@ async function main() {
       const name = buildShortProductName(r);
       if (!name) throw new Error(`Missing product name for ${r.itemCode}`);
       const mrp = r.currentMrp!.toFixed(2);
-      const facets = sourceProductFacets({ category: r.category, size: r.size, productName: r.productName });
+      const categorySlug = categorySlugForProduct(r);
+      const facets = sourceProductFacets({
+        category: r.category,
+        size: r.size,
+        productName: r.productName,
+        deriveKnownPtmtNameFacets: categorySlug === "ptmt-faucets",
+      });
       const specs = [
         r.division ? `Division: ${r.division}` : null,
         r.category ? `Category: ${r.category}` : null,
@@ -118,7 +124,7 @@ async function main() {
         specifications: specs,
         price: mrp,
         mrp,
-        categoryId: catBySlug.get(categorySlugForProduct(r) ?? "") ?? fallbackCat,
+        categoryId: catBySlug.get(categorySlug ?? "") ?? fallbackCat,
         subCategory: facets.subCategory,
         sizeLabel: facets.sizeLabel,
         series: facets.series,

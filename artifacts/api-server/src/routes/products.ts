@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, productsTable, categoriesTable, productImagesTable } from "@workspace/db";
 import { eq, ilike, and, or, gte, lte, sql, desc, asc, inArray } from "drizzle-orm";
 import { selectedPtmtFilterSkus } from "../lib/ptmtOfficialFilters";
+import { shouldReturnFacetGroup } from "../lib/facet-visibility";
 
 const router: IRouter = Router();
 
@@ -184,6 +185,10 @@ router.get("/products/facets", async (req, res): Promise<void> => {
   }
 
   const whereClause = and(...conditions);
+  const [{ totalProducts }] = await db
+    .select({ totalProducts: sql<number>`count(*)::int` })
+    .from(productsTable)
+    .where(whereClause);
   const groups = await Promise.all(facetDefinitions.map(async (definition) => {
     const values = await db
       .select({
@@ -201,16 +206,28 @@ router.get("/products/facets", async (req, res): Promise<void> => {
     const availableValues = values
       .filter((item): item is { value: string; count: number } => Boolean(item.value))
       .map((item) => ({ value: item.value, count: item.count }));
+    const populatedProductCount = availableValues.reduce((sum, item) => sum + item.count, 0);
 
     return {
       key: definition.key,
       title: definition.title,
       values: availableValues,
+      shouldReturn: shouldReturnFacetGroup({
+        category,
+        key: definition.key,
+        valueCount: availableValues.length,
+        populatedProductCount,
+        totalProducts,
+      }),
     };
   }));
 
-  // A one-option group cannot help customers narrow a category, so omit it.
-  res.json(groups.filter((group) => group.values.length >= 2));
+  // A one-option group cannot help customers narrow a category. Dynamic
+  // groups also need meaningful category coverage; PTMT Type/Series/Collection
+  // are verified official memberships and intentionally retain sparse groups.
+  res.json(groups
+    .filter((group) => group.shouldReturn)
+    .map(({ key, title, values }) => ({ key, title, values })));
 });
 
 router.get("/products/:slug", async (req, res): Promise<void> => {

@@ -44,10 +44,16 @@ export function sourceProductFacets(input: {
   category?: string | null;
   size?: string | null;
   productName?: string | null;
+  deriveKnownPtmtNameFacets?: boolean;
 }): ProductFacetValues {
   return {
     subCategory: normaliseValue(input.category),
     sizeLabel: normaliseValue(input.size),
-    ...knownNameFacets(input.productName),
+    // These labels belong to the official PTMT taxonomy. A word such as
+    // "Ultra" or "Standard" in another division's product name is not
+    // evidence that product belongs to a PTMT series.
+    ...(input.deriveKnownPtmtNameFacets
+      ? knownNameFacets(input.productName)
+      : { series: null, collection: null }),
   };
 }
