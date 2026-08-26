@@ -214,7 +214,7 @@ const cmsSectionSchemas: Record<string, z.ZodTypeAny> = {
   }),
   marquee: z.object({ words: z.array(z.string()) }),
   topbar: z.object({ text: z.string(), phone: z.string() }),
-  footer: z.object({ phone: z.string(), email: z.string(), hours: z.string(), about: z.string() }),
+  footer: z.object({ tollFree: z.string(), enquiry: z.string(), email: z.string(), hours: z.string(), about: z.string() }),
   about: z.object({
     heroTitle: z.string(),
     heroSubtitle: z.string(),

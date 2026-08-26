@@ -70,7 +70,11 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-gray-400">
               <li className="flex items-start gap-2.5">
                 <Phone className="w-4 h-4 text-[hsl(42,62%,68%)] mt-0.5 flex-shrink-0" />
-                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Call Us</div><a href={`tel:${footer.phone.replace(/\s/g, "")}`} className="text-white font-semibold hover:text-[hsl(42,62%,68%)] transition-colors">{footer.phone}</a></div>
+                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Toll Free No.:</div><a href={`tel:${footer.tollFree.replace(/[^\d+]/g, "")}`} className="text-white font-semibold hover:text-[hsl(42,62%,68%)] transition-colors">{footer.tollFree}</a></div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <Phone className="w-4 h-4 text-[hsl(42,62%,68%)] mt-0.5 flex-shrink-0" />
+                <div><div className="text-[10px] uppercase tracking-wide text-gray-500">Enquiry No.:</div><a href={`tel:${footer.enquiry.replace(/\D/g, "")}`} className="text-white font-semibold hover:text-[hsl(42,62%,68%)] transition-colors">{footer.enquiry}</a></div>
               </li>
               <li className="flex items-start gap-2.5">
                 <Mail className="w-4 h-4 text-[hsl(42,62%,68%)] mt-0.5 flex-shrink-0" />

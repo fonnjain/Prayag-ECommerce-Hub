@@ -280,8 +280,9 @@ export default function SiteContentManager() {
 
       <SectionCard title="Footer" onSave={() => save("footer", footer as unknown as Record<string, unknown>)} saving={savingSection === "footer"}>
         <Field label="About text" textarea value={footer.about} onChange={v => setFooter({ ...footer, about: v })} />
-        <div className="grid grid-cols-3 gap-3">
-          <Field label="Phone" value={footer.phone} onChange={v => setFooter({ ...footer, phone: v })} />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Field label="Toll Free No." value={footer.tollFree} onChange={v => setFooter({ ...footer, tollFree: v })} />
+          <Field label="Enquiry No." value={footer.enquiry} onChange={v => setFooter({ ...footer, enquiry: v })} />
           <Field label="Email" value={footer.email} onChange={v => setFooter({ ...footer, email: v })} />
           <Field label="Hours" value={footer.hours} onChange={v => setFooter({ ...footer, hours: v })} />
         </div>

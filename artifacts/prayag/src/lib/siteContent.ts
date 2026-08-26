@@ -15,7 +15,7 @@ export interface CollectionCard { title: string; sub: string; img: string; chips
 export interface RoomCard { label: string; img: string; slug: string }
 export interface TrustItem { label: string; sub: string }
 export interface TopbarContent { text: string; phone: string }
-export interface FooterContent { phone: string; email: string; hours: string; about: string }
+export interface FooterContent { tollFree: string; enquiry: string; email: string; hours: string; about: string }
 
 export const defaultHero: HeroContent = {
   badge: "India's Premier Plumbing Maison",
@@ -64,7 +64,8 @@ export const defaultMarquee: string[] = ["CP FAUCETS", "SANITARYWARE", "KITCHEN 
 export const defaultTopbar: TopbarContent = { text: "Customer Care:", phone: "1800 123 4567" };
 
 export const defaultFooter: FooterContent = {
-  phone: "1800 123 4567",
+  tollFree: "+1 (800) 257 0304",
+  enquiry: "92898 74228",
   email: "support@prayag.com",
   hours: "Mon–Sat · 9AM – 6PM",
   about: "India's trusted plumbing and sanitaryware brand — delivering timeless quality for homes and commercial spaces since 1985.",
