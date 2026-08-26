@@ -9,6 +9,7 @@
     "start": "node --enable-source-maps ./dist/index.mjs",
     "test": "tsx --test test/*.test.ts",
     "check-ptmt-official-filters": "tsx ./scripts/check-ptmt-official-filters.ts",
+    "notify-ptmt-official-filters": "tsx ./scripts/check-ptmt-official-filters.ts --notify",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

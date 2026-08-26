@@ -17,6 +17,7 @@
     "shorten-product-names": "tsx ./src/shorten-product-names.ts",
     "validate-product-image-manifest": "tsx ./src/validate-product-image-manifest.ts",
     "check-ptmt-official-filters": "pnpm --filter @workspace/api-server run check-ptmt-official-filters",
+    "notify-ptmt-official-filters": "pnpm --filter @workspace/api-server run notify-ptmt-official-filters",
     "generate-product-image-review": "tsx ./src/validate-product-image-manifest.ts --write-review",
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"

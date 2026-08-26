@@ -1,5 +1,10 @@
 import nodemailer from "nodemailer";
 import { logger } from "./logger";
+import {
+  buildPtmtAuditNotification,
+  type PtmtAuditNotification,
+} from "./ptmtAuditNotification";
+import type { PtmtOfficialAuditReport } from "./ptmtOfficialFilters";
 
 function getSmtpTransport(): { transporter: nodemailer.Transporter; fromEmail: string } | null {
   const user = process.env.GMAIL_USER;
@@ -59,6 +64,19 @@ async function sendHtmlEmail(to: string, subject: string, html: string): Promise
     logger.error({ err }, "Gmail API email send error");
     return false;
   }
+}
+
+export async function sendPtmtAuditNotification(opts: {
+  to: string;
+  report: PtmtOfficialAuditReport;
+  checkedAt: string;
+  officialFilterUrl: string;
+}): Promise<boolean> {
+  const notification: PtmtAuditNotification = buildPtmtAuditNotification(opts.report, {
+    checkedAt: opts.checkedAt,
+    officialFilterUrl: opts.officialFilterUrl,
+  });
+  return sendHtmlEmail(opts.to, notification.subject, notification.html);
 }
 
 async function getGmailConnection(): Promise<{ accessToken: string; fromEmail: string } | null> {

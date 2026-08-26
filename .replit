@@ -24,6 +24,10 @@ args = "Geocode Dealers"
 task = "workflow.run"
 args = "Daily MRP Sync"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "PTMT Official Filter Audit"
+
 [[workflows.workflow]]
 name = "Geocode Dealers"
 author = "agent"
@@ -42,6 +46,17 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "while true; do if pnpm --filter @workspace/scripts run sync-external-mrp && pnpm --filter @workspace/scripts run sync-prod-products; then echo 'Next full Prayag MRP sync in 24h...'; sleep 86400; else echo 'MRP sync failed; retrying in 1 hour without publishing partial data...'; sleep 3600; fi; done"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "PTMT Official Filter Audit"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = '''while true; do echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Running read-only PTMT official filter audit..."; if pnpm --filter @workspace/scripts run notify-ptmt-official-filters; then echo 'Next PTMT official filter audit in 24h...'; sleep 86400; else echo 'PTMT audit failed; retrying in 1 hour without changing catalogue data...'; sleep 3600; fi; done'''
 
 [workflows.workflow.metadata]
 outputType = "console"
