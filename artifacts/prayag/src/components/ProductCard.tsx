@@ -26,9 +26,12 @@ interface Product {
 interface Props {
   product: Product;
   index?: number;
+  view?: "grid" | "list";
 }
 
-export default function ProductCard({ product, index = 0 }: Props) {
+export default function ProductCard({ product, index = 0, view = "grid" }: Props) {
+  const isListView = view === "list";
+  const hasPublishedPrice = product.price > 0;
   const { toast } = useToast();
   const user = useAuthStore((state) => state.user);
   const [, setLocation] = useLocation();
@@ -61,13 +64,19 @@ export default function ProductCard({ product, index = 0 }: Props) {
         whileHover={{ y: -6 }}
         onHoverStart={() => setIsCardHovered(true)}
         onHoverEnd={() => setIsCardHovered(false)}
-        className={`group relative flex h-full min-w-0 cursor-pointer flex-col overflow-hidden rounded-[1.35rem] border bg-white transition-all duration-500 ${
+        className={`group relative flex min-w-0 cursor-pointer overflow-hidden rounded-[1.35rem] border bg-white transition-all duration-500 ${
+          isListView ? "flex-row" : "h-full flex-col"
+        } ${
           isCardHovered
             ? "border-[hsl(38,52%,45%)]/55 shadow-[0_24px_50px_-24px_rgba(42,28,18,0.75)]"
             : "border-[hsl(24,10%,16%)]/10 shadow-[0_12px_35px_-24px_rgba(42,28,18,0.75)]"
         }`}
       >
-        <div className="relative aspect-[1.05] overflow-hidden border-b border-[hsl(24,10%,16%)]/8 bg-[#f4f0ea] p-4">
+        <div className={`relative flex-shrink-0 overflow-hidden bg-[#f4f0ea] p-4 ${
+          isListView
+            ? "h-32 w-32 border-r border-[hsl(24,10%,16%)]/8 sm:h-40 sm:w-40"
+            : "aspect-[1.05] w-full border-b border-[hsl(24,10%,16%)]/8"
+        }`}>
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_36%,rgba(255,255,255,0.95),transparent_48%),linear-gradient(145deg,rgba(202,164,104,0.12),transparent_52%)]" />
           <div className="pointer-events-none absolute inset-3 rounded-[1rem] border border-white/70" />
           <div className="absolute left-4 top-4 z-10 rounded-full border border-[hsl(38,52%,45%)]/25 bg-white/75 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-[hsl(24,10%,16%)] backdrop-blur-sm">
@@ -113,8 +122,8 @@ export default function ProductCard({ product, index = 0 }: Props) {
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-1 flex-col bg-white p-4 sm:p-5">
-          <div className="mb-3 flex items-start justify-between gap-2">
+        <div className={`relative z-10 flex min-w-0 flex-1 flex-col bg-white ${isListView ? "p-3 sm:p-5" : "p-4 sm:p-5"}`}>
+          <div className="mb-3 flex min-w-0 items-start justify-between gap-2">
             <SkuBadge sku={product.sku} className="px-2.5 py-0.5 text-[10px] tracking-[0.12em]" data-testid={`text-sku-${product.id}`} />
             {product.categoryName && (
               <span className="max-w-[45%] truncate pt-1 text-right text-[9px] font-semibold uppercase tracking-[0.12em] text-[hsl(38,52%,45%)]">
@@ -136,16 +145,25 @@ export default function ProductCard({ product, index = 0 }: Props) {
               <span className="text-[10px] font-medium text-gray-400">({product.reviewCount})</span>
             </div>
             <div className="mb-4 flex items-end justify-between gap-2">
-              <div>
-                <span className="mb-0.5 block text-[9px] font-bold uppercase tracking-[0.16em] text-gray-400">MRP</span>
-                <span className="text-xl font-black tracking-tight text-[hsl(24,10%,16%)]" data-testid={`text-price-${product.id}`}>
-                ₹{product.price.toLocaleString("en-IN")}
-                </span>
-              </div>
-              {product.mrp > product.price && (
-                <span className="mb-1 text-xs text-gray-400 line-through" data-testid={`text-mrp-${product.id}`}>
-                  ₹{product.mrp.toLocaleString("en-IN")}
-                </span>
+              {hasPublishedPrice ? (
+                <>
+                  <div>
+                    <span className="mb-0.5 block text-[9px] font-bold uppercase tracking-[0.16em] text-gray-400">MRP</span>
+                    <span className="text-xl font-black tracking-tight text-[hsl(24,10%,16%)]" data-testid={`text-price-${product.id}`}>
+                      ₹{product.price.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  {product.mrp > product.price && (
+                    <span className="mb-1 text-xs text-gray-400 line-through" data-testid={`text-mrp-${product.id}`}>
+                      ₹{product.mrp.toLocaleString("en-IN")}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <div>
+                  <span className="mb-0.5 block text-[9px] font-bold uppercase tracking-[0.16em] text-gray-400">Official catalogue</span>
+                  <span className="text-sm font-bold text-[hsl(38,52%,40%)]" data-testid={`text-price-${product.id}`}>Price on request</span>
+                </div>
               )}
             </div>
           </div>

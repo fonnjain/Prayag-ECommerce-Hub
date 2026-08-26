@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Grid3X3, List, SlidersHorizontal, X, ChevronDown, Check, ArrowUpRight } from "lucide-react";
 import { useListProducts, useListCategories, getListProductsQueryKey } from "@workspace/api-client-react";
@@ -47,108 +47,6 @@ const waterHeaterRange = [
     application: "Steel Tank",
     features: ["Corrosion protection", "Shock proof", "Copper heating element"],
     sourceUrl: "https://prayagindia.com/pico-vertical",
-  },
-];
-
-const kitchenSinkRange = [
-  {
-    sku: "Q748 MB",
-    name: "Double Bowl with Drain Board",
-    collection: "Ivory Lucid",
-    image: "ivory-lucid-double-bowl-with-drain-board.webp",
-    colors: "Bianco · Pluto",
-    size: "45 × 20 × 8.5",
-    thickness: "10 mm",
-    weight: "21.5 kg approx.",
-    sourceUrl: "https://prayagindia.com/q748-mb-double-bowl-drain-board",
-  },
-  {
-    sku: "Q752 MB",
-    name: "Double Bowl",
-    collection: "Sand Soul",
-    image: "sand-soul-double-bowl.webp",
-    colors: "Black · White · Grey",
-    size: "45 × 20 × 8.5",
-    thickness: "10 mm",
-    weight: "30.5 kg approx.",
-    sourceUrl: "https://prayagindia.com/q752-mb-double-bowl",
-  },
-  {
-    sku: "Q752 GB",
-    name: "Double Bowl",
-    collection: "Sand Soul",
-    image: "sand-soul-double-bowl.webp",
-    colors: "Bianco · Pluto",
-    size: "45 × 20 × 8.5",
-    thickness: "10 mm",
-    weight: "30.5 kg approx.",
-    sourceUrl: "https://prayagindia.com/q752-gb-double-bowl",
-  },
-  {
-    sku: "Q732 MB",
-    name: "Double Bowl",
-    collection: "Sand Azaro",
-    image: "sand-azaro-double-bowl.webp",
-    colors: "Bianco · Pluto",
-    size: "34 × 19.5 × 8.5",
-    thickness: "10 mm",
-    weight: "9 kg approx.",
-    sourceUrl: "https://prayagindia.com/q732-mb-double-bowl",
-  },
-  {
-    sku: "Q740 MB",
-    name: "Double Bowl",
-    collection: "Sand Unico-Twin",
-    image: "sand-unico-twin-double-bowl.webp",
-    colors: "Black · White · Grey",
-    size: "37 × 18 × 8.5",
-    thickness: "14 mm",
-    weight: "22 kg approx.",
-    sourceUrl: "https://prayagindia.com/q740-mb-double-bowl",
-  },
-  {
-    sku: "Q736 MB",
-    name: "Single Bowl with Drain Board",
-    collection: "Crystal Vanilla",
-    image: "crystal-vanilla-singe-bowl-with-drain-board-0.webp",
-    colors: "Official finish",
-    size: "34 × 19.5 × 8.5",
-    thickness: "10 mm",
-    weight: "9 kg approx.",
-    sourceUrl: "https://prayagindia.com/q736-mb-single-bowl-drain-board",
-  },
-  {
-    sku: "Q740 GB",
-    name: "Double Bowl",
-    collection: "Sand Unico-Twin",
-    image: "sand-unico-twin-double-bowl.webp",
-    colors: "Bianco · Pluto",
-    size: "37 × 18 × 8.5",
-    thickness: "14 mm",
-    weight: "22 kg approx.",
-    sourceUrl: "https://prayagindia.com/q740-gb-double-bowl",
-  },
-  {
-    sku: "Q744 MB",
-    name: "Double Bowl",
-    collection: "Coke Smudge",
-    image: "coke-smudge-double-bowl.webp",
-    colors: "Black · White · Grey",
-    size: "40 × 18 × 8.5",
-    thickness: "10 mm",
-    weight: "21 kg approx.",
-    sourceUrl: "https://prayagindia.com/q744-mb-double-bowl",
-  },
-  {
-    sku: "Q744 GB",
-    name: "Double Bowl",
-    collection: "Coke Smudge",
-    image: "coke-smudge-double-bowl.webp",
-    colors: "Bianco · Pluto",
-    size: "40 × 18 × 8.5",
-    thickness: "10 mm",
-    weight: "21 kg approx.",
-    sourceUrl: "https://prayagindia.com/q744-gb-double-bowl",
   },
 ];
 
@@ -248,6 +146,14 @@ function useQueryParams() {
   return Object.fromEntries(new URLSearchParams(search).entries());
 }
 
+const sortOptions = [
+  { value: "photo_ready", label: "Products with Photos", note: "Verified imagery first" },
+  { value: "newest", label: "Latest Arrivals", note: "Newest additions" },
+  { value: "price_asc", label: "Price: Ascending", note: "Lowest price first" },
+  { value: "price_desc", label: "Price: Descending", note: "Highest price first" },
+  { value: "rating", label: "Highest Rated", note: "Top customer ratings" },
+];
+
 export default function ProductsPage() {
   const params = useQueryParams();
   const searchString = useSearch();
@@ -257,6 +163,8 @@ export default function ProductsPage() {
   const productsPage = section("productsPage");
   const categoryPages = section("categoryPages");
   const [showFilters, setShowFilters] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
 
   const [filters, setFilters] = useState({
     category: params.category || "",
@@ -273,6 +181,15 @@ export default function ProductsPage() {
     const page = Math.max(1, parseInt(p.page || "1", 10) || 1);
     setFilters(f => ({ ...f, category: p.category || "", search: p.search || "", page }));
   }, [searchString]);
+
+  useEffect(() => {
+    if (!sortOpen) return;
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) setSortOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [sortOpen]);
 
   const queryParams = {
     ...(filters.category && { category: filters.category }),
@@ -351,9 +268,7 @@ export default function ProductsPage() {
               >
                  {filters.category === "water-heaters"
                    ? `${waterHeaterRange.length} official models`
-                   : filters.category === "kitchen-sinks"
-                     ? `${kitchenSinkRange.length} official variants`
-                     : `${data?.total ?? "..."} ${productsPage.countText}`}
+                   : `${data?.total ?? "..."} ${productsPage.countText}`}
               </motion.p>
             </div>
           </div>
@@ -441,16 +356,77 @@ export default function ProductsPage() {
               </div>
 
               <div className="ml-auto flex max-w-full items-center gap-2 sm:gap-4">
-                <div className="relative">
-                  <select value={filters.sortBy} onChange={e => updateFilter("sortBy", e.target.value)}
-                    className="max-w-[168px] cursor-pointer appearance-none truncate border-b border-transparent bg-transparent py-1 pr-7 text-xs font-medium text-gray-900 outline-none transition-colors focus:border-[hsl(24,10%,16%)] sm:max-w-none sm:pr-8 sm:text-sm" data-testid="select-sort">
-                    <option value="photo_ready">Products with Photos</option>
-                    <option value="newest">Latest Arrivals</option>
-                    <option value="price_asc">Price: Ascending</option>
-                    <option value="price_desc">Price: Descending</option>
-                    <option value="rating">Highest Rated</option>
-                  </select>
-                  <ChevronDown className="w-4 h-4 text-gray-500 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <div className="relative min-w-0" ref={sortMenuRef}>
+                  {(() => {
+                    const activeSort = sortOptions.find(option => option.value === filters.sortBy) ?? sortOptions[0];
+                    return (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setSortOpen(open => !open)}
+                          onKeyDown={event => {
+                            if (event.key === "Escape") setSortOpen(false);
+                            if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              setSortOpen(true);
+                            }
+                          }}
+                          aria-haspopup="listbox"
+                          aria-expanded={sortOpen}
+                          aria-label={`Sort products: ${activeSort.label}`}
+                          className="group flex max-w-[220px] items-center gap-2 rounded-xl border border-[hsl(38,52%,52%)]/25 bg-white/75 px-3 py-2 text-left shadow-[0_8px_22px_-18px_rgba(92,58,25,0.7)] outline-none transition-all hover:border-[hsl(38,52%,52%)]/60 hover:bg-[hsl(42,62%,68%)]/10 focus-visible:ring-2 focus-visible:ring-[hsl(38,52%,52%)]/35 sm:max-w-none sm:px-3.5"
+                          data-testid="select-sort"
+                        >
+                          <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[hsl(38,52%,52%)] shadow-[0_0_0_3px_hsl(38,52%,52%,0.12)]" />
+                          <span className="min-w-0 truncate text-xs font-semibold text-gray-800 sm:text-sm">{activeSort.label}</span>
+                          <ChevronDown className={`ml-auto h-4 w-4 flex-shrink-0 text-[hsl(38,52%,45%)] transition-transform duration-300 ${sortOpen ? "rotate-180" : ""}`} />
+                        </button>
+                        <AnimatePresence>
+                          {sortOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                              transition={{ duration: 0.18 }}
+                              role="listbox"
+                              aria-label="Sort products"
+                              className="absolute left-0 top-[calc(100%+0.6rem)] z-50 w-[min(17rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-[hsl(38,52%,52%)]/25 bg-[#fffdfa] p-1.5 shadow-[0_22px_45px_-22px_rgba(42,28,18,0.55)] sm:left-auto sm:right-0"
+                            >
+                              <div className="px-3 pb-1.5 pt-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[hsl(38,52%,45%)]">Sort collection</div>
+                              {sortOptions.map(option => {
+                                const isActive = option.value === filters.sortBy;
+                                return (
+                                  <button
+                                    key={option.value}
+                                    type="button"
+                                    role="option"
+                                    aria-selected={isActive}
+                                    onClick={() => {
+                                      updateFilter("sortBy", option.value);
+                                      setSortOpen(false);
+                                    }}
+                                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all ${
+                                      isActive
+                                        ? "bg-[hsl(34,42%,34%)] text-white shadow-sm"
+                                        : "text-gray-800 hover:bg-[hsl(42,62%,68%)]/15 hover:text-[hsl(24,10%,16%)]"
+                                    }`}
+                                  >
+                                    <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border ${isActive ? "border-white/35 bg-white/10" : "border-[hsl(38,52%,52%)]/25 bg-[hsl(42,62%,68%)]/10"}`}>
+                                      {isActive ? <Check className="h-3.5 w-3.5" /> : <span className="h-1.5 w-1.5 rounded-full bg-[hsl(38,52%,52%)]" />}
+                                    </span>
+                                    <span className="min-w-0 flex-1">
+                                      <span className="block truncate text-xs font-semibold">{option.label}</span>
+                                      <span className={`block truncate text-[9px] ${isActive ? "text-white/65" : "text-gray-400"}`}>{option.note}</span>
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </>
+                    );
+                  })()}
                 </div>
                 
                 <div className="ml-0 flex gap-1 border-l border-gray-200 pl-2 sm:ml-2 sm:pl-4">
@@ -500,42 +476,6 @@ export default function ProductsPage() {
               </section>
             )}
 
-            {filters.category === "kitchen-sinks" && (
-              <section className="relative mb-12" data-testid="kitchen-sink-range">
-                <div className="mb-7 flex flex-col gap-3 border-b border-gray-200 pb-6 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(38,52%,45%)]">
-                      <span className="h-px w-8 bg-[hsl(38,52%,45%)]" /> Official Prayag Range
-                    </p>
-                    <h2 className="font-serif-lux text-3xl text-gray-900 md:text-4xl">Built for the heart of home</h2>
-                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-500">
-                      Explore Prayag’s durable kitchen-sink collections, with smooth non-porous surfaces, heat and scratch resistance, and hygienic everyday performance.
-                    </p>
-                  </div>
-                  <span className="inline-flex items-center gap-2 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[hsl(42,62%,68%)]" /> Official size & material details
-                  </span>
-                </div>
-                <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-4">
-                  {kitchenSinkRange.map((item, index) => (
-                    <OfficialRangeCard
-                      key={item.sku}
-                      index={index}
-                      name={item.name}
-                      imageUrl={`${import.meta.env.BASE_URL}images/drive/kitchen-sinks-web/${item.image}`}
-                      alt={`${item.collection} ${item.name}`}
-                      eyebrow={item.collection}
-                      description="Official Prayag kitchen-sink variant"
-                      chips={["Smooth & non-porous", "Heat & scratch resistant", "Hygienic"]}
-                      details={[item.size, `${item.thickness} · ${item.weight}`, item.colors]}
-                      badge={item.sku}
-                      sourceUrl={item.sourceUrl}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-
             {isLoading ? (
               <div className={`grid gap-6 ${view === "grid" ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1"}`}>
                 {[...Array(12)].map((_, i) => <Skeleton key={i} className="h-96 rounded-none bg-white border border-gray-100" />)}
@@ -550,7 +490,7 @@ export default function ProductsPage() {
                   }}
                   className={`grid gap-x-6 gap-y-10 ${view === "grid" ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1"}`}
                 >
-                  {data.products.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
+                  {data.products.map((p, i) => <ProductCard key={p.id} product={p} index={i} view={view} />)}
                 </motion.div>
                 
                 {/* Elegant Pagination */}
@@ -595,7 +535,7 @@ export default function ProductsPage() {
                   </div>
                 )}
               </>
-            ) : filters.category === "water-heaters" || filters.category === "kitchen-sinks" ? null : (
+            ) : filters.category === "water-heaters" ? null : (
               <div className="text-center py-32 bg-white border border-gray-100 mt-4">
                 <div className="w-20 h-20 mx-auto border-2 border-gray-100 flex items-center justify-center rounded-full mb-6">
                   <SlidersHorizontal className="w-8 h-8 text-gray-300" />

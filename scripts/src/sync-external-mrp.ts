@@ -26,6 +26,7 @@ import {
   syncProductImagesInTransaction,
   type ProductImageIndex,
 } from "./product-image-sync.js";
+import { OFFICIAL_KITCHEN_SINK_MARKER, syncOfficialKitchenSinks } from "./sync-official-kitchen-sinks.js";
 
 const API_BASE = "https://prayag-competition-analysis.replit.app/api/v1";
 const KEY = process.env.PRAYAG_COMP_KEY;
@@ -52,6 +53,7 @@ interface LocalProduct {
   sku: string;
   slug: string;
   in_stock: boolean;
+  specifications?: string | null;
 }
 
 export interface CatalogueSyncTransactionOptions {
@@ -204,7 +206,9 @@ export async function runCatalogueSyncTransaction({
 }: CatalogueSyncTransactionOptions): Promise<void> {
   const localBySku = new Map(local.map((row) => [row.sku, row]));
   const activeCodes = new Set(feed.map((row) => row.itemCode));
-  const missingIds = local.filter((row) => row.in_stock && !activeCodes.has(row.sku)).map((row) => row.id);
+  const missingIds = local
+    .filter((row) => row.in_stock && !activeCodes.has(row.sku) && !row.specifications?.includes(OFFICIAL_KITCHEN_SINK_MARKER))
+    .map((row) => row.id);
 
   // Assign every slug up front in JS so unique-constraint collisions cannot
   // happen mid-transaction. Slugs of rows we are NOT renaming stay reserved;
@@ -366,7 +370,7 @@ async function main() {
   if (!fallbackCategory) throw new Error("No product category exists for Prayag catalogue sync");
 
   const { rows: local } = await pool.query<LocalProduct>(
-    "SELECT id, sku, slug, in_stock FROM products"
+    "SELECT id, sku, slug, in_stock, specifications FROM products"
   );
   const activeCodes = new Set(feed.map((row) => row.itemCode));
   const missingIds = local.filter((row) => row.in_stock && !activeCodes.has(row.sku)).map((row) => row.id);
@@ -382,6 +386,7 @@ async function main() {
     fallbackCategory,
     local,
   });
+  await syncOfficialKitchenSinks();
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -93,9 +93,10 @@ export default function ProductDetailPage() {
   };
   const galleryImages = curatedGalleryImages[product.slug] ?? images;
   const hasGalleryImage = galleryImages.length > 0;
-  const discount = product.mrp > product.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
+  const hasPublishedPrice = product.price > 0;
+  const discount = hasPublishedPrice && product.mrp > product.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
   const gstPercent = product.gstPercent ?? 18;
-  const gstAmount = Math.round(product.price * (gstPercent / 100) * 100) / 100;
+  const gstAmount = hasPublishedPrice ? Math.round(product.price * (gstPercent / 100) * 100) / 100 : 0;
   const relatedItems = (related ?? []).slice(0, 8);
   const relatedLoopItems = Array.from({ length: 5 }, () => relatedItems).flat();
 
@@ -232,20 +233,30 @@ export default function ProductDetailPage() {
 
             {/* Price Block */}
             <div className="mb-10">
-              <div className="flex items-end gap-4 mb-2">
-                <span className="text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight" data-testid="text-price">
-                  ₹{product.price.toLocaleString("en-IN")}
-                </span>
-                {product.mrp > product.price && (
-                  <span className="text-xl text-gray-400 line-through mb-1.5" data-testid="text-mrp">
-                    ₹{product.mrp.toLocaleString("en-IN")}
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-col gap-1 mt-3">
-                <p className="text-sm text-gray-500 font-medium">+ GST ({gstPercent}%): ₹{gstAmount.toLocaleString("en-IN")}</p>
-                <p className="text-sm text-[hsl(24,10%,16%)] font-bold">Total incl. GST: ₹{(product.price + gstAmount).toLocaleString("en-IN")}</p>
-              </div>
+              {hasPublishedPrice ? (
+                <>
+                  <div className="mb-2 flex items-end gap-4">
+                    <span className="text-4xl font-bold tracking-tight text-gray-900 lg:text-5xl" data-testid="text-price">
+                      ₹{product.price.toLocaleString("en-IN")}
+                    </span>
+                    {product.mrp > product.price && (
+                      <span className="mb-1.5 text-xl text-gray-400 line-through" data-testid="text-mrp">
+                        ₹{product.mrp.toLocaleString("en-IN")}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-3 flex flex-col gap-1">
+                    <p className="text-sm font-medium text-gray-500">+ GST ({gstPercent}%): ₹{gstAmount.toLocaleString("en-IN")}</p>
+                    <p className="text-sm font-bold text-[hsl(24,10%,16%)]">Total incl. GST: ₹{(product.price + gstAmount).toLocaleString("en-IN")}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="border-l-2 border-[hsl(38,52%,52%)] bg-[hsl(42,62%,68%)]/10 px-5 py-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[hsl(38,52%,40%)]">Official catalogue item</p>
+                  <p className="mt-1 text-2xl font-bold tracking-tight text-gray-900" data-testid="text-price">Price on request</p>
+                  <p className="mt-1 text-sm text-gray-500">A verified MRP is not published for this variant yet.</p>
+                </div>
+              )}
             </div>
 
             {/* Action Area */}
@@ -444,8 +455,14 @@ export default function ProductDetailPage() {
                             <h3 className="mb-3 line-clamp-2 text-sm font-medium leading-snug text-white transition-colors group-hover:text-[hsl(42,62%,68%)] md:text-base">{p.name}</h3>
                             <div className="mt-auto flex items-center justify-between">
                               <div className="flex items-baseline gap-2">
-                                <span className="font-bold text-[hsl(42,62%,68%)]">₹{p.price.toLocaleString("en-IN")}</span>
-                                {p.mrp > p.price && <span className="text-xs text-white/30 line-through">₹{p.mrp.toLocaleString("en-IN")}</span>}
+                                {p.price > 0 ? (
+                                  <>
+                                    <span className="font-bold text-[hsl(42,62%,68%)]">₹{p.price.toLocaleString("en-IN")}</span>
+                                    {p.mrp > p.price && <span className="text-xs text-white/30 line-through">₹{p.mrp.toLocaleString("en-IN")}</span>}
+                                  </>
+                                ) : (
+                                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-[hsl(42,62%,68%)]">Price on request</span>
+                                )}
                               </div>
                               <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 transition-all group-hover:border-[hsl(42,62%,68%)] group-hover:bg-[hsl(42,62%,68%)]">
                                 <ChevronRight className="h-3.5 w-3.5 text-white/50 group-hover:text-[hsl(24,10%,16%)]" />
