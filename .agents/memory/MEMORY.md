@@ -18,3 +18,4 @@
 - [Hero media hierarchy](hero-media-hierarchy.md) — hero reels are full-bleed backgrounds; featured-series cards use synced static posters.
 - [Best Picks slider](best-picks-slider.md) — show four cards in a clipped 2×2 window; additional products loop upward continuously.
 - [PTMT official filters](ptmt-official-filters.md) — official PTMT taxonomy is a verified SKU snapshot; refresh it only by crawling source filters and exact item codes.
+- [Drizzle migration baselines](drizzle-migration-baselines.md) — untracked migration history causes full-schema output; existing databases need an incremental migration.
