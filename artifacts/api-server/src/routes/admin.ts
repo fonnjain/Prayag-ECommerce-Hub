@@ -296,6 +296,13 @@ router.put("/admin/site-content/:section", async (req, res): Promise<void> => {
   res.json({ section: row.section, data: row.data });
 });
 
+const importedProductFacetsSchema = z.object({
+  subCategory: z.string().nullable(),
+  sizeLabel: z.string().nullable(),
+  series: z.string().nullable(),
+  collection: z.string().nullable(),
+});
+
 router.post("/admin/import-products", async (req, res): Promise<void> => {
   const { products, images, deleteIds, keepOnlyIds } = req.body as {
     products?: Array<Record<string, unknown>>;
@@ -316,6 +323,17 @@ router.post("/admin/import-products", async (req, res): Promise<void> => {
     res.status(400).json({ error: "products, images, categories, siteContent, deleteIds or keepOnlyIds required" });
     return;
   }
+  const parsedProductFacets = hasProducts ? products!.map((product, index) => {
+    const parsed = importedProductFacetsSchema.safeParse(product);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: `Invalid product facets at index ${index}: subCategory, sizeLabel, series and collection must each be a string or null.`,
+      });
+      return null;
+    }
+    return parsed.data;
+  }) : [];
+  if (parsedProductFacets.some((facets) => facets === null)) return;
   const result = await db.transaction(async (tx) => {
     let siteContentUpserted = 0;
     if (hasSiteContent) {
@@ -367,7 +385,8 @@ router.post("/admin/import-products", async (req, res): Promise<void> => {
     }
     let upserted = 0;
     if (hasProducts) {
-      for (const p of products!) {
+      for (const [index, p] of products!.entries()) {
+        const facets = parsedProductFacets[index]!;
         const row = {
           id: p.id as number,
           name: p.name as string,
@@ -380,6 +399,10 @@ router.post("/admin/import-products", async (req, res): Promise<void> => {
           mrp: String(p.mrp),
           gstPercent: String(p.gstPercent ?? 18),
           categoryId: p.categoryId as number,
+          subCategory: facets.subCategory ?? null,
+          sizeLabel: facets.sizeLabel ?? null,
+          series: facets.series ?? null,
+          collection: facets.collection ?? null,
           imageUrl: (p.imageUrl as string | null) ?? null,
           rating: String(p.rating ?? "4.0"),
           reviewCount: (p.reviewCount as number) ?? 0,

@@ -1,0 +1,42 @@
+Found the actual root cause of the empty production facets. This is not a
+follow-up task — it is a one-line-per-column bug, and running backfill against
+production would not have fixed it.
+
+sync-prod-products transfers the catalogue from the workflow database to
+production via POST /api/admin/import-products. In
+artifacts/api-server/src/routes/admin.ts, that handler builds each product row
+from an explicitly hardcoded field list:
+
+  id, name, slug, sku, description, specifications, warranty, price, mrp,
+  gstPercent, categoryId, imageUrl, rating, reviewCount, inStock, isFeatured,
+  isNew
+
+The four new facet columns — subCategory, sizeLabel, series, collection — were
+never added to that list. The request body is typed as Record<string, unknown>,
+so the endpoint silently drops them with no validation error. That is why every
+sync reports success while production facets stay at zero.
+
+Fix:
+
+1. Add subCategory, sizeLabel, series and collection to the product row mapping
+   in the /admin/import-products handler, each defaulting to null. Confirm the
+   onConflictDoUpdate update set picks them up so existing production rows are
+   updated, not just new inserts.
+
+2. Redeploy/publish the API so production is running the fixed handler. The fix
+   only takes effect once production itself has the new code.
+
+3. Re-run the Daily MRP Sync workflow end to end.
+
+4. Verify against PRODUCTION and paste the actual output:
+   - the per-category facet count query, showing non-zero sub_category, series
+     and collection for ptmt-faucets
+   - curl https://prayag-store.com/api/products/facets?category=ptmt-faucets
+     returning the official Series/Collection/Type groups
+   - the same endpoint for one non-PTMT category returning groups
+
+5. Add a guard so this cannot silently recur: either validate the incoming
+   product payload with a Zod schema derived from the products table so unknown
+   or missing fields fail loudly, or add a test asserting that every column in
+   the products schema (except generated ones) is present in the import
+   handler's row mapping.
