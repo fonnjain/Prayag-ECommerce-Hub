@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useSearch } from "wouter";
-import { Grid3X3, List, SlidersHorizontal, X, ChevronDown, Check } from "lucide-react";
+import { Grid3X3, List, SlidersHorizontal, X, ChevronDown, Check, ArrowUpRight } from "lucide-react";
 import { useListProducts, useListCategories, getListProductsQueryKey } from "@workspace/api-client-react";
 import ProductCard from "@/components/ProductCard";
 import { useSiteContent } from "@/lib/siteContent";
@@ -16,6 +16,7 @@ const waterHeaterRange = [
     sizes: "6L–50L",
     application: "Glass Line & Metal Tank",
     features: ["Heat retention", "MG anode rod", "Glass-lined tank"],
+    sourceUrl: "https://prayagindia.com/bromo-vertical",
   },
   {
     name: "Therma Horizontal",
@@ -25,6 +26,7 @@ const waterHeaterRange = [
     sizes: "6L–50L",
     application: "Glass Line Tank",
     features: ["Metal tank", "Blue Diamond coating", "2–3 mm thickness"],
+    sourceUrl: "https://prayagindia.com/therma-horizontal",
   },
   {
     name: "Nile Vertical",
@@ -34,6 +36,7 @@ const waterHeaterRange = [
     sizes: "6L–50L",
     application: "Steel Tank",
     features: ["Corrosion protection", "Shock proof", "Copper heating element"],
+    sourceUrl: "https://prayagindia.com/nile-vertical",
   },
   {
     name: "Pico Vertical",
@@ -43,6 +46,7 @@ const waterHeaterRange = [
     sizes: "6L–50L",
     application: "Steel Tank",
     features: ["Corrosion protection", "Shock proof", "Copper heating element"],
+    sourceUrl: "https://prayagindia.com/pico-vertical",
   },
 ];
 
@@ -55,6 +59,7 @@ interface OfficialRangeCardProps {
   chips: string[];
   details: string[];
   badge: string;
+  sourceUrl: string;
   index: number;
 }
 
@@ -67,10 +72,14 @@ function OfficialRangeCard({
   chips,
   details,
   badge,
+  sourceUrl,
   index,
 }: OfficialRangeCardProps) {
   return (
-    <motion.div
+    <motion.a
+      href={sourceUrl}
+      target="_blank"
+      rel="noreferrer"
       whileHover={{ y: -6 }}
       className="group relative flex min-w-0 flex-col overflow-hidden rounded-[1.35rem] border border-[hsl(24,10%,16%)]/10 bg-white shadow-[0_12px_35px_-24px_rgba(42,28,18,0.75)] transition-all duration-500 hover:-translate-y-1 hover:border-[hsl(38,52%,45%)]/55 hover:shadow-[0_24px_50px_-24px_rgba(42,28,18,0.75)]"
       data-testid={`card-official-range-${index}`}
@@ -90,6 +99,11 @@ function OfficialRangeCard({
         </span>
         <span className="absolute right-4 top-4 z-10 rounded-full border border-[hsl(38,52%,45%)]/20 bg-white/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[hsl(38,52%,40%)] backdrop-blur-sm">
           Official
+        </span>
+        <span className="absolute inset-0 z-20 flex items-center justify-center bg-[hsl(24,10%,16%)]/45 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[hsl(42,62%,68%)] bg-black/30 text-[hsl(42,62%,68%)] backdrop-blur-sm">
+            <ArrowUpRight className="h-5 w-5" />
+          </span>
         </span>
       </div>
 
@@ -117,13 +131,13 @@ function OfficialRangeCard({
               </p>
             ))}
           </div>
-          <span className="inline-flex shrink-0 items-center text-[10px] font-bold uppercase tracking-[0.12em] text-gray-500 transition-colors group-hover:text-[hsl(38,52%,40%)]">
-            Range catalogue
+          <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-gray-500 transition-colors group-hover:text-[hsl(38,52%,40%)]">
+            Details <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </span>
         </div>
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-1 origin-left scale-x-0 bg-[hsl(42,62%,68%)] transition-transform duration-500 group-hover:scale-x-100" />
-    </motion.div>
+    </motion.a>
   );
 }
 
@@ -366,11 +380,12 @@ export default function ProductsPage() {
                           <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-[hsl(42,62%,68%)]">{group.title}</h4>
                           <div className={`space-y-2.5 ${group.key === "ptmtType" ? "max-h-64 overflow-y-auto pr-1" : ""}`}>
                             {group.options.map((option) => {
+                              const isUnavailable = false;
                               const isSelected = selected.includes(option);
                               return (
                                 <label
                                   key={option}
-                                  className="flex cursor-pointer items-start gap-3 group"
+                                  className={`flex items-start gap-3 ${isUnavailable ? "cursor-not-allowed opacity-45" : "cursor-pointer group"}`}
                                 >
                                   <div className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center border transition-colors ${
                                     isSelected ? "border-[hsl(42,62%,68%)] bg-[hsl(42,62%,68%)]" : "border-white/30 group-hover:border-[hsl(42,62%,68%)]"
@@ -380,9 +395,11 @@ export default function ProductsPage() {
                                   <span className={`min-w-0 flex-1 text-sm leading-snug transition-colors ${
                                     isSelected ? "font-semibold text-white" : "text-white/60 group-hover:text-white"
                                   }`}>{option}</span>
+                                  {isUnavailable && <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-white/45">Not listed</span>}
                                   <input
                                     type="checkbox"
                                     checked={isSelected}
+                                    disabled={isUnavailable}
                                     onChange={() => updateFilter(
                                       group.key,
                                       isSelected ? selected.filter((item) => item !== option) : [...selected, option],
@@ -549,7 +566,7 @@ export default function ProductsPage() {
                 </div>
                 <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-4">
                   {waterHeaterRange.map((item, index) => (
-                     <OfficialRangeCard
+                    <OfficialRangeCard
                       key={item.name}
                       index={index}
                       name={item.name}
@@ -560,6 +577,7 @@ export default function ProductsPage() {
                       chips={item.features}
                       details={[item.sizes, item.application]}
                       badge={item.orientation}
+                      sourceUrl={item.sourceUrl}
                     />
                   ))}
                 </div>
