@@ -43,12 +43,12 @@ outputType = "console"
 name = "Daily MRP Sync"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "while true; do if pnpm --filter @workspace/scripts run sync-external-mrp && pnpm --filter @workspace/scripts run sync-prod-products; then echo 'Next full Prayag MRP sync in 24h...'; sleep 86400; else echo 'MRP sync failed; retrying in 1 hour without publishing partial data...'; sleep 3600; fi; done"
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "while true; do if pnpm --filter @workspace/scripts run sync-external-mrp && pnpm --filter @workspace/scripts run backfill-product-facets && pnpm --filter @workspace/scripts run sync-prod-products; then echo 'Next full Prayag MRP sync in 24h...'; sleep 86400; else echo 'MRP sync or facet backfill failed; retrying in 1 hour without publishing partial data...'; sleep 3600; fi; done"
 
 [[workflows.workflow]]
 name = "PTMT Official Filter Audit"
