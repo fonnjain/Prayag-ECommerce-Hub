@@ -13,12 +13,13 @@ function allOfficialSkus() {
 test("official PTMT filter inventory retains every paginated old-website code", () => {
   const skus = allOfficialSkus();
 
-  // The official PTMT filters were crawled page by page. This count includes
-  // the old site’s Shower item, whose card exposes item code 181 via its image.
-  assert.equal(skus.size, 138);
+  // The official PTMT filters were crawled page by page. The one official
+  // Cockroach Trap family is intentionally routed to Kitchen Sinks.
+  assert.equal(skus.size, 137);
   for (const sku of ["147-RQ", "1375-U", "181"]) {
     assert.ok(skus.has(sku), `missing official PTMT item code ${sku}`);
   }
+  assert.ok(!Object.hasOwn(ptmtOfficialFilters.type, "Cockroach Trap with Water Seal"));
 });
 
 test("old-website PTMT mappings preserve exact source filter membership", () => {

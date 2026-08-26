@@ -77,6 +77,9 @@ const DIVISION_TO_CATEGORY_SLUG: Record<string, string> = {
 
 function categorySlugForProduct(product: PrayagProduct): string | undefined {
   const productText = [product.productName, product.category, product.seriesRange].filter(Boolean).join(" ");
+  if (/\bcockroach\s+trap\b/i.test(productText)) {
+    return "kitchen-sinks";
+  }
   if (/^WT-/i.test(product.itemCode.trim()) || /\bwater\s+tanks?\b/i.test(productText)) {
     return "storage-tanks";
   }
