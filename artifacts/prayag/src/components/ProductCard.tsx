@@ -2,9 +2,9 @@ import { Heart, ShoppingCart, Star, Eye } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { useAddToWishlist, getGetWishlistQueryKey } from "@workspace/api-client-react";
+import { useAddToCart, useAddToWishlist, getGetCartQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "@/lib/store";
+import { useCartStore, useAuthStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import SkuBadge from "./SkuBadge";
 
@@ -34,8 +34,10 @@ export default function ProductCard({ product, index = 0, view = "grid" }: Props
   const hasPublishedPrice = product.price > 0;
   const { toast } = useToast();
   const user = useAuthStore((state) => state.user);
+  const { setItemCount } = useCartStore();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const addToCart = useAddToCart();
   const addToWishlist = useAddToWishlist();
   const [isCardHovered, setIsCardHovered] = useState(false);
 
@@ -51,6 +53,22 @@ export default function ProductCard({ product, index = 0, view = "grid" }: Props
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
         toast({ title: "Added to wishlist" });
+      },
+    });
+  }
+
+  function handleAddToCart(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart.mutate({ data: { productId: product.id, quantity: 1 } }, {
+      onSuccess: (cart) => {
+        queryClient.setQueryData(getGetCartQueryKey(), cart);
+        setItemCount(cart.itemCount);
+        toast({ title: "Added to cart", description: product.name });
+      },
+      onError: (error) => {
+        const message = error instanceof Error ? error.message : "Please try again.";
+        toast({ title: "Couldn't add to cart", description: message, variant: "destructive" });
       },
     });
   }
@@ -166,6 +184,16 @@ export default function ProductCard({ product, index = 0, view = "grid" }: Props
                 </div>
               )}
             </div>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={addToCart.isPending}
+              className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[hsl(24,10%,16%)] px-4 text-[10px] font-bold uppercase tracking-[0.16em] text-white transition-colors hover:bg-[hsl(38,52%,40%)] disabled:cursor-wait disabled:opacity-70"
+              data-testid={`button-add-to-cart-${product.id}`}
+            >
+              <ShoppingCart className="h-3.5 w-3.5" />
+              {addToCart.isPending ? "Adding..." : "Add to Cart"}
+            </button>
           </div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-1 origin-left scale-x-0 bg-[hsl(42,62%,68%)] transition-transform duration-500 group-hover:scale-x-100" />

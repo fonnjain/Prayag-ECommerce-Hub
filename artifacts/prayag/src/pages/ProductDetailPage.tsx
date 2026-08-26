@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import { Heart, ShoppingCart, Star, Shield, Truck, RotateCcw, Share2, ChevronRight, ArrowLeft, CheckCircle2, ZoomIn } from "lucide-react";
-import { useGetProduct, useGetRelatedProducts, useListCategories, useAddToWishlist, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
+import { useGetProduct, useGetRelatedProducts, useListCategories, useAddToCart, useAddToWishlist, getGetCartQueryKey, getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "@/lib/store";
+import { useCartStore, useAuthStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/ProductCard";
 import SkuBadge from "@/components/SkuBadge";
@@ -71,6 +71,7 @@ export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { toast } = useToast();
   const user = useAuthStore((state) => state.user);
+  const { setItemCount } = useCartStore();
   const [, setLocation] = useLocation();
   const [activeImg, setActiveImg] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
@@ -86,6 +87,7 @@ export default function ProductDetailPage() {
   });
   const { data: categories } = useListCategories();
   const queryClient = useQueryClient();
+  const addToCart = useAddToCart();
   const addToWishlist = useAddToWishlist();
 
   useEffect(() => {
@@ -168,6 +170,20 @@ export default function ProductDetailPage() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
         toast({ title: "Added to wishlist" });
+      },
+    });
+  }
+
+  function handleAddToCart() {
+    addToCart.mutate({ data: { productId: product!.id, quantity: 1 } }, {
+      onSuccess: (cart) => {
+        queryClient.setQueryData(getGetCartQueryKey(), cart);
+        setItemCount(cart.itemCount);
+        toast({ title: "Added to cart", description: product!.name });
+      },
+      onError: (error) => {
+        const message = error instanceof Error ? error.message : "Please try again.";
+        toast({ title: "Couldn't add to cart", description: message, variant: "destructive" });
       },
     });
   }
@@ -319,9 +335,19 @@ export default function ProductDetailPage() {
 
             {/* Action Area */}
             <div className="bg-white border border-gray-200 p-6 md:p-8 mb-8 shadow-sm">
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                disabled={addToCart.isPending}
+                className="mb-4 flex h-14 w-full items-center justify-center gap-3 bg-[hsl(24,10%,16%)] px-6 text-xs font-bold uppercase tracking-[0.18em] text-white transition-all hover:bg-[hsl(38,52%,40%)] disabled:cursor-wait disabled:opacity-70"
+                data-testid="button-add-to-cart"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {addToCart.isPending ? "Adding to Cart..." : "Add to Cart"}
+              </button>
               <div className="flex gap-4">
                 <button onClick={handleWishlist}
-                  className="flex-1 h-12 border border-gray-300 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-700 hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                  className="h-12 flex-1 border border-gray-300 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-700 hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all"
                   data-testid="button-wishlist">
                   <Heart className="w-4 h-4" /> Save
                 </button>
