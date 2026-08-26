@@ -1,0 +1,85 @@
+GOAL
+Generalize the product filter sidebar so faceted filters work for ALL categories,
+not just PTMT Faucets. Filters must be data-driven: a facet group appears for a
+category only if that category's products actually have values for it.
+
+STEP 0 — COMMIT FIRST (do this before anything else)
+The existing "OFFICIAL PTMT FILTERS" sidebar code (Filter by Series / Collection /
+Type) exists only in this Replit workspace — it is NOT on GitHub main (latest
+commit f32119d). Commit and push that work to main before starting, so it isn't
+lost and so the new work has a clean base.
+
+BACKGROUND — why this is currently PTMT-only
+scripts/src/import-external-products.ts pulls from the external product API, which
+returns per product: itemCode, productName, division, category, size, uom,
+currentMrp. The script maps `division` to the site category, then flattens
+`category` and `size` into the product NAME and into the free-text
+`specifications` string. They are never stored as structured columns, so they
+can't be filtered on. The data already exists for every division (PTMT, CP
+Fittings, Ceramic Sanitaryware, Pipes & Fittings, Hardware) — it is just being
+thrown away.
+
+Also fix this naming bug: the import script writes the source `category` value
+into specifications labelled "Series: X", but in the UI "Series" means
+Delta/Helix/Lagoona/Ovian/Quadra/Standard/Ultra. Two different things share one
+label. Source `category` is the product TYPE (Angle Cock, Basin Mixer, Bib Cock,
+Bottle Trap, Hand Shower). Name it sub_category, not series.
+
+WORK ITEMS
+
+1. Schema (lib/db)
+   Add nullable columns to the products table: sub_category, size_label, series,
+   collection. Add an index on (category_id, sub_category) and on
+   (category_id, series). Generate a proper Drizzle migration.
+
+2. Import + sync scripts
+   Populate the new columns directly from the API response (category ->
+   sub_category, size -> size_label). Derive series and collection by parsing the
+   product name where a known series/collection word appears; leave them NULL when
+   nothing matches — do not guess.
+
+   IMPORTANT: do NOT change the existing product `name` or `slug` values. Slugs are
+   in live URLs and search-engine indexes. Only add the new columns.
+
+3. Backfill
+   Write a one-off backfill that parses the existing `specifications` text (the
+   "Division:", "Series:", "Size:" lines) to populate the new columns for products
+   already in the database, so a full re-import isn't required. Make it idempotent.
+
+4. New API endpoint — GET /api/products/facets?category=<slug>
+   Returns the available facet groups for that category, each with its distinct
+   values and a product count per value. Omit any group that has no values, and
+   omit any group with fewer than 2 distinct values (a filter with one option is
+   useless). When no category is given, return facets across the whole catalogue.
+   This must be a PUBLIC route — do not put it behind requireAuth.
+
+5. GET /api/products — accept new filters
+   Add subCategory, series, collection, and size filters. Multiple values within
+   one group should OR together; different groups should AND together. Keep the
+   existing category, minPrice, maxPrice, inStock, search, sort and pagination
+   behaviour exactly as it is.
+
+6. Frontend — artifacts/prayag/src/pages/ProductsPage.tsx
+   Replace the hardcoded PTMT filter block with facet groups rendered dynamically
+   from the new endpoint. Keep the existing Category, Price Scope, and In Stock
+   filters. Show the product count next to each value. Reflect selected facets in
+   the URL query string so filters survive refresh, sharing, and the back button.
+   Re-fetch facets when the selected category changes.
+
+7. Contracts
+   Update the OpenAPI spec in lib/api-spec and regenerate lib/api-zod and
+   lib/api-client-react so the client stays in sync.
+
+ACCEPTANCE CRITERIA
+- pnpm run typecheck from the workspace root exits 0.
+- /api/products/facets?category=ptmt-faucets returns the same Series, Collection
+  and Type values the current hardcoded sidebar shows.
+- /api/products/facets returns meaningful groups for sanitaryware, cp-faucets and
+  pipes-fittings too — not just PTMT.
+- A category with no sub-category data shows no empty facet group.
+- Selecting a facet narrows the result grid and updates the URL.
+- Existing product URLs still resolve (slugs unchanged).
+- Do not remove the current PTMT sidebar until the dynamic version renders the
+  same values for PTMT.
+
+Then commit and push to GitHub main.
