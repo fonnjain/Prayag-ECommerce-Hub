@@ -10,6 +10,63 @@ import SkuBadge from "@/components/SkuBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 
+type SpecificationRow = {
+  label: string;
+  value: string;
+};
+
+function rowsFromTextSpecifications(specifications: string): SpecificationRow[] {
+  return specifications
+    .split(/\r?\n/)
+    .filter((line) => line.trim())
+    .map((line, index) => {
+      const separator = line.indexOf(":");
+      return {
+        label: separator > 0 ? line.slice(0, separator).trim() : `Detail ${index + 1}`,
+        value: separator > 0 ? line.slice(separator + 1).trim() : line.trim(),
+      };
+    });
+}
+
+function officialSpecificationRows(specifications?: string | null): SpecificationRow[] {
+  if (!specifications) return [];
+
+  try {
+    const metadata = JSON.parse(specifications) as Record<string, unknown>;
+    if (metadata.contentSource !== "prayagindia.com") {
+      return rowsFromTextSpecifications(specifications);
+    }
+
+    const value = (key: string) => typeof metadata[key] === "string" ? metadata[key].trim() : "";
+    const rows: SpecificationRow[] = [];
+    const add = (label: string, detail: string) => {
+      if (detail) rows.push({ label, value: detail });
+    };
+
+    add("Official Product", value("officialSourceTitle"));
+    add("Item Code", value("officialItemCode"));
+    add("Category", value("officialCategory"));
+    add("Features", value("officialFeatures"));
+    add("Applications", value("officialApplications").replace(/^Product Applications\s*/i, ""));
+
+    const highlights = Array.isArray(metadata.officialHighlights)
+      ? metadata.officialHighlights.filter((item): item is string => typeof item === "string" && Boolean(item.trim()))
+      : [];
+    add("Highlights", highlights.join(" · "));
+
+    const supplierDetails = value("supplierCatalogueDetails");
+    for (const row of rowsFromTextSpecifications(supplierDetails)) {
+      if (!["Item Code", "Category"].includes(row.label) && !rows.some((item) => item.label === row.label)) {
+        rows.push(row);
+      }
+    }
+
+    return rows;
+  } catch {
+    return rowsFromTextSpecifications(specifications);
+  }
+}
+
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { toast } = useToast();
@@ -99,6 +156,7 @@ export default function ProductDetailPage() {
   const gstAmount = hasPublishedPrice ? Math.round(product.price * (gstPercent / 100) * 100) / 100 : 0;
   const relatedItems = (related ?? []).slice(0, 8);
   const relatedLoopItems = Array.from({ length: 5 }, () => relatedItems).flat();
+  const technicalSpecifications = officialSpecificationRows(product.specifications);
 
   function handleWishlist() {
     if (!user) {
@@ -361,15 +419,12 @@ export default function ProductDetailPage() {
                 {activeTab === "specifications" && (
                   <div>
                     <h3 className="font-serif-lux text-2xl text-gray-900 mb-6">Technical Specifications</h3>
-                    {product.specifications ? (
+                    {technicalSpecifications.length > 0 ? (
                       <div className="divide-y divide-gray-100 border border-gray-100">
-                        {product.specifications.split(/\r?\n/).filter(l => l.trim()).map((line, i) => {
-                          const idx = line.indexOf(":");
-                          const label = idx > 0 ? line.slice(0, idx).trim() : null;
-                          const value = idx > 0 ? line.slice(idx + 1).trim() : line.trim();
+                        {technicalSpecifications.map(({ label, value }, i) => {
                           return (
                             <div key={i} className={`grid sm:grid-cols-[220px_1fr] ${i % 2 === 0 ? "bg-[#FAF9F7]" : "bg-white"}`}>
-                              <div className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">{label || `Detail ${i + 1}`}</div>
+                              <div className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">{label}</div>
                               <div className="px-5 py-3.5 text-sm text-gray-800">{value}</div>
                             </div>
                           );
