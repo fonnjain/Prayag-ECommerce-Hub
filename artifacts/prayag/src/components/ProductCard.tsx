@@ -56,7 +56,7 @@ export default function ProductCard({ product, index = 0, view = "grid" }: Props
   }
 
   return (
-    <Link href={`/products/${product.slug}`} data-testid={`card-product-${product.id}`}>
+    <Link href={`/products/${product.slug}`} className="block w-full" data-testid={`card-product-${product.id}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -64,7 +64,7 @@ export default function ProductCard({ product, index = 0, view = "grid" }: Props
         whileHover={{ y: -6 }}
         onHoverStart={() => setIsCardHovered(true)}
         onHoverEnd={() => setIsCardHovered(false)}
-        className={`group relative flex min-w-0 cursor-pointer overflow-hidden rounded-[1.35rem] border bg-white transition-all duration-500 ${
+        className={`group relative flex w-full min-w-0 cursor-pointer overflow-hidden rounded-[1.35rem] border bg-white transition-all duration-500 ${
           isListView ? "flex-row" : "h-full flex-col"
         } ${
           isCardHovered
