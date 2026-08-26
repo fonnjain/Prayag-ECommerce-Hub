@@ -286,6 +286,7 @@ export default function ProductsPage() {
 
   const totalPages = data?.totalPages || 1;
   const isPtmtCategory = filters.category === "ptmt-faucets";
+  const isWaterHeaterCategory = filters.category === "water-heaters";
 
   return (
     <div className="bg-[#FAF9F7] min-h-screen pb-20">
@@ -335,9 +336,12 @@ export default function ProductsPage() {
       })()}
 
       <div className="max-w-[1400px] mx-auto px-6 py-10">
-        <div className="flex flex-col lg:flex-row gap-10">
+          <div className="flex flex-col lg:flex-row gap-10">
           {/* Elegant Sidebar */}
-          <aside className={`w-full flex-shrink-0 lg:w-64 ${showFilters ? "block" : "hidden"} lg:block`}>
+            <aside className={isWaterHeaterCategory
+              ? "hidden"
+              : `w-full flex-shrink-0 lg:w-64 ${showFilters ? "block" : "hidden"} lg:block`
+            }>
             <div className={`sticky top-28 overflow-hidden rounded-[1.5rem] border border-[hsl(38,52%,52%)]/30 bg-[linear-gradient(165deg,#3a2a1d_0%,#261d17_58%,#1d1814_100%)] p-5 text-white shadow-[0_20px_45px_-28px_rgba(42,28,18,0.95)] ${isPtmtCategory ? "lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto" : ""}`}>
               <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-[radial-gradient(circle,hsl(42,62%,68%,0.2),transparent_68%)]" />
               <div className="relative space-y-8">
@@ -453,7 +457,7 @@ export default function ProductsPage() {
           {/* Main Grid Area */}
           <div className="flex-1 min-w-0">
             {/* Minimal Toolbar */}
-            <div className="mb-8 flex flex-wrap items-center justify-between gap-y-3 border-b border-gray-200 pb-4">
+            <div className={isWaterHeaterCategory ? "hidden" : "mb-8 flex flex-wrap items-center justify-between gap-y-3 border-b border-gray-200 pb-4"}>
               <button className="lg:hidden flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-gray-900" onClick={() => setShowFilters(p => !p)} data-testid="button-filters">
                 <SlidersHorizontal className="w-4 h-4" /> Filters {showFilters && <X className="w-4 h-4 ml-2" />}
               </button>
@@ -564,7 +568,7 @@ export default function ProductsPage() {
                     <span className="h-1.5 w-1.5 rounded-full bg-[hsl(42,62%,68%)]" /> 6L–50L capacity
                   </span>
                 </div>
-                <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-x-6 gap-y-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                   {waterHeaterRange.map((item, index) => (
                     <OfficialRangeCard
                       key={item.name}
