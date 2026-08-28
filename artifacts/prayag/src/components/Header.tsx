@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, Heart, ShoppingCart, User, ChevronDown, Menu, X, Grid3X3, ImageIcon, Video } from "lucide-react";
+import { Search, Heart, ShoppingCart, User, Users, ChevronDown, Menu, X, Grid3X3, ImageIcon, Video } from "lucide-react";
 import { useCartStore, useAuthStore } from "@/lib/store";
 import { useGetCart, useGetWishlist, useGetSearchSuggestions, getGetSearchSuggestionsQueryKey, getGetWishlistQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -192,6 +192,21 @@ export default function Header() {
               </div>
             )}
           </div>
+
+          {user?.role === "admin" && (
+            <Link
+              href="/admin?tab=users"
+              className="flex flex-col items-center text-gray-600 transition-colors hover:text-[hsl(24,10%,16%)]"
+              data-testid="link-user-management"
+              aria-label="User Management"
+            >
+              <Users className="h-5 w-5" />
+              <span className="mt-0.5 hidden whitespace-nowrap text-[10px] sm:block">
+                <span className="lg:hidden">Users</span>
+                <span className="hidden lg:inline">User Management</span>
+              </span>
+            </Link>
+          )}
 
           <Link href="/cart" className="relative flex flex-col items-center text-gray-600 transition-colors hover:text-[hsl(24,10%,16%)]" data-testid="link-cart">
             <div className="relative">

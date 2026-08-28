@@ -5,6 +5,7 @@ import SiteContentManager from "@/components/admin/SiteContentManager";
 import CategoryManager from "@/components/admin/CategoryManager";
 import ProductEditModal from "@/components/admin/ProductEditModal";
 import ProductImageReview from "@/components/admin/ProductImageReview";
+import UsersManager from "@/components/admin/UsersManager";
 import type { Product } from "@workspace/api-client-react";
 import { useGetAdminDashboard, useGetRevenueStats, useListAdminOrders, useListAdminProducts, useListAdminCustomers, useListAdminDealers, useUpdateOrderStatus, getListAdminOrdersQueryKey, useListAdminOrderRequests, getListAdminOrderRequestsQueryKey, useUpdateOrderRequest } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
@@ -22,10 +23,11 @@ const navItems = [
   { id: "site-content", label: "Site Content", icon: Palette },
   { id: "orders", label: "Orders", icon: Package },
   { id: "requests", label: "Requests", icon: RotateCcw },
-  { id: "customers", label: "Customers", icon: Users },
+  { id: "users", label: "Users & Staff", icon: Users },
   { id: "dealers", label: "Dealers", icon: Building2 },
   { id: "distributors", label: "Distributors", icon: Truck },
 ];
+const adminTabIds = new Set(navItems.map((item) => item.id));
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
@@ -46,7 +48,10 @@ const requestStatusColors: Record<string, string> = {
 };
 
 export default function AdminPage() {
-  const [active, setActive] = useState("dashboard");
+  const [active, setActive] = useState(() => {
+    const requestedTab = new URLSearchParams(window.location.search).get("tab");
+    return requestedTab && adminTabIds.has(requestedTab) ? requestedTab : "dashboard";
+  });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -56,7 +61,6 @@ export default function AdminPage() {
   const { data: revenueStats } = useGetRevenueStats();
   const { data: orders } = useListAdminOrders({});
   const { data: productsData } = useListAdminProducts({});
-  const { data: customers } = useListAdminCustomers({});
   const { data: dealers } = useListAdminDealers({});
   const { data: distributorsData } = useQuery({ queryKey: ["admin-distributors"], enabled: !!user, queryFn: async () => { const r = await authenticatedFetch("/api/admin/distributors"); if (!r.ok) throw new Error(`Failed to load distributors (${r.status})`); return r.json(); } });
   const distributors = Array.isArray(distributorsData) ? distributorsData : [];
@@ -309,26 +313,8 @@ export default function AdminPage() {
           </div>
         )}
 
-        {active === "customers" && (
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Customer Management</h1>
-            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50"><tr>{["Name", "Email", "Phone", "Total Orders", "Joined"].map(h => <th key={h} className="text-left px-4 py-2.5 text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead>
-                <tbody className="divide-y divide-gray-50">
-                  {(customers || []).map((c: any) => (
-                    <tr key={c.id} className="hover:bg-gray-50" data-testid={`row-customer-${c.id}`}>
-                      <td className="px-4 py-3 font-medium">{c.name}</td>
-                      <td className="px-4 py-3 text-gray-500">{c.email}</td>
-                      <td className="px-4 py-3 text-gray-500">{c.phone || "-"}</td>
-                      <td className="px-4 py-3">{c.totalOrders}</td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">{new Date(c.createdAt).toLocaleDateString("en-IN")}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        {active === "users" && (
+          <UsersManager />
         )}
 
         {active === "dealers" && (
